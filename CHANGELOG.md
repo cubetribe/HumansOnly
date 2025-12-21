@@ -1,0 +1,261 @@
+# Changelog
+
+All notable changes to the Humans Only project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.0.0] - 2025-12-21
+
+### Project Initialization
+
+Initial setup and production deployment of Humans Only platform, forked from fatiharapoglu/twitter.
+
+### Added
+
+#### Application Features
+- User authentication system with JWT and bcrypt password hashing
+- User profiles with customizable bio, avatar, and header images
+- Tweet/Post creation with text (280 chars) and image support
+- Reply system with nested conversations
+- Retweet/Repost functionality
+- Like system for posts
+- Following/Followers relationship management
+- Direct messaging (DM) system
+- Real-time notifications
+- Global search (users and posts)
+- Premium/Verified badge system
+- Dark/Light theme toggle
+- Responsive design (mobile, tablet, desktop)
+- Infinite scroll pagination
+
+#### Technical Infrastructure
+- Next.js 14.2.33 with App Router (React 18)
+- TypeScript 5.0 for type safety
+- Prisma 4.16 ORM with PostgreSQL 16 database
+- Material UI 5.13 component library
+- TanStack React Query 4.29 for data fetching
+- Formik 2.2 + Yup 1.1 for form handling
+- Framer Motion 10.12 for animations
+
+#### Database Schema
+- User model (id, username, password, profile fields, isPremium, timestamps)
+- Tweet model (id, text, photoUrl, isRetweet, isReply, relations)
+- Message model (sender, recipient, text, photoUrl)
+- Notification model (type, content, isRead, timestamps)
+- Many-to-many relations: Following, Likes, Retweets
+
+#### Production Deployment
+- Ubuntu 24.04 VPS server (5.182.17.148)
+- Node.js 20.19.6 runtime
+- PostgreSQL 16.11 database (humansonly_prod)
+- PM2 process manager with systemd integration
+- Nginx 1.24.0 reverse proxy with HTTP/2
+- Let's Encrypt SSL certificate (auto-renewing)
+- Domain: https://ho.nm-forum.de
+- Firewall: UFW with ports 22, 80, 443 open
+
+#### Documentation
+- Main README.md (project overview)
+- Developer README.md (setup and development)
+- DEPLOYMENT.md (production deployment guide)
+- API_CONSUMERS.md (31 API endpoints documented)
+- Project roadmap and architecture documentation
+
+### Fixed
+
+#### PM2 Crash-Loop Issue (2025-12-21)
+- **Problem:** PM2 process crashed continuously (443+ restarts)
+- **Root Cause:** Port conflict - App tried to use Port 3000 (blocked by Docker)
+- **Solution:**
+  - Created PM2 ecosystem.config.js with explicit PORT=3001
+  - Killed zombie next-router-worker process (PID 2937980)
+  - Configured systemd auto-start
+  - Result: 0 restarts, stable operation
+
+#### Port Configuration Issue
+- **Problem:** Next.js ignored .env PORT variable
+- **Solution:** Explicit port configuration in PM2 ecosystem config
+
+#### Database Authentication Issue
+- **Problem:** PostgreSQL authentication failed with special characters in password
+- **Solution:** Changed password to alphanumeric (HumansOnly2024Prod)
+
+### Changed
+
+#### Rebranding
+- Project name: "Twitter Clone" → "Humans Only"
+- Domain: localhost → ho.nm-forum.de
+- Database: twitter_clone → humansonly_dev/humansonly_prod
+- Terminology: "Tweet" remains (to be changed in v1.1)
+
+#### Environment Configuration
+- Development: localhost:3000 → localhost:3001 (Port 3000 blocked)
+- Production: Port 3001 (Nginx reverse proxy on 80/443)
+- Database: Separate dev/prod databases
+
+### Deployment
+
+#### Initial Deployment (2025-12-21 17:56 CET)
+- Total deployment time: ~25 minutes
+- 13 Prisma migrations applied
+- 27 static pages pre-rendered
+- Bundle size: 87.5 kB (First Load JS)
+- SSL certificate valid until: 2026-03-21
+
+#### Production Metrics
+- PM2 Uptime: 0 restarts (stable)
+- Server Memory: 6.3 GB / 24 GB (26% usage)
+- Server Disk: 38 GB / 774 GB (5% usage)
+- TTFB Performance: 136ms (excellent)
+- SSL Grade: A (TLSv1.3)
+
+### Security
+
+#### Implemented
+- HTTPS-only enforcement (HTTP → HTTPS redirect)
+- JWT token authentication
+- Bcrypt password hashing (salt rounds: 10)
+- SQL injection protection (Prisma ORM)
+- XSS protection (React built-in)
+- Firewall configuration (UFW)
+- Secure environment variable handling
+
+#### Pending (v1.1)
+- Content Security Policy (CSP) headers
+- HTTP Strict Transport Security (HSTS)
+- Rate limiting
+- Fail2ban for SSH/Nginx
+
+### Known Issues
+
+#### Non-Critical
+- Supabase storage credentials are placeholders (file upload temporarily disabled)
+- No database backup automation (manual backups only)
+- No uptime monitoring configured
+- Security headers (CSP, HSTS) not yet implemented
+
+#### Documentation TODOs
+- Frontend consumer analysis for API_CONSUMERS.md (marked as TBD)
+- ARCHITECTURE.md not yet created
+- CONTRIBUTING.md referenced but not created
+- Repository URL placeholders need updating
+
+### Attribution
+
+This project is based on the excellent work of **Fatih Arapoglu**:
+- Original Repository: https://github.com/fatiharapoglu/twitter
+- Original License: MIT License
+- All original features and architecture credit to Fatih Arapoglu
+
+### Contributors
+
+**Development Team (AI Agents):**
+- @architect - System architecture and planning
+- @builder - Code implementation and deployment
+- @validator - Quality assurance and testing
+- @scribe - Documentation and API registry
+
+**Project Maintainer:** d.westermann@ol-mg.de
+
+---
+
+## [Unreleased]
+
+### Planned for v1.1
+
+#### Features
+- AI content detection API integration
+- Content moderation dashboard
+- Enhanced notification system
+- User verification badges
+
+#### Infrastructure
+- Automated database backups (daily)
+- Uptime monitoring (UptimeRobot or similar)
+- Security headers (CSP, HSTS, X-Frame-Options)
+- Rate limiting on API endpoints
+- Fail2ban for brute-force protection
+
+#### Documentation
+- Complete API_CONSUMERS.md with frontend consumer analysis
+- Create ARCHITECTURE.md
+- Create CONTRIBUTING.md
+- Add API request/response examples
+
+#### Performance
+- Bundle size optimization
+- Image optimization
+- Database query optimization
+- Implement caching strategy
+
+### Planned for v2.0
+
+#### Features
+- Advanced AI detection models
+- User verification process
+- Creator monetization (tips, subscriptions)
+- Multi-language support
+- Video upload support
+- Polls and surveys
+- Analytics dashboard
+
+#### Infrastructure
+- PM2 cluster mode (load balancing)
+- Database read replicas
+- CDN integration
+- Blue-green deployment strategy
+
+---
+
+## Version History
+
+- **1.0.0** (2025-12-21) - Initial production deployment
+- **Unreleased** - Future enhancements
+
+---
+
+## Migration Notes
+
+### From Development to Production
+
+#### Database
+```bash
+# Production database created
+Database: humansonly_prod
+User: humansonly_user
+13 migrations applied successfully
+```
+
+#### Environment Variables
+```bash
+# Key changes from dev to prod
+DATABASE_URL: localhost → localhost (different DB name)
+NEXT_PUBLIC_HOST_URL: http://localhost:3000 → https://ho.nm-forum.de
+NODE_ENV: development → production
+PORT: 3000 → 3001
+```
+
+#### Dependencies
+```bash
+# Production installation
+npm ci (479 packages installed)
+Build time: ~45 seconds
+Zero errors, zero warnings
+```
+
+---
+
+## Breaking Changes
+
+### None (v1.0.0 is initial release)
+
+Future breaking changes will be documented here with migration guides.
+
+---
+
+**Maintained by:** Humans Only Team
+**Last Updated:** 2025-12-21
+**Next Review:** 2025-12-28

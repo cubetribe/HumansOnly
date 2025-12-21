@@ -20,8 +20,8 @@ export default function RightSidebar() {
                 {token && <CompleteProfileReminder token={token} />}
                 {!isPending && !token && (
                     <div className="reminder">
-                        <h1>Don’t miss what’s happening</h1>
-                        <p>People on Twitter are the first to know.</p>
+                        <h1>Don&apos;t miss what&apos;s happening</h1>
+                        <p>People on Humans Only are the first to know.</p>
                         <div className="reminder-buttons">
                             <Link href="/" className="btn btn-white">
                                 Log In

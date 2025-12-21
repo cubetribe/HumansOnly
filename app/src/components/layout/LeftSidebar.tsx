@@ -56,7 +56,7 @@ export default function LeftSidebar() {
             <aside className="left-sidebar">
                 <div className="fixed">
                     <Link href="/explore" className="twitter-icon">
-                        <FaTwitter />
+                        <HumansOnlyLogo />
                     </Link>
                     <nav>
                         <ul>
@@ -137,9 +137,9 @@ export default function LeftSidebar() {
                                 <div>
                                     <div className="token-name">
                                         {token.name !== "" ? token.name : token.username}
-                                        {token.isPremium && (
-                                            <span className="blue-tick" data-blue="Verified Blue">
-                                                <AiFillTwitterCircle />
+                                        {token.isVerifiedHuman && (
+                                            <span className="blue-tick" data-blue="Verified Human">
+                                                <VerifiedHumanBadge />
                                             </span>
                                         )}
                                     </div>

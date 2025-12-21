@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params: { tweetId } }: { param
                         username: true,
                         name: true,
                         description: true,
-                        isPremium: true,
+                        isVerifiedHuman: true,
                         photoUrl: true,
                     },
                 },
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params: { tweetId } }: { param
                         username: true,
                         name: true,
                         description: true,
-                        isPremium: true,
+                        isVerifiedHuman: true,
                         photoUrl: true,
                         followers: {
                             select: {
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest, { params: { tweetId } }: { param
                                 id: true,
                                 username: true,
                                 name: true,
-                                isPremium: true,
+                                isVerifiedHuman: true,
                                 description: true,
                             },
                         },
@@ -76,11 +76,22 @@ export async function POST(
     request: NextRequest,
     { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
 ) {
-    const { authorId, text, photoUrl } = await request.json();
-
+    // Verify authentication first
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
-    const verifiedToken: UserProps = token && (await verifyJwtToken(token));
+
+    if (!token) {
+        return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    const verifiedToken: UserProps = await verifyJwtToken(token);
+
+    if (!verifiedToken || !verifiedToken.id) {
+        return NextResponse.json({ success: false, message: "Invalid token" }, { status: 401 });
+    }
+
+    // Extract authorId from JWT (secure)
+    const authorId = verifiedToken.id;
 
     const secret = process.env.CREATION_SECRET_KEY;
 
@@ -91,18 +102,37 @@ export async function POST(
         });
     }
 
-    if (!verifiedToken)
-        return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
+    // Parse request body
+    const { text, photoUrl } = await request.json();
 
-    if (verifiedToken.id !== authorId)
-        return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
+    // Validate input
+    if (!text || typeof text !== 'string') {
+        return NextResponse.json({
+            success: false,
+            message: "Text is required"
+        }, { status: 400 });
+    }
+
+    if (text.length === 0 || text.length > 280) {
+        return NextResponse.json({
+            success: false,
+            message: "Text must be 1-280 characters"
+        }, { status: 400 });
+    }
+
+    // Sanitize photoUrl
+    const sanitizedPhotoUrl = photoUrl && typeof photoUrl === 'string'
+        ? (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('http'))
+            ? photoUrl
+            : null
+        : null;
 
     try {
         await prisma.tweet.create({
             data: {
                 isReply: true,
                 text,
-                photoUrl,
+                photoUrl: sanitizedPhotoUrl,
                 author: {
                     connect: {
                         id: authorId,

@@ -30,15 +30,15 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         if (storedTheme) {
             setTheme(storedTheme);
         } else {
-            setTheme("light");
+            setTheme("dark");
         }
     }, []);
 
     useEffect(() => {
-        if (theme === "dark") {
-            document.documentElement.setAttribute("data-theme", "dark");
-        } else {
+        if (theme === "light") {
             document.documentElement.setAttribute("data-theme", "light");
+        } else {
+            document.documentElement.setAttribute("data-theme", "dark");
         }
     }, [theme]);
 

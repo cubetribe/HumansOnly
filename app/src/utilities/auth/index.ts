@@ -3,10 +3,11 @@ const verifyTokenFromServer = async (token: string) => {
 
     const response = await fetch(`${HOST_URL}/api/auth/verify`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(token),
+        body: JSON.stringify({ token }),
     });
     return response.json();
 };

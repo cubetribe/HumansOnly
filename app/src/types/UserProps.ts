@@ -5,7 +5,7 @@ export type UserProps = {
     description: string;
     location: string;
     website: string;
-    isPremium: boolean;
+    isVerifiedHuman: boolean;
     createdAt: Date;
     updatedAt: Date;
     photoUrl: string;

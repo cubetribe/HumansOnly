@@ -4,6 +4,7 @@ const HOST_URL = process.env.NEXT_PUBLIC_HOST_URL;
 
 export const getAllTweets = async (page = "1") => {
     const response = await fetch(`${HOST_URL}/api/tweets/all?page=${page}`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -15,6 +16,7 @@ export const getAllTweets = async (page = "1") => {
 
 export const getRelatedTweets = async () => {
     const response = await fetch(`${HOST_URL}/api/tweets/related`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -26,6 +28,7 @@ export const getRelatedTweets = async () => {
 
 export const getUserTweets = async (username: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${username}`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -37,6 +40,7 @@ export const getUserTweets = async (username: string) => {
 
 export const getUserLikes = async (username: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${username}/likes`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -48,6 +52,7 @@ export const getUserLikes = async (username: string) => {
 
 export const getUserMedia = async (username: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${username}/media`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -59,6 +64,7 @@ export const getUserMedia = async (username: string) => {
 
 export const getUserReplies = async (username: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${username}/replies`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -70,6 +76,7 @@ export const getUserReplies = async (username: string) => {
 
 export const getUserTweet = async (tweetId: string, tweetAuthor: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -82,6 +89,7 @@ export const getUserTweet = async (tweetId: string, tweetAuthor: string) => {
 export const createTweet = async (tweet: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/create`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -95,6 +103,7 @@ export const createTweet = async (tweet: string) => {
 export const logIn = async (candidate: string) => {
     const response = await fetch(`${HOST_URL}/api/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -113,6 +122,7 @@ export const logInAsTest = async () => {
 
 export const logout = async () => {
     await fetch(`${HOST_URL}/api/auth/logout`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -122,6 +132,7 @@ export const logout = async () => {
 export const createUser = async (newUser: string) => {
     const response = await fetch(`${HOST_URL}/api/users/create`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -132,6 +143,7 @@ export const createUser = async (newUser: string) => {
 
 export const getUser = async (username: string) => {
     const response = await fetch(`${HOST_URL}/api/users/${username}`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -144,6 +156,7 @@ export const getUser = async (username: string) => {
 export const editUser = async (updatedUser: string, username: string) => {
     const response = await fetch(`${HOST_URL}/api/users/${username}/edit`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -156,6 +169,7 @@ export const updateTweetLikes = async (tweetId: string, tweetAuthor: string, tok
     const route = isLiked ? "unlike" : "like";
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/${route}`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -166,10 +180,11 @@ export const updateTweetLikes = async (tweetId: string, tweetAuthor: string, tok
     return json;
 };
 
-export const updateRetweets = async (tweetId: string, tweetAuthor: string, tokenOwnerId: string, isRetweeted: boolean) => {
-    const route = isRetweeted ? "unretweet" : "retweet";
+export const updateReposts = async (tweetId: string, tweetAuthor: string, tokenOwnerId: string, isReposted: boolean) => {
+    const route = isReposted ? "unretweet" : "retweet";
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/${route}`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -184,6 +199,7 @@ export const updateUserFollows = async (followedUsername: string, tokenOwnerId: 
     const route = isFollowed ? "unfollow" : "follow";
     const response = await fetch(`${HOST_URL}/api/users/${followedUsername}/${route}`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -197,6 +213,7 @@ export const updateUserFollows = async (followedUsername: string, tokenOwnerId: 
 export const deleteTweet = async (tweetId: string, tweetAuthor: string, tokenOwnerId: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/delete`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -210,6 +227,7 @@ export const deleteTweet = async (tweetId: string, tweetAuthor: string, tokenOwn
 export const createReply = async (reply: string, tweetAuthor: string, tweetId: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/reply`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -222,6 +240,7 @@ export const createReply = async (reply: string, tweetAuthor: string, tweetId: s
 
 export const getReplies = async (tweetAuthor: string, tweetId: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/reply`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -232,12 +251,16 @@ export const getReplies = async (tweetAuthor: string, tweetId: string) => {
 };
 
 export const search = async (text: string) => {
-    const response = await fetch(`${HOST_URL}/api/search?q=${text}`);
+    const response = await fetch(`${HOST_URL}/api/search?q=${text}`, {
+        credentials: "include",
+    });
     return response.json();
 };
 
 export const getRandomThreeUsers = async () => {
-    const response = await fetch(`${HOST_URL}/api/users/random`);
+    const response = await fetch(`${HOST_URL}/api/users/random`, {
+        credentials: "include",
+    });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
     return json;
@@ -246,6 +269,7 @@ export const getRandomThreeUsers = async () => {
 export const createMessage = async (message: string) => {
     const response = await fetch(`${HOST_URL}/api/messages/create`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -258,6 +282,7 @@ export const createMessage = async (message: string) => {
 
 export const getUserMessages = async (username: string) => {
     const response = await fetch(`${HOST_URL}/api/messages/${username}`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -268,13 +293,16 @@ export const getUserMessages = async (username: string) => {
 };
 
 export const checkUserExists = async (username: string) => {
-    const response = await fetch(`${HOST_URL}/api/users/exists?q=${username}`);
+    const response = await fetch(`${HOST_URL}/api/users/exists?q=${username}`, {
+        credentials: "include",
+    });
     return response.json();
 };
 
 export const deleteConversation = async (participants: string[], tokenOwnerId: string) => {
     const response = await fetch(`${HOST_URL}/api/messages/delete`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -287,6 +315,7 @@ export const deleteConversation = async (participants: string[], tokenOwnerId: s
 
 export const getNotifications = async () => {
     const response = await fetch(`${HOST_URL}/api/notifications`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },
@@ -304,6 +333,7 @@ export const createNotification = async (
 ) => {
     const response = await fetch(`${HOST_URL}/api/notifications/create`, {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -316,6 +346,7 @@ export const createNotification = async (
 
 export const markNotificationsRead = async () => {
     const response = await fetch(`${HOST_URL}/api/notifications/read`, {
+        credentials: "include",
         next: {
             revalidate: 0,
         },

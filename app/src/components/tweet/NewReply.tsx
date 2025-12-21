@@ -49,7 +49,6 @@ export default function NewReply({ token, tweet }: { token: UserProps; tweet: Tw
     const formik = useFormik({
         initialValues: {
             text: "",
-            authorId: token.id,
             photoUrl: "",
         },
         validationSchema: validationSchema,
@@ -86,7 +85,7 @@ export default function NewReply({ token, tweet }: { token: UserProps; tweet: Tw
             <form onSubmit={formik.handleSubmit}>
                 <div className="input">
                     <TextField
-                        placeholder="Tweet your reply"
+                        placeholder="Post your reply"
                         multiline
                         minRows={1}
                         variant="standard"

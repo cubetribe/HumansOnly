@@ -5,12 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { RxDotsHorizontal } from "react-icons/rx";
 import { Avatar, Menu, MenuItem } from "@mui/material";
-import { AiFillTwitterCircle } from "react-icons/ai";
+import { VerifiedHumanBadge } from "@/components/icons";
 
 import { TweetProps } from "@/types/TweetProps";
 import { formatDateExtended } from "@/utilities/date";
 import Reply from "./Reply";
-import Retweet from "./Retweet";
+import Repost from "./Repost";
 import Like from "./Like";
 import Share from "./Share";
 import Counters from "./Counters";
@@ -42,7 +42,7 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
             setIsConfirmationOpen(false);
             setIsDeleting(false);
             setSnackbar({
-                message: "Tweet deleted successfully. Redirecting to the profile page...",
+                message: "Post deleted successfully. Redirecting to the profile page...",
                 severity: "success",
                 open: true,
             });
@@ -77,7 +77,7 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
     const handleDelete = async () => {
         if (!token) {
             return setSnackbar({
-                message: "You must be logged in to delete tweets...",
+                message: "You must be logged in to delete posts...",
                 severity: "info",
                 open: true,
             });
@@ -106,9 +106,9 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
                         <Link className="tweet-author-link" href={`/${tweet.author.username}`}>
                             <span className="tweet-author">
                                 {tweet.author.name !== "" ? tweet.author.name : tweet.author.username}
-                                {tweet.author.isPremium && (
-                                    <span className="blue-tick" data-blue="Verified Blue">
-                                        <AiFillTwitterCircle />
+                                {tweet.author.isVerifiedHuman && (
+                                    <span className="blue-tick" data-blue="Verified Human">
+                                        <VerifiedHumanBadge />
                                     </span>
                                 )}
                             </span>
@@ -143,7 +143,7 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
                                 <Image
                                     onClick={handleImageClick}
                                     src={getFullURL(tweet.photoUrl)}
-                                    alt="tweet image"
+                                    alt="post image"
                                     placeholder="blur"
                                     blurDataURL={shimmer(500, 500)}
                                     height={500}
@@ -161,7 +161,7 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
                     <Counters tweet={tweet} />
                     <div className="tweet-bottom">
                         <Reply tweet={tweet} />
-                        <Retweet tweetId={tweet.id} tweetAuthor={tweet.author.username} />
+                        <Repost tweetId={tweet.id} tweetAuthor={tweet.author.username} />
                         <Like tweetId={tweet.id} tweetAuthor={tweet.author.username} />
                         <Share
                             tweetUrl={`https://${window.location.hostname}/${tweet.author.username}/tweets/${tweet.id}`}
@@ -177,10 +177,10 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
             {isConfirmationOpen && (
                 <div className="html-modal-wrapper">
                     <dialog open className="confirm">
-                        <h1>Delete Tweet?</h1>
+                        <h1>Delete Post?</h1>
                         <p>
-                            This can’t be undone and it will be removed from your profile, the timeline of any accounts that
-                            follow you, and from Twitter search results.
+                            This can&apos;t be undone and it will be removed from your profile, the timeline of any accounts that
+                            follow you, and from Humans Only search results.
                         </p>
                         {isDeleting ? (
                             <CircularLoading />

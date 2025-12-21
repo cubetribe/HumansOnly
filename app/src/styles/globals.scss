@@ -1,63 +1,73 @@
 :root {
     --background-primary: #ffffff;
-    --background-blue: #1da1f2;
-    --twitter-blue: #1da1f2;
-    --twitter-dark-blue: #1b90dd;
-    --twitter-gray: #657786;
-    --twitter-light-gray: #d1dce4;
-    --twitter-black: #14171a;
-    --twitter-light-black: #282e32;
-    --twitter-red: #ff0000;
-    --twitter-light-red: #fdc9ce;
-    --twitter-dark-red: #9c0000;
-    --twitter-orange: #fc5000;
-    --twitter-purple: #380038;
-    --twitter-pink: #c333d6;
-    --twitter-white: #f5f8fa;
-    --twitter-muted: #536471;
+    --background-blue: #FF3D1F;
+    --ho-primary: #FF3D1F;
+    --ho-primary-dark: #CC3319;
+    --ho-background: #0A0A0A;
+    --ho-card: #1A1A1A;
+    --ho-text: #FFFFFF;
+    --ho-text-secondary: #888888;
+    --ho-border: #333333;
+    --ho-gray: #657786;
+    --ho-light-gray: #d1dce4;
+    --ho-black: #14171a;
+    --ho-light-black: #282e32;
+    --ho-red: #ff0000;
+    --ho-light-red: #fdc9ce;
+    --ho-dark-red: #9c0000;
+    --ho-orange: #fc5000;
+    --ho-purple: #380038;
+    --ho-pink: #c333d6;
+    --ho-white: #f5f8fa;
+    --ho-muted: #536471;
     --hover: #efefef;
     --border-color: #eff3f4;
     --const-white: #f5f8fa;
-    --twitter-like: #e0245e;
-    --twitter-like-background: #f918801a;
-    --twitter-retweet: #17bf63;
-    --twitter-retweet-background: #13e29d1a;
-    --twitter-reply: #1da1f2;
-    --twitter-reply-background: #158cd11a;
-    --twitter-share: #1da1f2;
-    --twitter-share-background: #158cd11a;
-    --twitter-bird: #1da1f2;
+    --ho-like: #FF3D1F;
+    --ho-like-background: #FF3D1F1a;
+    --ho-repost: #17bf63;
+    --ho-repost-background: #17bf631a;
+    --ho-reply: #FF3D1F;
+    --ho-reply-background: #FF3D1F1a;
+    --ho-share: #FF3D1F;
+    --ho-share-background: #FF3D1F1a;
+    --ho-bird: #FF3D1F;
 }
 
 [data-theme="dark"] {
-    --background-primary: #000000;
-    --background-blue: #000000;
-    --twitter-blue: #1976d2;
-    --twitter-dark-blue: #1d5fa1;
-    --twitter-gray: #9898a3;
-    --twitter-light-gray: #303030;
-    --twitter-black: #f8f8f8;
-    --twitter-light-black: #cecece;
-    --twitter-red: #ff4747;
-    --twitter-light-red: #210000;
-    --twitter-dark-red: #df6a6a;
-    --twitter-orange: #ffb898;
-    --twitter-purple: #a2a2ff;
-    --twitter-pink: #7cf2ff;
-    --twitter-white: #16181c;
-    --twitter-muted: #71767b;
+    --background-primary: #0A0A0A;
+    --background-blue: #0A0A0A;
+    --ho-primary: #FF3D1F;
+    --ho-primary-dark: #CC3319;
+    --ho-background: #0A0A0A;
+    --ho-card: #1A1A1A;
+    --ho-text: #FFFFFF;
+    --ho-text-secondary: #888888;
+    --ho-border: #333333;
+    --ho-gray: #9898a3;
+    --ho-light-gray: #303030;
+    --ho-black: #f8f8f8;
+    --ho-light-black: #cecece;
+    --ho-red: #ff4747;
+    --ho-light-red: #210000;
+    --ho-dark-red: #df6a6a;
+    --ho-orange: #ffb898;
+    --ho-purple: #a2a2ff;
+    --ho-pink: #7cf2ff;
+    --ho-white: #1A1A1A;
+    --ho-muted: #71767b;
     --hover: #0c0c0c;
-    --border-color: #1e2022;
+    --border-color: #333333;
     --const-white: #f5f8fa;
-    --twitter-like: #ff82bc;
-    --twitter-like-background: #57183599;
-    --twitter-retweet: #008559;
-    --twitter-retweet-background: #13aa751a;
-    --twitter-reply: #4179a9;
-    --twitter-reply-background: #1c455f70;
-    --twitter-share: #4179a9;
-    --twitter-share-background: #1c455f70;
-    --twitter-bird: #f5f8fa;
+    --ho-like: #FF3D1F;
+    --ho-like-background: #FF3D1F33;
+    --ho-repost: #17bf63;
+    --ho-repost-background: #17bf6333;
+    --ho-reply: #FF3D1F;
+    --ho-reply-background: #FF3D1F33;
+    --ho-share: #FF3D1F;
+    --ho-share-background: #FF3D1F33;
+    --ho-bird: #f5f8fa;
 }
 
 a {
@@ -72,12 +82,12 @@ html {
 body {
     min-height: 100vh;
     background-color: var(--background-primary);
-    color: var(--twitter-black);
+    color: var(--ho-black);
     font-family: var(--font-roboto);
 }
 
 .btn {
-    background-color: var(--twitter-blue);
+    background-color: var(--ho-primary);
     color: var(--const-white);
     border: none;
     border-radius: 2rem;
@@ -88,7 +98,7 @@ body {
     transition: all 0.2s ease-in-out;
 
     &:hover {
-        background-color: var(--twitter-dark-blue);
+        background-color: var(--ho-primary-dark);
         color: var(--const-white);
     }
 }
@@ -98,54 +108,54 @@ main {
 }
 
 .btn-light {
-    color: var(--twitter-blue);
-    background-color: var(--twitter-white);
-    border: 1px solid var(--twitter-light-gray);
+    color: var(--ho-primary);
+    background-color: var(--ho-white);
+    border: 1px solid var(--ho-light-gray);
 
     &:hover {
-        background-color: var(--twitter-blue);
+        background-color: var(--ho-primary);
         color: var(--const-white);
     }
 }
 
 .btn-dark {
-    color: var(--twitter-white);
-    background-color: var(--twitter-black);
+    color: var(--ho-white);
+    background-color: var(--ho-black);
 
     &:hover {
-        background-color: var(--twitter-light-black);
-        color: var(--twitter-white);
+        background-color: var(--ho-light-black);
+        color: var(--ho-white);
     }
 }
 
 .btn-white {
-    color: var(--twitter-black);
+    color: var(--ho-black);
     background-color: var(--background-primary);
-    border: 1px solid var(--twitter-light-gray);
+    border: 1px solid var(--ho-light-gray);
 
     &:hover {
         background-color: var(--hover);
-        color: var(--twitter-black);
+        color: var(--ho-black);
     }
 }
 
 .btn-danger-outline {
-    background-color: var(--twitter-white);
-    color: var(--twitter-red);
-    border: 1px solid var(--twitter-red);
+    background-color: var(--ho-white);
+    color: var(--ho-red);
+    border: 1px solid var(--ho-red);
 
     &:hover {
-        background-color: var(--twitter-light-red);
-        color: var(--twitter-red);
+        background-color: var(--ho-light-red);
+        color: var(--ho-red);
     }
 }
 
 .btn-danger {
-    background-color: var(--twitter-red);
+    background-color: var(--ho-red);
     color: var(--const-white);
 
     &:hover {
-        background-color: var(--twitter-dark-red);
+        background-color: var(--ho-dark-red);
         color: var(--const-white);
     }
 }
@@ -158,7 +168,7 @@ main {
 
 .bold {
     font-weight: bolder;
-    color: var(--twitter-black);
+    color: var(--ho-black);
 }
 
 .root {
@@ -220,7 +230,7 @@ main {
     .title {
         font-size: 1.75rem;
         font-weight: 700;
-        color: var(--twitter-black);
+        color: var(--ho-black);
         text-align: center;
         padding: 1rem;
     }
@@ -232,7 +242,7 @@ main {
 
             .info {
                 padding-bottom: 0.75rem;
-                color: var(--twitter-gray);
+                color: var(--ho-gray);
             }
         }
     }
@@ -282,12 +292,12 @@ main {
         left: 1rem;
         top: 0.75rem;
         z-index: 9999;
-        color: var(--twitter-white);
-        background-color: var(--twitter-light-black);
+        color: var(--ho-white);
+        background-color: var(--ho-light-black);
         transition: all 0.2s ease-in-out;
 
         &:hover {
-            color: var(--twitter-black);
+            color: var(--ho-black);
             background-color: var(--hover);
         }
     }
@@ -317,7 +327,7 @@ main {
         .twitter-icon {
             padding-top: 1rem;
             width: fit-content;
-            color: var(--twitter-bird);
+            color: var(--ho-bird);
 
             & > svg {
                 border-radius: 5rem;
@@ -344,7 +354,7 @@ main {
                         border-radius: 5rem;
                         display: inline-flex;
                         transition: background-color 0.2s ease-in-out;
-                        color: var(--twitter-light-black);
+                        color: var(--ho-light-black);
 
                         &:hover {
                             background-color: var(--hover);
@@ -352,14 +362,14 @@ main {
 
                         svg {
                             padding-right: 1rem;
-                            color: var(--twitter-muted);
+                            color: var(--ho-muted);
                         }
 
                         &.active {
                             font-weight: 900;
 
                             svg {
-                                color: var(--twitter-black);
+                                color: var(--ho-black);
                             }
                         }
                     }
@@ -386,7 +396,7 @@ main {
             border: none;
             border-radius: 5rem;
             cursor: pointer;
-            background-color: var(--twitter-white);
+            background-color: var(--ho-white);
             max-width: 250px;
             overflow: hidden;
 
@@ -399,7 +409,7 @@ main {
                 padding-bottom: 0.25rem;
                 display: flex;
                 text-align: left;
-                color: var(--twitter-black);
+                color: var(--ho-black);
             }
 
             .token-username {
@@ -408,7 +418,7 @@ main {
 
             .three-dots {
                 padding-right: 0.5rem;
-                color: var(--twitter-black);
+                color: var(--ho-black);
             }
         }
     }
@@ -441,21 +451,21 @@ main {
         .search-input {
             border: 1px solid var(--border-color);
             border-radius: 5rem;
-            background-color: var(--twitter-white);
+            background-color: var(--ho-white);
             padding: 0.5rem 1rem 0.5rem 3rem;
             font-size: 1rem;
             font-weight: 400;
             line-height: 1.5;
-            color: var(--twitter-black);
+            color: var(--ho-black);
             width: 235px;
 
             &:focus {
                 outline: none;
-                box-shadow: 0 0 0 2px var(--twitter-blue);
+                box-shadow: 0 0 0 2px var(--ho-primary);
             }
 
             &::placeholder {
-                color: var(--twitter-gray);
+                color: var(--ho-gray);
             }
         }
 
@@ -464,14 +474,14 @@ main {
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--twitter-blue);
+            color: var(--ho-primary);
         }
     }
 
     .who-to-follow {
         border: 1px solid var(--border-color);
         border-radius: 1rem;
-        background-color: var(--twitter-white);
+        background-color: var(--ho-white);
         padding: 1rem;
         display: flex;
         flex-direction: column;
@@ -534,7 +544,7 @@ main {
     .reminder {
         border: 1px solid var(--border-color);
         border-radius: 1rem;
-        background-color: var(--twitter-white);
+        background-color: var(--ho-white);
         padding: 1rem;
         display: flex;
         flex-direction: column;
@@ -566,7 +576,7 @@ main {
     .complete-reminder {
         border: 1px solid var(--border-color);
         border-radius: 1rem;
-        background-color: var(--twitter-white);
+        background-color: var(--ho-white);
         padding: 1rem;
         display: flex;
         flex-direction: column;
@@ -600,7 +610,7 @@ main {
 
     .legal {
         font-size: 0.8rem;
-        color: var(--twitter-muted);
+        color: var(--ho-muted);
 
         .legal-links {
             margin-inline: 1rem;
@@ -625,11 +635,11 @@ main {
             transition: color 0.2s ease-in-out;
 
             a:hover {
-                color: var(--twitter-blue);
+                color: var(--ho-primary);
             }
 
             .github {
-                color: var(--twitter-black);
+                color: var(--ho-black);
                 transition: transform 0.5s ease-in-out;
                 font-size: 2rem;
 
@@ -646,7 +656,7 @@ main {
     align-items: center;
     gap: 1rem;
     font-size: 1.25rem;
-    color: var(--twitter-blue);
+    color: var(--ho-primary);
     padding-top: 1rem;
     border-top: 1px solid var(--border-color);
 
@@ -678,7 +688,7 @@ main {
     gap: 5rem;
     align-items: center;
     color: var(--const-white);
-    background-color: var(--twitter-blue);
+    background-color: var(--ho-primary);
     opacity: 0.9;
 
     .footer-div {
@@ -688,23 +698,23 @@ main {
     .btn {
         margin: 0 0.5rem;
         color: var(--const-white);
-        background-color: var(--twitter-blue);
+        background-color: var(--ho-primary);
         font-size: 0.93rem;
         border: 1px solid var(--border-color);
         padding: 0.5rem 1.5rem;
 
         &:hover {
-            background-color: var(--twitter-dark-blue);
+            background-color: var(--ho-primary-dark);
         }
     }
 
     .btn-light {
-        background-color: var(--twitter-white);
-        color: var(--twitter-black);
+        background-color: var(--ho-white);
+        color: var(--ho-black);
         border: none;
 
         &:hover {
-            background-color: var(--twitter-light-gray);
+            background-color: var(--ho-light-gray);
         }
     }
 
@@ -797,7 +807,7 @@ main {
                 background-color: inherit;
                 display: flex;
                 justify-content: center;
-                color: var(--twitter-muted);
+                color: var(--ho-muted);
                 opacity: 0.75;
                 align-items: center;
 
@@ -824,44 +834,44 @@ main {
 
             .like {
                 &:hover svg {
-                    background-color: var(--twitter-like-background);
-                    color: var(--twitter-like);
+                    background-color: var(--ho-like-background);
+                    color: var(--ho-like);
                 }
                 &:hover {
-                    color: var(--twitter-like);
+                    color: var(--ho-like);
                 }
                 &.active {
-                    color: var(--twitter-like);
+                    color: var(--ho-like);
                 }
             }
 
             .retweet {
                 &:hover svg {
-                    background-color: var(--twitter-retweet-background);
-                    color: var(--twitter-retweet);
+                    background-color: var(--ho-repost-background);
+                    color: var(--ho-repost);
                 }
                 &:hover {
-                    color: var(--twitter-retweet);
+                    color: var(--ho-repost);
                 }
                 &.active {
-                    color: var(--twitter-retweet);
+                    color: var(--ho-repost);
                 }
             }
 
             .reply {
                 &:hover svg {
-                    background-color: var(--twitter-reply-background);
-                    color: var(--twitter-reply);
+                    background-color: var(--ho-reply-background);
+                    color: var(--ho-reply);
                 }
                 &:hover {
-                    color: var(--twitter-reply);
+                    color: var(--ho-reply);
                 }
             }
 
             .share {
                 &:hover svg {
-                    background-color: var(--twitter-share-background);
-                    color: var(--twitter-share);
+                    background-color: var(--ho-share-background);
+                    color: var(--ho-share);
                 }
             }
         }
@@ -957,7 +967,7 @@ main {
         left: 3.1rem;
         font-size: 0.75rem;
         font-weight: 700;
-        color: var(--twitter-muted);
+        color: var(--ho-muted);
         display: flex;
         align-items: center;
         gap: 1rem;
@@ -984,7 +994,7 @@ main {
     .count {
         font-weight: 900;
         font-size: 1rem;
-        color: var(--twitter-black);
+        color: var(--ho-black);
 
         .text-muted {
             font-weight: normal;
@@ -1064,7 +1074,7 @@ main {
             flex: 1;
             padding: 1rem 2rem 0.25rem;
             transition: background-color 0.2s ease-in-out;
-            color: var(--twitter-muted);
+            color: var(--ho-muted);
             font-weight: 500;
 
             &:hover {
@@ -1074,10 +1084,10 @@ main {
 
         .active {
             span {
-                color: var(--twitter-black);
+                color: var(--ho-black);
                 font-weight: 700;
                 padding: 0 0.25rem 0.75rem;
-                border-bottom: 3px solid var(--twitter-blue);
+                border-bottom: 3px solid var(--ho-primary);
             }
         }
     }
@@ -1092,7 +1102,7 @@ main {
                 position: absolute;
                 bottom: -70px;
                 left: 1.5rem;
-                border: 4px solid var(--twitter-white);
+                border: 4px solid var(--ho-white);
                 border-radius: 5rem;
             }
 
@@ -1117,7 +1127,7 @@ main {
                 font-size: 0.93rem;
 
                 .new-message {
-                    border: 1px solid var(--twitter-light-gray);
+                    border: 1px solid var(--ho-light-gray);
                 }
             }
 
@@ -1134,8 +1144,8 @@ main {
                 .is-following {
                     font-size: 0.7rem;
                     font-weight: 500;
-                    background-color: var(--twitter-white);
-                    color: var(--twitter-black);
+                    background-color: var(--ho-white);
+                    color: var(--ho-black);
                     padding: 0.1rem 0.25rem;
                     border-radius: 0.5rem;
                 }
@@ -1206,8 +1216,8 @@ main {
         .is-following {
             font-size: 0.66rem;
             font-weight: 500;
-            background-color: var(--twitter-white);
-            color: var(--twitter-black);
+            background-color: var(--ho-white);
+            color: var(--ho-black);
             padding-inline: 0.25rem;
             border-radius: 0.5rem;
         }
@@ -1245,7 +1255,7 @@ main {
             position: absolute;
             bottom: -70px;
             left: 1.5rem;
-            border: 4px solid var(--twitter-white);
+            border: 4px solid var(--ho-white);
             border-radius: 5rem;
         }
 
@@ -1313,7 +1323,7 @@ main {
         transition: color 0.2s ease-in-out;
 
         &:hover {
-            color: var(--twitter-light-gray);
+            color: var(--ho-light-gray);
         }
     }
 
@@ -1353,7 +1363,7 @@ main {
 
 .text-muted {
     font-size: 0.93rem;
-    color: var(--twitter-muted);
+    color: var(--ho-muted);
 }
 
 .middle-dot {
@@ -1383,7 +1393,7 @@ main {
 .delete {
     border: none;
     background-color: inherit;
-    color: var(--twitter-red);
+    color: var(--ho-red);
     font-weight: bold;
 }
 
@@ -1426,7 +1436,7 @@ button.icon-hoverable {
     font-size: 1.25rem;
 
     &:hover {
-        background-color: var(--twitter-light-gray);
+        background-color: var(--ho-light-gray);
     }
 }
 
@@ -1435,14 +1445,14 @@ button.icon-hoverable {
     top: 1rem;
     right: 2rem;
     font-weight: 900;
-    color: var(--twitter-dark-blue);
+    color: var(--ho-primary-dark);
     display: flex;
     gap: 0.5rem;
     transition: all 0.2s ease-in-out;
 
     &:hover {
         text-decoration: underline;
-        color: var(--twitter-blue);
+        color: var(--ho-primary);
     }
 }
 
@@ -1473,7 +1483,7 @@ button.icon-hoverable {
     text-align: center;
     padding: 5rem 0;
     font-size: 1.5rem;
-    color: var(--twitter-muted);
+    color: var(--ho-muted);
 
     h1 {
         font-weight: 300;
@@ -1493,7 +1503,7 @@ button.icon-hoverable {
     padding: 20px;
     border: 2px dashed var(--border-color) !important;
     border-radius: 2px;
-    color: var(--twitter-gray);
+    color: var(--ho-gray);
     outline: none;
     margin-top: 1rem;
     transform: translateX(-65px);
@@ -1555,14 +1565,14 @@ button.icon-hoverable {
     position: absolute;
     top: 1.5rem;
     font-weight: 300;
-    color: var(--twitter-muted);
+    color: var(--ho-muted);
     font-size: 0.9rem;
     letter-spacing: 0.5px;
 }
 
 .mention {
     font-weight: 400;
-    color: var(--twitter-dark-blue);
+    color: var(--ho-primary-dark);
 
     &:hover {
         text-decoration: underline;
@@ -1584,7 +1594,7 @@ button.icon-hoverable {
     dialog {
         border: 1px solid var(--border-color);
         background-color: var(--background-primary);
-        color: var(--twitter-black);
+        color: var(--ho-black);
         border-radius: 1rem;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
@@ -1602,7 +1612,7 @@ button.icon-hoverable {
 
         p {
             font-size: small;
-            color: var(--twitter-muted);
+            color: var(--ho-muted);
             font-weight: 400;
         }
     }
@@ -1625,10 +1635,10 @@ button.icon-hoverable {
             font-weight: 400;
 
             a {
-                color: var(--twitter-blue);
+                color: var(--ho-primary);
 
                 &:hover {
-                    color: var(--twitter-dark-blue);
+                    color: var(--ho-primary-dark);
                     text-decoration: underline;
                 }
             }
@@ -1642,27 +1652,27 @@ button.icon-hoverable {
         }
 
         .blue-input {
-            border: 1px solid var(--twitter-light-gray);
+            border: 1px solid var(--ho-light-gray);
             border-radius: 5rem;
-            background-color: var(--twitter-white);
+            background-color: var(--ho-white);
             padding: 0.5rem 1rem;
             font-size: 1rem;
             font-weight: 400;
             line-height: 1.5;
-            color: var(--twitter-black);
+            color: var(--ho-black);
 
             &:focus {
                 outline: none;
-                box-shadow: 0 0 0 2px var(--twitter-blue);
+                box-shadow: 0 0 0 2px var(--ho-primary);
             }
 
             &::placeholder {
-                color: var(--twitter-gray);
+                color: var(--ho-gray);
             }
         }
 
         svg {
-            color: var(--twitter-blue);
+            color: var(--ho-primary);
         }
 
         .blue-user {
@@ -1689,16 +1699,16 @@ button.icon-hoverable {
         border: none;
         background: inherit;
         cursor: pointer;
-        color: var(--twitter-black);
+        color: var(--ho-black);
 
         &:hover {
-            color: var(--twitter-blue);
+            color: var(--ho-primary);
             text-decoration: underline;
         }
     }
 
     svg {
-        color: var(--twitter-blue);
+        color: var(--ho-primary);
         font-size: 1.2rem;
         transition: all 0.5s ease-in-out;
 
@@ -1710,7 +1720,7 @@ button.icon-hoverable {
 
 .blue-tick {
     vertical-align: top;
-    color: var(--twitter-blue);
+    color: var(--ho-primary);
     margin-left: 2px;
     display: inline-flex;
     position: relative;
@@ -1722,7 +1732,7 @@ button.icon-hoverable {
         left: 50%;
         transform: translateX(-50%);
         padding: 4px 8px;
-        background-color: var(--twitter-blue);
+        background-color: var(--ho-primary);
         color: var(--const-white);
         font-size: 0.75rem;
         white-space: nowrap;
@@ -1772,7 +1782,7 @@ button.icon-hoverable {
             position: absolute;
             right: 1rem;
             top: 1.5rem;
-            border: 1px solid var(--twitter-light-gray);
+            border: 1px solid var(--ho-light-gray);
         }
     }
 
@@ -1793,7 +1803,7 @@ button.icon-hoverable {
                 .btn {
                     width: auto;
                     border: none;
-                    color: var(--twitter-blue);
+                    color: var(--ho-primary);
                     display: inline-flex;
                     transform: translate(10px, 5px);
                 }
@@ -1862,7 +1872,7 @@ button.icon-hoverable {
 
                     .message-text {
                         border-bottom-right-radius: 0;
-                        background-color: var(--twitter-blue);
+                        background-color: var(--ho-primary);
                         color: var(--const-white);
                         margin-left: auto;
                     }
@@ -1956,7 +1966,7 @@ button.icon-hoverable {
         transition: background-color 0.2s ease-in-out;
         height: 65px;
         border-bottom: 1px solid var(--border-color);
-        color: var(--twitter-muted);
+        color: var(--ho-muted);
         display: grid;
         grid-template-columns: 50px 1fr;
         align-items: center;
@@ -1970,28 +1980,28 @@ button.icon-hoverable {
             font-size: 1.5rem;
 
             &.welcome {
-                color: var(--twitter-orange);
+                color: var(--ho-orange);
             }
             &.message {
-                color: var(--twitter-purple);
+                color: var(--ho-purple);
             }
             &.like {
-                color: var(--twitter-red);
+                color: var(--ho-red);
             }
             &.retweet {
-                color: var(--twitter-retweet);
+                color: var(--ho-repost);
                 scale: 1.75;
             }
             &.reply {
-                color: var(--twitter-dark-blue);
+                color: var(--ho-primary-dark);
             }
             &.follow {
-                color: var(--twitter-pink);
+                color: var(--ho-pink);
             }
         }
 
         .notification-link {
-            color: var(--twitter-blue);
+            color: var(--ho-primary);
 
             &:hover {
                 text-decoration: underline;
@@ -2015,7 +2025,7 @@ button.icon-hoverable {
                 gap: 0.33rem;
 
                 h1 {
-                    color: var(--twitter-black);
+                    color: var(--ho-black);
                     font-weight: 500;
                 }
             }
@@ -2036,7 +2046,7 @@ button.icon-hoverable {
         left: 10px;
         transform: translateX(-50%);
         padding: 4px;
-        background-color: var(--twitter-blue);
+        background-color: var(--ho-primary);
         border-radius: 5rem;
         min-width: 10px;
         aspect-ratio: 1;
@@ -2056,7 +2066,7 @@ button.icon-hoverable {
         display: inline;
         vertical-align: middle;
         font-size: 0.7rem;
-        color: var(--twitter-muted);
+        color: var(--ho-muted);
     }
 }
 
@@ -2065,16 +2075,16 @@ button.icon-hoverable {
 }
 
 ::-webkit-scrollbar-track {
-    background-color: var(--twitter-light-gray);
+    background-color: var(--ho-light-gray);
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: var(--twitter-blue);
+    background-color: var(--ho-primary);
     border-radius: 0.25rem;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--twitter-dark-blue);
+    background-color: var(--ho-primary-dark);
 }
 
 @keyframes zoom-in {

@@ -1,4 +1,4 @@
-export default function RetweetIcon() {
+export default function RepostIcon() {
     return (
         <svg viewBox="0 0 24 24" className="retweet-svg" fill={"currentColor"}>
             <g>

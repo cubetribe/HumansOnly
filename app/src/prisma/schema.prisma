@@ -19,7 +19,7 @@ model User {
     headerUrl        String?
     username         String         @unique @db.VarChar(20)
     password         String
-    isPremium        Boolean        @default(false)
+    isVerifiedHuman  Boolean        @default(false)
     createdAt        DateTime       @default(now())
     updatedAt        DateTime       @default(now()) @updatedAt
     createdTweets    Tweet[]        @relation("userTweets")
@@ -28,7 +28,7 @@ model User {
     following        User[]         @relation("userFollows")
     followers        User[]         @relation("userFollows")
     sentMessages     Message[]      @relation("userMessagesSent")
-    receivedMessages Message[]      @relation("userMessagesRecieved")
+    receivedMessages Message[]      @relation("userMessagesReceived")
     notifications    Notification[]
 }
 
@@ -57,7 +57,7 @@ model Message {
     createdAt   DateTime @default(now())
     sender      User     @relation("userMessagesSent", fields: [senderId], references: [id])
     senderId    String
-    recipient   User     @relation("userMessagesRecieved", fields: [recipientId], references: [id])
+    recipient   User     @relation("userMessagesReceived", fields: [recipientId], references: [id])
     recipientId String
     photoUrl    String?
 }

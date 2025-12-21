@@ -8,7 +8,8 @@ import { FaArrowLeft, FaRegEnvelope } from "react-icons/fa";
 import { Avatar, Dialog, DialogContent, DialogTitle } from "@mui/material";
 import { BiCalendarCheck } from "react-icons/bi";
 import { GoLocation } from "react-icons/go";
-import { AiFillTwitterCircle, AiOutlineLink } from "react-icons/ai";
+import { AiOutlineLink } from "react-icons/ai";
+import { VerifiedHumanBadge } from "@/components/icons";
 
 import { formatDateForProfile } from "@/utilities/date";
 import { AuthContext } from "@/app/(twitter)/layout";
@@ -121,9 +122,9 @@ export default function Profile({ profile }: { profile: UserProps }) {
                     <div className="profile-info-main">
                         <h1>
                             {profile.name !== "" ? profile.name : profile.username}
-                            {profile.isPremium && (
-                                <span className="blue-tick" data-blue="Verified Blue">
-                                    <AiFillTwitterCircle />
+                            {profile.isVerifiedHuman && (
+                                <span className="blue-tick" data-blue="Verified Human">
+                                    <VerifiedHumanBadge />
                                 </span>
                             )}
                         </h1>
@@ -180,7 +181,7 @@ export default function Profile({ profile }: { profile: UserProps }) {
                     className={`profile-nav-link ${pathname === `/${profile.username}` ? "active" : ""}`}
                     href={`/${profile.username}`}
                 >
-                    <span>Tweets</span>
+                    <span>Posts</span>
                 </Link>
                 <Link
                     className={`profile-nav-link ${pathname === `/${profile.username}/replies` ? "active" : ""}`}

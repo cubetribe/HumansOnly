@@ -4,19 +4,19 @@ import { useContext, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { AiFillTwitterCircle } from "react-icons/ai";
+import { VerifiedHumanBadge } from "@/components/icons";
 
 import { TweetProps } from "@/types/TweetProps";
 import { formatDate, formatDateExtended } from "@/utilities/date";
 import { shimmer } from "@/utilities/misc/shimmer";
 import Reply from "./Reply";
-import Retweet from "./Retweet";
+import Repost from "./Repost";
 import Like from "./Like";
 import Share from "./Share";
 import PreviewDialog from "../dialog/PreviewDialog";
 import { getFullURL } from "@/utilities/misc/getFullURL";
 import { AuthContext } from "@/app/(twitter)/layout";
-import RetweetIcon from "../misc/RetweetIcon";
+import RepostIcon from "../misc/RepostIcon";
 import ProfileCard from "../user/ProfileCard";
 
 export default function Tweet({ tweet }: { tweet: TweetProps }) {
@@ -98,9 +98,9 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
                     >
                         <span className="tweet-author">
                             {displayedTweet.author.name !== "" ? displayedTweet.author.name : displayedTweet.author.username}
-                            {displayedTweet.author.isPremium && (
-                                <span className="blue-tick" data-blue="Verified Blue">
-                                    <AiFillTwitterCircle />
+                            {displayedTweet.author.isVerifiedHuman && (
+                                <span className="blue-tick" data-blue="Verified Human">
+                                    <VerifiedHumanBadge />
                                 </span>
                             )}
                         </span>
@@ -137,7 +137,7 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
                             <Image
                                 onClick={handleImageClick}
                                 src={getFullURL(displayedTweet.photoUrl)}
-                                alt="tweet image"
+                                alt="post image"
                                 placeholder="blur"
                                 blurDataURL={shimmer(500, 500)}
                                 height={500}
@@ -153,7 +153,7 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
                 )}
                 <div onClick={handlePropagation} className="tweet-bottom">
                     <Reply tweet={displayedTweet} />
-                    <Retweet tweetId={displayedTweet.id} tweetAuthor={displayedTweet.author.username} />
+                    <Repost tweetId={displayedTweet.id} tweetAuthor={displayedTweet.author.username} />
                     <Like tweetId={displayedTweet.id} tweetAuthor={displayedTweet.author.username} />
                     <Share
                         tweetUrl={`https://${window.location.hostname}/${displayedTweet.author.username}/tweets/${displayedTweet.id}`}
@@ -163,7 +163,7 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
             {tweet.isRetweet &&
                 (token?.username === tweet.author.username ? (
                     <Link onClick={handlePropagation} href={`/${token?.username}`} className="retweeted-by">
-                        <RetweetIcon /> You retweeted.
+                        <RepostIcon /> You reposted.
                     </Link>
                 ) : (
                     <Link
@@ -173,7 +173,7 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
                         onMouseEnter={(e) => handlePopoverOpen(e, "retweet")}
                         onMouseLeave={handlePopoverClose}
                     >
-                        <RetweetIcon /> {`${tweet.author.name ? tweet.author.name : tweet.author.username} retweeted.`}
+                        <RepostIcon /> {`${tweet.author.name ? tweet.author.name : tweet.author.username} reposted.`}
                     </Link>
                 ))}
             <Popover

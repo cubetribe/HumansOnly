@@ -162,15 +162,94 @@ This project is based on the excellent work of **Fatih Arapoglu**:
 
 ---
 
+## [1.1.0] - 2025-12-21
+
+### Changed - Complete Rebranding
+
+#### Visual Identity
+- **Primary Color:** #1da1f2 (Twitter Blue) → #FF3D1F (Humans Only Red)
+- **Color System:** Complete CSS variable overhaul
+  - `--twitter-*` → `--ho-*` (20+ variables)
+  - Updated all theme colors for dark/light mode
+- **Default Theme:** Light mode → Dark mode
+- **Favicon:** Updated to Fist logo (Humans Only brand)
+- **Landing Page:** New background image
+- **Logo:** New HumansOnlyLogo component with animated fist icon
+
+#### Terminology & Branding
+- **Package Name:** twitter → humansonly
+- **UI Text Replacements:**
+  - "Twitter" → "Humans Only" (all instances)
+  - "Tweet" → "Post" (all instances)
+  - "Retweet" → "Repost" (all instances)
+- **Component Names:**
+  - `Retweet.tsx` → `Repost.tsx`
+  - `RetweetIcon.tsx` → `RepostIcon.tsx`
+- **Variable Names:**
+  - `retweet` → `repost` (all instances)
+  - `isRetweet` → `isRepost` (all instances)
+
+#### Premium Badge System
+- **Database Field:** `isPremium` → `isVerifiedHuman`
+  - Migration: `20251221_rename_premium_to_verified_human`
+- **UI Component:** New `VerifiedHumanBadge` component
+- **Badge Text:** "Twitter Blue" → "Verified Human Badge"
+- **Badge Icon:** New custom verified human icon
+
+#### Files Modified (50+ files)
+- **Components:** 15+ components updated
+- **Stylesheets:** 10+ SCSS files rebranded
+- **Database:** 1 migration, schema updated
+- **Types:** TypeScript interfaces updated
+- **Utilities:** Helper functions rebranded
+
+#### Text/Variable Replacements
+- **200+ replacements** across the codebase
+- All imports and dependencies updated
+- All API endpoints terminology updated
+- All UI labels and messages updated
+
+### Technical Details
+
+#### Database Migration
+```sql
+ALTER TABLE "User" RENAME COLUMN "isPremium" TO "isVerifiedHuman";
+```
+
+#### Breaking Changes
+- API endpoints remain structurally the same (backwards compatible)
+- Database field renamed (requires migration)
+- Component imports changed:
+  - `import Retweet from './Retweet'` → `import Repost from './Repost'`
+  - `import RetweetIcon from './RetweetIcon'` → `import RepostIcon from './RepostIcon'`
+
+#### Migration Guide
+For existing installations:
+```bash
+cd app/src
+npx prisma migrate deploy
+npx prisma generate
+```
+
+### Assets Added
+- `/public/ho-fist-favicon.svg` - New favicon
+- `/public/images/landing-background.jpg` - New landing page image
+- New icon components with Humans Only branding
+
+### Documentation Updated
+- CHANGELOG.md - This entry
+- README.md - Roadmap updated (v1.1 marked as completed)
+
+---
+
 ## [Unreleased]
 
-### Planned for v1.1
+### Planned for v1.2
 
 #### Features
 - AI content detection API integration
 - Content moderation dashboard
 - Enhanced notification system
-- User verification badges
 
 #### Infrastructure
 - Automated database backups (daily)
@@ -212,6 +291,7 @@ This project is based on the excellent work of **Fatih Arapoglu**:
 
 ## Version History
 
+- **1.1.0** (2025-12-21) - Complete rebranding to Humans Only
 - **1.0.0** (2025-12-21) - Initial production deployment
 - **Unreleased** - Future enhancements
 
@@ -257,5 +337,5 @@ Future breaking changes will be documented here with migration guides.
 ---
 
 **Maintained by:** Humans Only Team
-**Last Updated:** 2025-12-21
+**Last Updated:** 2025-12-21 (v1.1.0 Rebranding)
 **Next Review:** 2025-12-28

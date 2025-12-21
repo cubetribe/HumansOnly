@@ -59,7 +59,7 @@ export default function RootPage() {
                 <div className="root-right">
                     <Image src="/assets/favicon.png" alt="" width={40} height={40} />
                     <h1>See what&apos;s happening in the world right now</h1>
-                    <p>Join Twitter today.</p>
+                    <p>Join Humans Only today.</p>
                     <div className="button-group">
                         <button className="btn" onClick={handleSignUpClick}>
                             Create account
@@ -68,7 +68,7 @@ export default function RootPage() {
                             Sign in
                         </button>
                         <Tooltip
-                            title="You can log in as test account to get full user priviliges if you don't have time to sign up. You can ALSO just look around without even being logged in, just like real Twitter!"
+                            title="You can log in as test account to get full user priviliges if you don't have time to sign up. You can ALSO just look around without even being logged in, just like Humans Only!"
                             placement="bottom"
                         >
                             <button onClick={handleTestLogin} className="btn btn-light">

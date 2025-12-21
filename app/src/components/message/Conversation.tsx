@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Avatar, Menu, MenuItem, Popover, Tooltip } from "@mui/material";
-import { AiFillTwitterCircle } from "react-icons/ai";
+import { VerifiedHumanBadge } from "@/components/icons";
 import { RxDotsHorizontal } from "react-icons/rx";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -32,7 +32,7 @@ export default function Conversation({ conversation, token, handleConversations 
 
     const messagedUsername = conversation.participants.find((user: string) => user !== token.username);
 
-    const { name, username, photoUrl, isPremium } =
+    const { name, username, photoUrl, isVerifiedHuman } =
         conversation.messages[conversation.messages.length - 1].recipient.username === messagedUsername
             ? conversation.messages[conversation.messages.length - 1].recipient
             : conversation.messages[conversation.messages.length - 1].sender;
@@ -86,9 +86,9 @@ export default function Conversation({ conversation, token, handleConversations 
                     >
                         <span className="user-name">
                             {name !== "" ? name : username}
-                            {isPremium && (
-                                <span className="blue-tick" data-blue="Verified Blue">
-                                    <AiFillTwitterCircle />
+                            {isVerifiedHuman && (
+                                <span className="blue-tick" data-blue="Verified Human">
+                                    <VerifiedHumanBadge />
                                 </span>
                             )}
                         </span>

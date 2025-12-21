@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getJwtSecretKey } from "@/utilities/auth";
 
 export async function POST(request: NextRequest) {
-    const token = await request.json();
+    const { token } = await request.json();
 
     try {
         const { payload } = await jwtVerify(token, getJwtSecretKey());

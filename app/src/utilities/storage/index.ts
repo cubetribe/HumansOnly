@@ -1,16 +1,23 @@
-import { createClient } from "@supabase/supabase-js";
+export const uploadFile = async (file: File): Promise<string> => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
 
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const KEY = process.env.NEXT_PUBLIC_SUPABASE_KEY;
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+        });
 
-if (!URL || !KEY) throw new Error("Supabase credentials are not provided.");
+        const data = await response.json();
 
-export const supabase = createClient(URL, KEY);
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || 'Upload failed');
+        }
 
-export const uploadFile = async (file: File) => {
-    const { data, error } = await supabase.storage.from("media").upload(`${Date.now()}`, file);
-    if (error) {
-        return console.log(error);
+        return data.path;
+    } catch (error) {
+        console.error('Upload error:', error);
+        throw error;
     }
-    return data.path;
 };

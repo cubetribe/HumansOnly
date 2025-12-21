@@ -4,13 +4,13 @@ import { motion } from "framer-motion";
 
 import { TweetOptionsProps } from "@/types/TweetProps";
 import { AuthContext } from "@/app/(twitter)/layout";
-import { getUserTweet, updateRetweets } from "@/utilities/fetch";
-import RetweetIcon from "../misc/RetweetIcon";
+import { getUserTweet, updateReposts } from "@/utilities/fetch";
+import RepostIcon from "../misc/RepostIcon";
 import { SnackbarProps } from "@/types/SnackbarProps";
 import CustomSnackbar from "../misc/CustomSnackbar";
 
-export default function Retweet({ tweetId, tweetAuthor }: TweetOptionsProps) {
-    const [isRetweeted, setIsRetweeted] = useState(false);
+export default function Repost({ tweetId, tweetAuthor }: TweetOptionsProps) {
+    const [isReposted, setIsReposted] = useState(false);
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     const [snackbar, setSnackbar] = useState<SnackbarProps>({ message: "", severity: "success", open: false });
 
@@ -25,10 +25,10 @@ export default function Retweet({ tweetId, tweetAuthor }: TweetOptionsProps) {
     });
 
     const mutation = useMutation({
-        mutationFn: (variables: any) => updateRetweets(tweetId, tweetAuthor, variables.tokenOwnerId, variables.isRetweeted),
+        mutationFn: (variables: any) => updateReposts(tweetId, tweetAuthor, variables.tokenOwnerId, variables.isReposted),
         onMutate: () => {
             setIsButtonDisabled(true);
-            setIsRetweeted(!isRetweeted);
+            setIsReposted(!isReposted);
         },
         onSuccess: () => {
             setIsButtonDisabled(false);
@@ -37,10 +37,10 @@ export default function Retweet({ tweetId, tweetAuthor }: TweetOptionsProps) {
         onError: (error) => console.log(error),
     });
 
-    const handleRetweet = () => {
+    const handleRepost = () => {
         if (!token) {
             return setSnackbar({
-                message: "You need to login to retweet.",
+                message: "You need to login to repost.",
                 severity: "info",
                 open: true,
             });
@@ -49,14 +49,14 @@ export default function Retweet({ tweetId, tweetAuthor }: TweetOptionsProps) {
         if (mutation.isLoading) return;
 
         const tokenOwnerId = JSON.stringify(token?.id);
-        const retweetedBy = data?.tweet?.retweetedBy;
-        const isRetweetedBy = retweetedBy?.some((user: { id: string }) => JSON.stringify(user.id) === tokenOwnerId);
+        const repostedBy = data?.tweet?.retweetedBy;
+        const isRepostedBy = repostedBy?.some((user: { id: string }) => JSON.stringify(user.id) === tokenOwnerId);
 
-        if (isRetweeted !== isRetweetedBy) setIsRetweeted(isRetweetedBy);
+        if (isReposted !== isRepostedBy) setIsReposted(isRepostedBy);
 
         const variables = {
             tokenOwnerId,
-            isRetweeted,
+            isReposted,
         };
 
         mutation.mutate(variables);
@@ -65,26 +65,26 @@ export default function Retweet({ tweetId, tweetAuthor }: TweetOptionsProps) {
     useEffect(() => {
         if (!isPending && isFetched) {
             const tokenOwnerId = JSON.stringify(token?.id);
-            const retweetedBy = data?.tweet?.retweetedBy;
-            const isRetweetedBy = retweetedBy?.some((user: { id: string }) => JSON.stringify(user.id) === tokenOwnerId);
-            setIsRetweeted(isRetweetedBy);
+            const repostedBy = data?.tweet?.retweetedBy;
+            const isRepostedBy = repostedBy?.some((user: { id: string }) => JSON.stringify(user.id) === tokenOwnerId);
+            setIsReposted(isRepostedBy);
         }
     }, [isPending, isFetched, data]);
 
     return (
         <>
             <motion.button
-                className={`icon retweet ${isRetweeted ? "active" : ""}`}
-                onClick={handleRetweet}
+                className={`icon retweet ${isReposted ? "active" : ""}`}
+                onClick={handleRepost}
                 whileTap={{ scale: 0.9 }}
-                animate={{ scale: isRetweeted ? [1, 1.5, 1.2, 1] : 1 }}
+                animate={{ scale: isReposted ? [1, 1.5, 1.2, 1] : 1 }}
                 transition={{ duration: 0.25 }}
                 disabled={isButtonDisabled}
             >
                 <motion.span animate={{ scale: [1, 1.5, 1.2, 1] }} transition={{ duration: 0.25 }}>
-                    <RetweetIcon />
+                    <RepostIcon />
                 </motion.span>
-                <motion.span animate={{ scale: isRetweeted ? [0, 1.2, 1] : 0 }} transition={{ duration: 0.25 }} />
+                <motion.span animate={{ scale: isReposted ? [0, 1.2, 1] : 0 }} transition={{ duration: 0.25 }} />
                 {data?.tweet?.retweetedBy?.length === 0 ? null : (
                     <span className="count">{data?.tweet?.retweetedBy?.length}</span>
                 )}

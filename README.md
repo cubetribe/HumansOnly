@@ -22,7 +22,7 @@ Keine AI-generierten Bilder. Keine AI-geschriebenen Posts. Nur echte Menschen mi
 
 | Metric | Value | Commentary |
 |--------|-------|------------|
-| **Version** | 1.0.0 | *Technically stable* |
+| **Version** | 1.1.0 | *Freshly rebranded* |
 | **Deployed** | 2025-12-21 | *Weihnachtsgeschenk an die Menschheit* |
 | **Server** | Ubuntu 24.04 @ 5.182.17.148 | *Der Server, der nie schläft* |
 | **Domain** | [ho.nm-forum.de](https://ho.nm-forum.de) | *Kurz für "Hey, das läuft!"* |
@@ -179,13 +179,20 @@ Full API Dokumentation: `/docs/API_CONSUMERS.md`
 - Premium Badges
 - Production Deployment mit SSL
 
-### Phase 2 (v1.1) - Coming Soon
+### Phase 2 (v1.1) - COMPLETED
+- Complete UI/UX Rebranding
+- Visual Identity Overhaul (Colors, Icons, Logos)
+- Terminology Update (Tweet → Post, Retweet → Repost)
+- Verified Human Badge System
+- Dark Mode as Default
+
+### Phase 3 (v1.2) - Coming Soon
 - AI Content Detection Integration (die Ironie ist uns bewusst)
 - Content Moderation Tools
 - Enhanced Notification System
 - Performance Optimization
 
-### Phase 3 (v2.0) - The Dream
+### Phase 4 (v2.0) - The Dream
 - Advanced AI Detection Models
 - User Verification Process
 - Creator Monetization
@@ -259,6 +266,6 @@ Wenn du einen Bug findest, der kein Bug ist, sondern ein Feature, dann hast du d
 
 *Für das menschliche Internet.*
 
-Last Updated: 2025-12-21
+Last Updated: 2025-12-21 (v1.1.0)
 
 </div>

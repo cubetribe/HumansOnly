@@ -1,0 +1,53 @@
+### Page state
+- Page URL: https://ho.nm-forum.de/
+- Page Title: Humans Only
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - alert [ref=e2]
+  - main [ref=e3]:
+    - generic [ref=e5]:
+      - heading [level=1] [ref=e15]: See what's happening in the world right now
+      - paragraph [ref=e7]: Join Humans Only today.
+      - generic [ref=e8]:
+        - button [ref=e16] [cursor=pointer]: Create account
+        - button [ref=e17] [cursor=pointer]: Sign in
+        - button [ref=e18] [cursor=pointer]: Test account (Hover here!)
+  - link [ref=e19] [cursor=pointer]:
+    - /url: /explore
+    - text: Explore without signing in
+    - img [ref=e13]
+  - dialog "Create your account" [ref=e22]:
+    - heading "Create your account" [level=2] [ref=e23]
+    - generic [ref=e24]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e28]: Your login information
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - text: Username
+              - generic [ref=e31]: "*"
+            - generic [ref=e32]:
+              - paragraph [ref=e34]: "@"
+              - textbox "Username" [active] [ref=e35]:
+                - /placeholder: username
+              - group:
+                - generic: Username *
+        - generic [ref=e37]:
+          - generic:
+            - text: Password
+            - generic: "*"
+          - generic [ref=e38]:
+            - textbox "Password" [ref=e39]
+            - group:
+              - generic: Password *
+        - generic [ref=e40]:
+          - generic [ref=e41]: Your public name
+          - generic [ref=e42]:
+            - generic: Name
+            - generic [ref=e43]:
+              - textbox "Name" [ref=e44]
+              - group:
+                - generic: Name
+      - button "Create" [ref=e45] [cursor=pointer]
+```

@@ -5,6 +5,8 @@ export default function HumansOnlyLogo({ className = "" }: { className?: string 
             viewBox="0 0 500 500"
             fill="currentColor"
             xmlns="http://www.w3.org/2000/svg"
+            width="1em"
+            height="1em"
         >
             {/* Simplified fist icon - represents the Humans Only logo */}
             <g transform="translate(150, 80)">

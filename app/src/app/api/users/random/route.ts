@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     const usersCount = await prisma.user.count({
         where: {
-            isPremium: true,
+            isVerifiedHuman: true,
             NOT: [
                 {
                     username: username,
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
                 location: true,
                 website: true,
                 photoUrl: true,
-                isPremium: true,
+                isVerifiedHuman: true,
                 headerUrl: true,
                 followers: {
                     select: {
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
                         name: true,
                         username: true,
                         description: true,
-                        isPremium: true,
+                        isVerifiedHuman: true,
                         photoUrl: true,
                         followers: {
                             select: {
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
                         name: true,
                         username: true,
                         description: true,
-                        isPremium: true,
+                        isVerifiedHuman: true,
                         photoUrl: true,
                         followers: {
                             select: {

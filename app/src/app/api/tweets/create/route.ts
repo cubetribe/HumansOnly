@@ -6,23 +6,53 @@ import { verifyJwtToken } from "@/utilities/auth";
 import { UserProps } from "@/types/UserProps";
 
 export async function POST(request: NextRequest) {
-    const { authorId, text, photoUrl } = await request.json();
-
+    // Verify authentication first
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
-    const verifiedToken: UserProps = token && (await verifyJwtToken(token));
 
-    if (!verifiedToken)
-        return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
+    if (!token) {
+        return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
 
-    if (verifiedToken.id !== authorId)
-        return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
+    const verifiedToken: UserProps = await verifyJwtToken(token);
+
+    if (!verifiedToken || !verifiedToken.id) {
+        return NextResponse.json({ success: false, message: "Invalid token" }, { status: 401 });
+    }
+
+    // Extract authorId from JWT (secure)
+    const authorId = verifiedToken.id;
+
+    // Parse request body
+    const { text, photoUrl } = await request.json();
+
+    // Validate input
+    if (!text || typeof text !== 'string') {
+        return NextResponse.json({
+            success: false,
+            message: "Text is required"
+        }, { status: 400 });
+    }
+
+    if (text.length === 0 || text.length > 280) {
+        return NextResponse.json({
+            success: false,
+            message: "Text must be 1-280 characters"
+        }, { status: 400 });
+    }
+
+    // Sanitize photoUrl
+    const sanitizedPhotoUrl = photoUrl && typeof photoUrl === 'string'
+        ? (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('http'))
+            ? photoUrl
+            : null
+        : null;
 
     try {
         await prisma.tweet.create({
             data: {
                 text,
-                photoUrl,
+                photoUrl: sanitizedPhotoUrl,
                 author: {
                     connect: {
                         id: authorId,

@@ -1,11 +1,12 @@
 {
-    "name": "twitter",
+    "name": "humansonly",
     "version": "1.0.0",
     "private": true,
-    "description": "Next.js 13 Full-stack Twitter clone",
+    "description": "Humans Only - Anti-AI Social Media Platform",
     "keywords": [
-        "twitter",
-        "clone",
+        "humansonly",
+        "anti-ai",
+        "social-media",
         "nextjs",
         "react",
         "typescript",

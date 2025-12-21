@@ -9,7 +9,7 @@ import { Avatar, Popover } from "@mui/material";
 
 import { NotificationProps } from "@/types/NotificationProps";
 import { getFullURL } from "@/utilities/misc/getFullURL";
-import RetweetIcon from "./RetweetIcon";
+import RepostIcon from "./RepostIcon";
 import ProfileCard from "../user/ProfileCard";
 import { UserProps } from "@/types/UserProps";
 
@@ -134,12 +134,12 @@ export default function Notification({ notification, token }: { notification: No
         return (
             <div className="notification">
                 <div className="icon-div retweet">
-                    <RetweetIcon />
+                    <RepostIcon />
                 </div>
                 <div>
-                    {sharedJSX} <span className={!notification.isRead ? "bold" : ""}>Retweeted your</span>{" "}
+                    {sharedJSX} <span className={!notification.isRead ? "bold" : ""}>Reposted your</span>{" "}
                     <Link className={`notification-link ${!notification.isRead ? "bold" : ""}`} href={tweetUrl}>
-                        tweet.
+                        post.
                     </Link>
                 </div>
             </div>
@@ -151,7 +151,7 @@ export default function Notification({ notification, token }: { notification: No
                     <GiPartyPopper />
                 </div>
                 <div className={!notification.isRead ? "bold" : ""}>
-                    Welcome to the Twitter! <br />
+                    Welcome to Humans Only! <br />
                     Start exploring and sharing your thoughts with the world.
                 </div>
             </div>

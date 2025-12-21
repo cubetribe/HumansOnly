@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params: { username } }: { para
                         name: true,
                         username: true,
                         photoUrl: true,
-                        isPremium: true,
+                        isVerifiedHuman: true,
                     },
                 },
                 recipient: {
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest, { params: { username } }: { para
                         name: true,
                         username: true,
                         photoUrl: true,
-                        isPremium: true,
+                        isVerifiedHuman: true,
                     },
                 },
             },

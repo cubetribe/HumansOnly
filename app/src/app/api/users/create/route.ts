@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
             description: newUser.description,
             location: newUser.location,
             website: newUser.website,
-            isPremium: newUser.isPremium,
+            isVerifiedHuman: newUser.isVerifiedHuman,
             createdAt: newUser.createdAt,
             photoUrl: newUser.photoUrl,
             headerUrl: newUser.headerUrl,
@@ -67,6 +67,10 @@ export async function POST(request: NextRequest) {
             name: "token",
             value: token,
             path: "/",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 86400,
         });
 
         return response;

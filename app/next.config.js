@@ -5,7 +5,13 @@ const nextConfig = {
         serverActions: true,
     },
     images: {
-        domains: ["nifemmkaxhltrtqltltq.supabase.co"],
+        domains: ["localhost", "ho.nm-forum.de"],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: '**.supabase.co',
+            },
+        ],
     },
     async headers() {
         return [

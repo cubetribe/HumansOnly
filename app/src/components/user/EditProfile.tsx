@@ -3,7 +3,6 @@ import { useFormik } from "formik";
 import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, TextField } from "@mui/material";
 import { MdOutlineAddAPhoto } from "react-icons/md";
-import { FaTwitter } from "react-icons/fa";
 import * as yup from "yup";
 import Image from "next/image";
 
@@ -106,7 +105,7 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
             setIsBlueLoading(false);
             return setSnackbar({ message: "Invalid blue code. Please try again.", severity: "error", open: true });
         }
-        const response = await editUser(JSON.stringify({ isPremium: true }), profile.username);
+        const response = await editUser(JSON.stringify({ isVerifiedHuman: true }), profile.username);
         if (!response.success) {
             setIsBlueLoading(false);
             return setSnackbar({
@@ -131,7 +130,7 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
             <div className="profile-header">
                 <div className="get-blue">
                     <button onClick={() => setIsBlueOpen(true)}>
-                        Twitter Blue? <FaTwitter />
+                        Verified Human?
                     </button>
                 </div>
                 <Image
@@ -246,7 +245,7 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
             {isBlueOpen && (
                 <div className="html-modal-wrapper">
                     <dialog open className="get-blue-modal">
-                        {profile.isPremium ? (
+                        {profile.isVerifiedHuman ? (
                             <div className="blue-user">
                                 <Image src="/assets/favicon.png" alt="" width={75} height={75} />
                                 <h1>You have already got Blue status.</h1>
@@ -264,10 +263,10 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
                         ) : (
                             <>
                                 <h1>
-                                    Want Twitter Blue? <FaTwitter />
+                                    Want Verified Human Badge?
                                 </h1>
                                 <p>
-                                    With Twitter Blue, you will have a little twitter bird next you your name, thats it! Dive
+                                    With Verified Human Badge, you will have a badge next to your name, proving you&apos;re human! Dive
                                     right in!
                                 </p>
                                 <p>

@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@mui/material";
 import Link from "next/link";
-import { AiFillTwitterCircle } from "react-icons/ai";
+import { VerifiedHumanBadge } from "@/components/icons";
 
 import { UserProps } from "@/types/UserProps";
 import { AuthContext } from "@/app/(twitter)/layout";
@@ -34,9 +34,9 @@ export default function User({ user }: { user: UserProps }) {
                         <div className="flex-left">
                             <span className="user-name">
                                 {user.name !== "" ? user.name : user.username}
-                                {user.isPremium && (
-                                    <span className="blue-tick" data-blue="Verified Blue">
-                                        <AiFillTwitterCircle />
+                                {user.isVerifiedHuman && (
+                                    <span className="blue-tick" data-blue="Verified Human">
+                                        <VerifiedHumanBadge />
                                     </span>
                                 )}
                             </span>

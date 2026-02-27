@@ -1,19 +1,23 @@
 <div align="center">
 
-<!-- Replace with your actual logo file -->
-<img src="public/ho-fist-favicon.svg" alt="Humans Only" width="100" />
+<img src="app/public/assets/ho-logo-icon.png" alt="Humans Only Red Fist" width="140" />
 
 # HUMANS ONLY
 
-### The AI is building the wall. Against itself.
+### Human-first social network. No AI-generated posts.
 
-[Join the Platform](https://humans-only.de/) · [Join the Resistance](#join-the-resistance) · [Roadmap](#roadmap)
+[![Live](https://img.shields.io/badge/Live-humans--only.de-EA2A12?style=for-the-badge)](https://humans-only.de/)
+[![Quality Gates](https://img.shields.io/github/actions/workflow/status/cubetribe/HumansOnly/quality-gates.yml?branch=main&label=Quality%20Gates&style=for-the-badge)](https://github.com/cubetribe/HumansOnly/actions/workflows/quality-gates.yml)
+[![Deploy](https://img.shields.io/github/actions/workflow/status/cubetribe/HumansOnly/deploy.yml?branch=main&label=Deploy&style=for-the-badge)](https://github.com/cubetribe/HumansOnly/actions/workflows/deploy.yml)
+[![License](https://img.shields.io/github/license/cubetribe/HumansOnly?style=for-the-badge)](LICENSE)
+
+[Live Platform](https://humans-only.de/) · [Deployment](docs/DEPLOYMENT.md) · [API](docs/API_CONSUMERS.md) · [Roadmap](#roadmap)
 
 ---
 
-*Yes, this platform is built with AI tools.*
-*Yes, it exists to keep AI-generated content out.*
-*No, we don't see a contradiction. We see poetry.*
+*Built with modern AI-assisted engineering.*
+*Built for authentic, human-created social content.*
+*Engineered, tested, and deployed continuously.*
 
 </div>
 

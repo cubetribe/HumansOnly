@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.1] - 2026-02-27
+
+### Added
+
+- UX mention linking in post bodies via reusable renderer:
+  - `src/components/misc/MentionText.tsx`
+- Deployment automation assets:
+  - `.github/workflows/deploy.yml` (main branch auto-deploy)
+  - `scripts/deploy-server.sh` (manual deploy parity script)
+- New agent workflow artifacts for UX/deploy hardening:
+  - `Agents/RESEARCHER_brief-2026-02-27-ux.md`
+  - `Agents/ARCHITECT_spec-2026-02-27-ux.md`
+
+### Changed
+
+- Tweet and single-post views now convert `@username` text into profile links.
+- Share interaction now uses native Web Share API when available, with clipboard fallback.
+- Like/repost/follow/delete action payloads standardized to object format (`{ tokenOwnerId }`) with route-level backward compatibility.
+- Sidebar unauthenticated CTA now uses Clerk modal buttons directly.
+- Deploy docs updated with GitHub secrets and auto-deploy flow.
+
+### Fixed
+
+- Avoided accidental deletion of server user uploads during deploy (`public/uploads` excluded from rsync delete).
+- Added deploy health-check retry loop to prevent false negatives immediately after PM2 restart.
+
 ## [1.2.0] - 2026-02-27
 
 ### Added

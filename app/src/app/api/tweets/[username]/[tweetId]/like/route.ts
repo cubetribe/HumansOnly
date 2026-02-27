@@ -10,7 +10,12 @@ export async function POST(
     request: NextRequest,
     { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
 ) {
-    const tokenOwnerId = await request.json();
+    const body = await request.json();
+    const tokenOwnerId = typeof body === "string" ? body : body?.tokenOwnerId;
+
+    if (!tokenOwnerId || typeof tokenOwnerId !== "string") {
+        return NextResponse.json({ success: false, message: "Invalid payload." }, { status: 400 });
+    }
 
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;

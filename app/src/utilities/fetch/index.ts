@@ -173,7 +173,7 @@ export const updateTweetLikes = async (tweetId: string, tweetAuthor: string, tok
         headers: {
             "Content-Type": "application/json",
         },
-        body: tokenOwnerId,
+        body: JSON.stringify({ tokenOwnerId }),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
@@ -188,7 +188,7 @@ export const updateReposts = async (tweetId: string, tweetAuthor: string, tokenO
         headers: {
             "Content-Type": "application/json",
         },
-        body: tokenOwnerId,
+        body: JSON.stringify({ tokenOwnerId }),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
@@ -203,7 +203,7 @@ export const updateUserFollows = async (followedUsername: string, tokenOwnerId: 
         headers: {
             "Content-Type": "application/json",
         },
-        body: tokenOwnerId,
+        body: JSON.stringify({ tokenOwnerId }),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
@@ -217,7 +217,7 @@ export const deleteTweet = async (tweetId: string, tweetAuthor: string, tokenOwn
         headers: {
             "Content-Type": "application/json",
         },
-        body: tokenOwnerId,
+        body: JSON.stringify({ tokenOwnerId }),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");

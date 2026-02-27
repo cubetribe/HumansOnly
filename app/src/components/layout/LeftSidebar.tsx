@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Avatar, Menu, MenuItem } from "@mui/material";
 import { FaHome, FaBell, FaEnvelope, FaUser, FaCog, FaHashtag, FaEllipsisH } from "react-icons/fa";
 import { HumansOnlyLogo, VerifiedHumanBadge } from "@/components/icons";
+import { useClerk } from "@clerk/nextjs";
 
 import NewTweetDialog from "../dialog/NewTweetDialog";
 import LogOutDialog from "../dialog/LogOutDialog";
@@ -21,13 +22,14 @@ export default function LeftSidebar() {
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const { token } = useContext(AuthContext);
+    const { signOut } = useClerk();
 
     const router = useRouter();
     const pathname = usePathname();
 
     const handleLogout = async () => {
         setIsLoggingOut(true);
-        await logout();
+        await Promise.allSettled([logout(), signOut({ redirectUrl: "/" })]);
         router.push("/");
     };
 
@@ -124,7 +126,7 @@ export default function LeftSidebar() {
                     {token && (
                         <>
                             <button onClick={handleNewTweetClick} className="btn btn-tweet">
-                                Tweet
+                                Post
                             </button>
                             <button onClick={handleAnchorClick} className="side-profile">
                                 <div>

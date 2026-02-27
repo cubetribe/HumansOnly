@@ -345,16 +345,45 @@ certbot certificates
 
 ## Deployment Process
 
+### GitHub Auto-Deploy (Recommended)
+
+Repository includes workflow:
+- `.github/workflows/deploy.yml`
+
+This workflow runs on every push to `main` (for selected paths) and performs:
+1. `npm ci`, `npm run lint`, `npm run build` in `app/`
+2. `rsync` upload of `app/` to `/var/www/humansonly`
+3. remote `npm ci`, `prisma migrate deploy`, `npm run build`
+4. `pm2 restart humansonly --update-env` + health probe
+
+Required GitHub repository secrets:
+- `DEPLOY_SSH_KEY` (private key, e.g. matching server authorized key)
+- `DEPLOY_HOST` (e.g. `5.182.17.148`)
+- `DEPLOY_PORT` (e.g. `2222`)
+- `DEPLOY_USER` (e.g. `root`)
+- `DEPLOY_PATH` (e.g. `/var/www/humansonly`)
+
+### Manual Deploy (Fallback / Ops)
+
+Use local script:
+```bash
+./scripts/deploy-server.sh
+```
+
+Dry-run (no server changes):
+```bash
+./scripts/deploy-server.sh --dry-run
+```
+
 ### Standard Deployment Workflow
 
 #### 1. Local Changes
 ```bash
 # On local machine
-cd /Users/denniswestermann/Desktop/Coding\ Projekte/HumansOnly/app
+cd /Users/denniswestermann/Desktop/Coding\ Projekte/HumansOnly
 
 # Make changes, test locally
-npm run dev
-npm run build  # Test production build
+./scripts/baseline-check.sh
 
 # Commit changes
 git add .
@@ -364,30 +393,9 @@ git push origin main
 
 #### 2. Deploy to Server
 ```bash
-# SSH into server
-ssh root@5.182.17.148
-
-# Navigate to app directory
-cd /var/www/humansonly
-
-# Pull latest changes
-git pull origin main
-
-# Install dependencies (if package.json changed)
-npm ci
-
-# Run database migrations (if schema changed)
-cd src
-npx prisma migrate deploy
-npx prisma generate
-cd ..
-
-# Build application
-npm run build
-
-# Restart PM2 with updated environment
-pm2 restart humansonly --update-env
-pm2 save
+# Preferred: push to main triggers GitHub auto-deploy workflow
+# Fallback: run local deployment script
+./scripts/deploy-server.sh
 ```
 
 #### 3. Verify Deployment

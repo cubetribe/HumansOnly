@@ -7,12 +7,25 @@ import CustomSnackbar from "../misc/CustomSnackbar";
 export default function Share({ tweetUrl }: { tweetUrl: string }) {
     const [snackbar, setSnackbar] = useState<SnackbarProps>({ message: "", severity: "success", open: false });
 
-    const handleCopy = () => {
+    const handleCopy = async () => {
         try {
-            navigator.clipboard.writeText(tweetUrl);
-            setSnackbar({ message: "Post link is copied to the clipboard.", severity: "success", open: true });
+            if (typeof navigator !== "undefined" && navigator.share) {
+                await navigator.share({
+                    title: "Humans Only",
+                    text: "Check out this post on Humans Only.",
+                    url: tweetUrl,
+                });
+                setSnackbar({ message: "Post link shared successfully.", severity: "success", open: true });
+                return;
+            }
+
+            await navigator.clipboard.writeText(tweetUrl);
+            setSnackbar({ message: "Post link copied to clipboard.", severity: "success", open: true });
         } catch (error) {
-            return console.log(error);
+            if (error instanceof Error && error.name === "AbortError") {
+                return;
+            }
+            setSnackbar({ message: "Sharing failed. Please try again.", severity: "error", open: true });
         }
     };
 

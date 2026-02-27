@@ -25,6 +25,7 @@ import CustomSnackbar from "../misc/CustomSnackbar";
 import { SnackbarProps } from "@/types/SnackbarProps";
 import CircularLoading from "../misc/CircularLoading";
 import { sleepFunction } from "@/utilities/misc/sleep";
+import MentionText from "../misc/MentionText";
 
 export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token: VerifiedToken }) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -135,7 +136,7 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
                                 <span className="mention">@{tweet.repliedTo.author.username}</span>
                             </Link>
                         )}{" "}
-                        {tweet.text}
+                        <MentionText text={tweet.text} />
                     </div>
                     {tweet.photoUrl && (
                         <>

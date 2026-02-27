@@ -18,6 +18,7 @@ import { getFullURL } from "@/utilities/misc/getFullURL";
 import { AuthContext } from "@/app/(twitter)/layout";
 import RepostIcon from "../misc/RepostIcon";
 import ProfileCard from "../user/ProfileCard";
+import MentionText from "../misc/MentionText";
 
 export default function Tweet({ tweet }: { tweet: TweetProps }) {
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -129,7 +130,7 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
                             </span>
                         </Link>
                     )}{" "}
-                    {displayedTweet.text}
+                    <MentionText text={displayedTweet.text} />
                 </div>
                 {displayedTweet.photoUrl && (
                     <div onClick={handlePropagation}>

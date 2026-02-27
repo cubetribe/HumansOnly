@@ -122,6 +122,26 @@ Für detaillierte Setup-Anweisungen, siehe `/app/README.md`
 ./scripts/auth-smoke-local.sh
 ```
 
+## Deploy
+
+```bash
+# Manual deploy to server
+./scripts/deploy-server.sh
+
+# Dry-run deploy (no server changes)
+./scripts/deploy-server.sh --dry-run
+```
+
+Auto-deploy is configured via:
+- `.github/workflows/deploy.yml`
+
+GitHub Secrets required by auto-deploy:
+- `DEPLOY_SSH_KEY`
+- `DEPLOY_HOST`
+- `DEPLOY_PORT`
+- `DEPLOY_USER`
+- `DEPLOY_PATH`
+
 ---
 
 ## Project Structure

@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import Link from "next/link";
+import { SignInButton, SignUpButton } from "@clerk/nextjs";
 
 import { AuthContext } from "@/app/(twitter)/layout";
 import Search from "../misc/Search";
@@ -23,12 +23,16 @@ export default function RightSidebar() {
                         <h1>Don&apos;t miss what&apos;s happening</h1>
                         <p>People on Humans Only are the first to know.</p>
                         <div className="reminder-buttons">
-                            <Link href="/" className="btn btn-white">
-                                Log In
-                            </Link>
-                            <Link href="/" className="btn btn-dark">
-                                Sign Up
-                            </Link>
+                            <SignInButton mode="modal">
+                                <button className="btn btn-white" type="button">
+                                    Log In
+                                </button>
+                            </SignInButton>
+                            <SignUpButton mode="modal">
+                                <button className="btn btn-dark" type="button">
+                                    Sign Up
+                                </button>
+                            </SignUpButton>
                         </div>
                     </div>
                 )}

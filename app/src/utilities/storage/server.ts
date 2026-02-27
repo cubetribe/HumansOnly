@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
+import { randomBytes } from "crypto";
 
 export type ServerUploadType = "post" | "profile" | "header";
 
@@ -24,11 +25,13 @@ const sanitizeExtension = (extension: string) => {
     return cleaned || "bin";
 };
 
+const randomSuffix = () => randomBytes(8).toString("hex");
+
 const buildStorageKey = ({ uploadType, userId, extension }: { uploadType: ServerUploadType; userId: string; extension: string }) =>
-    `${uploadType}/${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${sanitizeExtension(extension)}`;
+    `${uploadType}/${userId}/${Date.now()}-${randomSuffix()}.${sanitizeExtension(extension)}`;
 
 const storeInLocal = async (payload: StoreMediaPayload): Promise<StoreMediaResult> => {
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${sanitizeExtension(payload.extension)}`;
+    const filename = `${Date.now()}-${randomSuffix()}.${sanitizeExtension(payload.extension)}`;
     const uploadDir = join(process.cwd(), "public", "uploads");
 
     if (!existsSync(uploadDir)) {

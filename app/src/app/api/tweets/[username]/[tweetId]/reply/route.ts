@@ -4,6 +4,7 @@ import { prisma } from "@/prisma/client";
 import { createNotification } from "@/utilities/fetch";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { canUsersInteract, visibleAuthorWhereForViewer } from "@/utilities/social/access";
+import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
 
 export async function GET(request: NextRequest, { params: { tweetId } }: { params: { tweetId: string } }) {
     const authUser = await getAuthenticatedUser();
@@ -107,28 +108,31 @@ export async function POST(
 
     // Parse request body
     const { text, photoUrl } = await request.json();
+    const normalizedText = typeof text === "string" ? text.trim() : "";
 
     // Validate input
-    if (!text || typeof text !== 'string') {
+    if (!normalizedText) {
         return NextResponse.json({
             success: false,
             message: "Text is required"
         }, { status: 400 });
     }
 
-    if (text.length === 0 || text.length > 280) {
+    if (normalizedText.length > 280) {
         return NextResponse.json({
             success: false,
             message: "Text must be 1-280 characters"
         }, { status: 400 });
     }
 
-    // Sanitize photoUrl
-    const sanitizedPhotoUrl = photoUrl && typeof photoUrl === 'string'
-        ? (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('http'))
-            ? photoUrl
-            : null
-        : null;
+    const hasPhotoUrl = photoUrl !== undefined && photoUrl !== null && !(typeof photoUrl === "string" && photoUrl.trim() === "");
+    const sanitizedPhotoUrl = hasPhotoUrl ? sanitizeMediaUrl(photoUrl) : null;
+    if (hasPhotoUrl && !sanitizedPhotoUrl) {
+        return NextResponse.json({
+            success: false,
+            message: "photoUrl must be a valid upload URL"
+        }, { status: 400 });
+    }
 
     try {
         const targetTweet = await prisma.tweet.findUnique({
@@ -182,7 +186,7 @@ export async function POST(
         await prisma.tweet.create({
             data: {
                 isReply: true,
-                text,
+                text: normalizedText,
                 photoUrl: sanitizedPhotoUrl,
                 author: {
                     connect: {

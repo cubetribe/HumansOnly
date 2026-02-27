@@ -6,6 +6,7 @@ import { shouldCreateNotification } from "@/utilities/misc/shouldCreateNotificat
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { canUsersInteract } from "@/utilities/social/access";
 import { errorResponse, getRequestId, logApiEvent, successResponse } from "@/utilities/observability";
+import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
 
 export async function POST(request: NextRequest) {
     const requestId = getRequestId(request);
@@ -20,31 +21,32 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const { recipient, text, photoUrl } = await request.json();
+    const normalizedText = typeof text === "string" ? text.trim() : "";
+    const normalizedRecipient = typeof recipient === "string" ? recipient.trim() : "";
 
     // Validate input
-    if (!text || typeof text !== 'string') {
+    if (!normalizedText) {
         return errorResponse(requestId, "Text is required", 400);
     }
 
-    if (text.length === 0 || text.length > 280) {
+    if (normalizedText.length > 280) {
         return errorResponse(requestId, "Text must be 1-280 characters", 400);
     }
 
-    if (!recipient || typeof recipient !== 'string') {
+    if (!normalizedRecipient) {
         return errorResponse(requestId, "Recipient is required", 400);
     }
 
-    // Sanitize photoUrl
-    const sanitizedPhotoUrl = photoUrl && typeof photoUrl === 'string'
-        ? (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('http'))
-            ? photoUrl
-            : null
-        : null;
+    const hasPhotoUrl = photoUrl !== undefined && photoUrl !== null && !(typeof photoUrl === "string" && photoUrl.trim() === "");
+    const sanitizedPhotoUrl = hasPhotoUrl ? sanitizeMediaUrl(photoUrl) : null;
+    if (hasPhotoUrl && !sanitizedPhotoUrl) {
+        return errorResponse(requestId, "photoUrl must be a valid upload URL", 400);
+    }
 
     try {
         const recipientUser = await prisma.user.findUnique({
             where: {
-                username: recipient,
+                username: normalizedRecipient,
             },
             select: {
                 id: true,
@@ -77,7 +79,7 @@ export async function POST(request: NextRequest) {
 
         await prisma.message.create({
             data: {
-                text,
+                text: normalizedText,
                 photoUrl: sanitizedPhotoUrl,
                 isRead: false,
                 sender: {
@@ -87,13 +89,13 @@ export async function POST(request: NextRequest) {
                 },
                 recipient: {
                     connect: {
-                        username: recipient,
+                        username: normalizedRecipient,
                     },
                 },
             },
         });
 
-        if (recipient !== authUser.username && (await shouldCreateNotification(authUser.username, recipient))) {
+        if (normalizedRecipient !== authUser.username && (await shouldCreateNotification(authUser.username, normalizedRecipient))) {
             const notificationContent = {
                 sender: {
                     username: authUser.username,
@@ -103,7 +105,7 @@ export async function POST(request: NextRequest) {
                 content: null,
             };
 
-            await createNotification(recipient, "message", secret, notificationContent);
+            await createNotification(normalizedRecipient, "message", secret, notificationContent);
         }
 
         logApiEvent("info", {

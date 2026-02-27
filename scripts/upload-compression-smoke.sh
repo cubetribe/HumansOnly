@@ -15,7 +15,7 @@ json_field() {
     node -e 'const data = JSON.parse(process.argv[1]); const key = process.argv[2]; const value = data[key]; process.stdout.write(String(value ?? ""));' "$json" "$key"
 }
 
-echo "[1/6] Generate large synthetic images"
+echo "[1/7] Generate large synthetic images"
 (cd "${APP_DIR}" && node - "${TMP_DIR}" <<'NODE'
 const crypto = require("crypto");
 const fs = require("fs");
@@ -52,7 +52,7 @@ const createNoiseImage = async ({ filename, width, height }) => {
 NODE
 )
 
-echo "[2/6] Create user session"
+echo "[2/7] Create user session"
 USERNAME="u$(date +%s)"
 PASSWORD="UploadSmokePass123!"
 
@@ -125,7 +125,12 @@ upload_and_assert() {
     output_width="$(json_field "${response}" "outputWidth")"
     output_height="$(json_field "${response}" "outputHeight")"
 
-    if [[ "${path}" != /uploads/* ]]; then
+    local asset_url=""
+    if [[ "${path}" == /uploads/* ]]; then
+        asset_url="${BASE_URL}${path}"
+    elif [[ "${path}" == http://* || "${path}" == https://* ]]; then
+        asset_url="${path}"
+    else
         echo "Unexpected upload path for ${upload_type}: ${path}" >&2
         exit 1
     fi
@@ -143,23 +148,23 @@ upload_and_assert() {
     fi
 
     local image_code
-    image_code="$(curl -sS -o /dev/null -w '%{http_code}' "${BASE_URL}${path}")"
+    image_code="$(curl -sS -o /dev/null -w '%{http_code}' "${asset_url}")"
     if [[ "${image_code}" != "200" ]]; then
         echo "Uploaded asset not reachable for ${upload_type}: HTTP ${image_code}" >&2
         exit 1
     fi
 }
 
-echo "[3/6] Validate profile compression budget"
+echo "[3/7] Validate profile compression budget"
 upload_and_assert "${TMP_DIR}/profile.png" "profile" 286720 400 400
 
-echo "[4/6] Validate header compression budget"
+echo "[4/7] Validate header compression budget"
 upload_and_assert "${TMP_DIR}/header.png" "header" 614400 1500 500
 
-echo "[5/6] Validate post compression budget"
+echo "[5/7] Validate post compression budget"
 upload_and_assert "${TMP_DIR}/post.png" "post" 1536000 1920 1080
 
-echo "[6/6] Validate invalid-image rejection"
+echo "[6/7] Validate invalid-image rejection"
 printf 'this-is-not-an-image' > "${TMP_DIR}/invalid.heic"
 INVALID_RESPONSE="$(curl -sS -b "${COOKIE_FILE}" \
     -F "file=@${TMP_DIR}/invalid.heic;type=image/heic" \
@@ -172,6 +177,21 @@ if [[ "${INVALID_RESPONSE}" != *'"success":false'* ]]; then
 fi
 if [[ "${INVALID_RESPONSE}" != *"valid or supported image"* ]]; then
     echo "Unexpected invalid upload response: ${INVALID_RESPONSE}" >&2
+    exit 1
+fi
+
+echo "[7/7] Validate declared mime-type enforcement"
+MISMATCH_RESPONSE="$(curl -sS -b "${COOKIE_FILE}" \
+    -F "file=@${TMP_DIR}/profile.png;type=text/plain" \
+    -F "type=profile" \
+    "${BASE_URL}/api/upload")"
+
+if [[ "${MISMATCH_RESPONSE}" != *'"success":false'* ]]; then
+    echo "Declared mime-type mismatch should fail: ${MISMATCH_RESPONSE}" >&2
+    exit 1
+fi
+if [[ "${MISMATCH_RESPONSE}" != *"Invalid file type"* && "${MISMATCH_RESPONSE}" != *"does not match file content"* ]]; then
+    echo "Unexpected mime mismatch response: ${MISMATCH_RESPONSE}" >&2
     exit 1
 fi
 

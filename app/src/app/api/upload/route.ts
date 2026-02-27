@@ -6,12 +6,30 @@ import { prisma } from "@/prisma/client";
 import { storeMediaBuffer, type ServerUploadType } from "@/utilities/storage/server";
 import { InvalidUploadImageError, optimizeUploadImage } from "@/utilities/media/optimizeUploadImage";
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/heic", "image/heif"];
+const ALLOWED_DECLARED_TYPES = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/avif",
+    "image/heic",
+    "image/heif",
+]);
+const ALLOWED_DETECTED_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/heif"]);
+const ALLOWED_UPLOAD_TYPES: ServerUploadType[] = ["post", "profile", "header"];
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB raw input
+const MAX_REQUEST_SIZE = Number.parseInt(process.env.UPLOAD_MAX_REQUEST_BYTES || `${MAX_SIZE + 2 * 1024 * 1024}`, 10);
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 const DAILY_UPLOAD_LIMIT = Number.parseInt(process.env.UPLOAD_MAX_FILES_PER_DAY || "40", 10);
 const DAILY_BYTE_LIMIT = Number.parseInt(process.env.UPLOAD_MAX_BYTES_PER_DAY || `${250 * 1024 * 1024}`, 10);
+
+const mimeTypeMatches = (declaredMimeType: string, detectedMimeType: string) => {
+    if (!declaredMimeType) return true;
+    if (declaredMimeType === detectedMimeType) return true;
+    if (declaredMimeType === "image/heic" && detectedMimeType === "image/heif") return true;
+    return false;
+};
 
 export async function POST(request: NextRequest) {
     try {
@@ -20,22 +38,50 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        const formData = await request.formData();
-        const file = formData.get("file") as File;
-        const rawType = formData.get("type");
-        const type: ServerUploadType =
-            typeof rawType === "string" && ["post", "profile", "header"].includes(rawType)
-                ? (rawType as ServerUploadType)
-                : "post";
-
-        if (!file) {
-            return NextResponse.json({ success: false, error: "No file provided" }, { status: 400 });
+        const contentTypeHeader = (request.headers.get("content-type") || "").toLowerCase();
+        if (!contentTypeHeader.includes("multipart/form-data")) {
+            return NextResponse.json({ success: false, error: "Content-Type must be multipart/form-data." }, { status: 415 });
         }
 
-        if (!ALLOWED_TYPES.includes(file.type)) {
+        const contentLength = Number.parseInt(request.headers.get("content-length") || "0", 10);
+        if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_SIZE) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `Request too large. Maximum ${Math.round(MAX_REQUEST_SIZE / 1024 / 1024)}MB allowed.`,
+                },
+                { status: 413 }
+            );
+        }
+
+        let formData: FormData;
+        try {
+            formData = await request.formData();
+        } catch {
+            return NextResponse.json({ success: false, error: "Invalid multipart payload." }, { status: 400 });
+        }
+
+        const formFile = formData.get("file");
+        if (!(formFile instanceof File)) {
+            return NextResponse.json({ success: false, error: "No file provided" }, { status: 400 });
+        }
+        const file = formFile;
+
+        const rawType = formData.get("type");
+        if (rawType !== null && (typeof rawType !== "string" || !ALLOWED_UPLOAD_TYPES.includes(rawType as ServerUploadType))) {
+            return NextResponse.json({ success: false, error: "Invalid upload type." }, { status: 400 });
+        }
+        const type = (typeof rawType === "string" ? rawType : "post") as ServerUploadType;
+
+        if (file.size <= 0) {
+            return NextResponse.json({ success: false, error: "File is empty." }, { status: 400 });
+        }
+
+        const declaredMimeType = (file.type || "").toLowerCase();
+        if (declaredMimeType && !ALLOWED_DECLARED_TYPES.has(declaredMimeType)) {
             return NextResponse.json({
                 success: false,
-                error: `Invalid file type. Allowed: ${ALLOWED_TYPES.join(", ")}`,
+                error: `Invalid file type. Allowed: ${Array.from(ALLOWED_DECLARED_TYPES).join(", ")}`,
             }, { status: 400 });
         }
 
@@ -120,6 +166,34 @@ export async function POST(request: NextRequest) {
             }
 
             throw error;
+        }
+
+        if (!ALLOWED_DETECTED_TYPES.has(optimized.inputMimeType)) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Unsupported image format after validation.",
+                },
+                { status: 400 }
+            );
+        }
+        if (!mimeTypeMatches(declaredMimeType, optimized.inputMimeType)) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Declared file type does not match file content.",
+                },
+                { status: 400 }
+            );
+        }
+        if (optimized.outputBytes > optimized.hardMaxBytes) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Image exceeds optimized hard limit. Please upload a smaller image.",
+                },
+                { status: 400 }
+            );
         }
 
         const originalSize = file.size;

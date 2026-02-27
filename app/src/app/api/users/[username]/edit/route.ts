@@ -5,50 +5,135 @@ import { prisma } from "@/prisma/client";
 import { getJwtSecretKey } from "@/utilities/auth";
 import { buildAuthCookie } from "@/utilities/auth/cookies";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
+
+type ValidationResult = {
+    isSet: boolean;
+    value?: string | null;
+    error?: string;
+};
+
+const readOptionalTextField = (
+    body: Record<string, unknown>,
+    field: "name" | "description" | "location" | "website",
+    maxLength: number
+): ValidationResult => {
+    if (!Object.prototype.hasOwnProperty.call(body, field)) {
+        return { isSet: false };
+    }
+
+    const rawValue = body[field];
+    if (rawValue === null) {
+        return { isSet: true, value: null };
+    }
+    if (typeof rawValue !== "string") {
+        return { isSet: true, error: `${field} must be a string.` };
+    }
+
+    const trimmed = rawValue.trim();
+    if (!trimmed) {
+        return { isSet: true, value: null };
+    }
+    if (trimmed.length > maxLength) {
+        return { isSet: true, error: `${field} must be at most ${maxLength} characters.` };
+    }
+
+    return { isSet: true, value: trimmed };
+};
+
+const readOptionalMediaField = (body: Record<string, unknown>, field: "photoUrl" | "headerUrl"): ValidationResult => {
+    if (!Object.prototype.hasOwnProperty.call(body, field)) {
+        return { isSet: false };
+    }
+
+    const rawValue = body[field];
+    if (rawValue === null) {
+        return { isSet: true, value: null };
+    }
+    if (typeof rawValue !== "string") {
+        return { isSet: true, error: `${field} must be a string.` };
+    }
+
+    const trimmed = rawValue.trim();
+    if (!trimmed) {
+        return { isSet: true, value: null };
+    }
+
+    const sanitized = sanitizeMediaUrl(trimmed);
+    if (!sanitized) {
+        return { isSet: true, error: `${field} must be a valid upload URL.` };
+    }
+
+    return { isSet: true, value: sanitized };
+};
 
 export async function POST(request: NextRequest, { params: { username } }: { params: { username: string } }) {
-    const body = await request.json();
-    const { name, description, location, website, photoUrl, headerUrl, isVerifiedHuman, verificationCode } = body;
+    let body: Record<string, unknown>;
+    try {
+        body = await request.json();
+    } catch {
+        return NextResponse.json({ success: false, message: "Invalid JSON body." }, { status: 400 });
+    }
 
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
     if (authUser.username !== username) return unauthorizedResponse();
 
-    const hasPhotoUrl = Object.prototype.hasOwnProperty.call(body, "photoUrl");
-    const hasHeaderUrl = Object.prototype.hasOwnProperty.call(body, "headerUrl");
-    const wantsVerifiedHuman = isVerifiedHuman === true;
+    if (Object.prototype.hasOwnProperty.call(body, "isVerifiedHuman") && typeof body.isVerifiedHuman !== "boolean") {
+        return NextResponse.json({ success: false, message: "isVerifiedHuman must be a boolean." }, { status: 400 });
+    }
+
+    const nameField = readOptionalTextField(body, "name", 50);
+    if (nameField.error) return NextResponse.json({ success: false, message: nameField.error }, { status: 400 });
+
+    const descriptionField = readOptionalTextField(body, "description", 160);
+    if (descriptionField.error) return NextResponse.json({ success: false, message: descriptionField.error }, { status: 400 });
+
+    const locationField = readOptionalTextField(body, "location", 30);
+    if (locationField.error) return NextResponse.json({ success: false, message: locationField.error }, { status: 400 });
+
+    const websiteField = readOptionalTextField(body, "website", 30);
+    if (websiteField.error) return NextResponse.json({ success: false, message: websiteField.error }, { status: 400 });
+
+    const photoField = readOptionalMediaField(body, "photoUrl");
+    if (photoField.error) return NextResponse.json({ success: false, message: photoField.error }, { status: 400 });
+
+    const headerField = readOptionalMediaField(body, "headerUrl");
+    if (headerField.error) return NextResponse.json({ success: false, message: headerField.error }, { status: 400 });
+
+    const wantsVerifiedHuman = body.isVerifiedHuman === true;
 
     if (wantsVerifiedHuman) {
-        const providedCode = typeof verificationCode === "string" ? verificationCode : "";
+        const providedCode = typeof body.verificationCode === "string" ? body.verificationCode : "";
         if (!process.env.BLUE_SECRET_KEY || providedCode !== process.env.BLUE_SECRET_KEY) {
             return NextResponse.json({ success: false, message: "Invalid verification code." }, { status: 400 });
         }
     }
 
-    const sanitizeImagePath = (value: unknown): string | null => {
-        if (typeof value !== "string" || value.trim() === "") return null;
-        return value.startsWith("/uploads/") || value.startsWith("http://") || value.startsWith("https://")
-            ? value
-            : null;
-    };
-
-    const sanitizedPhotoUrl = hasPhotoUrl ? sanitizeImagePath(photoUrl) : undefined;
-    const sanitizedHeaderUrl = hasHeaderUrl ? sanitizeImagePath(headerUrl) : undefined;
-
     try {
+        const updateData: {
+            name?: string | null;
+            description?: string | null;
+            location?: string | null;
+            website?: string | null;
+            photoUrl?: string | null;
+            headerUrl?: string | null;
+            isVerifiedHuman?: boolean;
+        } = {};
+
+        if (nameField.isSet) updateData.name = nameField.value ?? null;
+        if (descriptionField.isSet) updateData.description = descriptionField.value ?? null;
+        if (locationField.isSet) updateData.location = locationField.value ?? null;
+        if (websiteField.isSet) updateData.website = websiteField.value ?? null;
+        if (photoField.isSet) updateData.photoUrl = photoField.value ?? null;
+        if (headerField.isSet) updateData.headerUrl = headerField.value ?? null;
+        if (wantsVerifiedHuman) updateData.isVerifiedHuman = true;
+
         const user = await prisma.user.update({
             where: {
                 username: username,
             },
-            data: {
-                name,
-                description,
-                location,
-                website,
-                photoUrl: sanitizedPhotoUrl,
-                headerUrl: sanitizedHeaderUrl,
-                isVerifiedHuman: wantsVerifiedHuman ? true : undefined,
-            },
+            data: updateData,
         });
 
         const newToken = await new SignJWT({
@@ -76,7 +161,8 @@ export async function POST(request: NextRequest, { params: { username } }: { par
         response.cookies.set(buildAuthCookie(newToken));
 
         return response;
-    } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+    } catch (error) {
+        console.error("Profile update error:", error);
+        return NextResponse.json({ success: false, message: "Failed to update profile." }, { status: 500 });
     }
 }

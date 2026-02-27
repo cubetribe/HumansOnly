@@ -1,14 +1,21 @@
+import { sanitizeMediaUrl } from "./sanitizeMediaUrl";
+
 export const getFullURL = (url: string | null | undefined): string => {
     if (!url) return '';
+
+    const sanitized = sanitizeMediaUrl(url);
+    if (sanitized) {
+        return sanitized;
+    }
 
     // Local uploads already have full path
     if (url.startsWith('/uploads/')) {
         return url;
     }
 
-    // Already a full URL
+    // Unknown absolute URLs are intentionally rejected by sanitizeMediaUrl.
     if (url.startsWith('http://') || url.startsWith('https://')) {
-        return url;
+        return '';
     }
 
     // Legacy Supabase paths - fallback

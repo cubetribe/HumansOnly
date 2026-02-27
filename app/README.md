@@ -144,6 +144,11 @@ PORT=3000
 NEXT_PUBLIC_SUPABASE_URL="your_supabase_url"
 NEXT_PUBLIC_SUPABASE_KEY="your_supabase_anon_key"
 NEXT_PUBLIC_STORAGE_URL="your_supabase_storage_url"
+UPLOAD_STORAGE_PROVIDER="auto"
+UPLOAD_MAX_FILES_PER_DAY="40"
+UPLOAD_MAX_BYTES_PER_DAY="262144000"
+UPLOAD_MAX_REQUEST_BYTES="54525952"
+UPLOAD_ALLOWED_MEDIA_HOSTS="cdn.example.com"
 ```
 
 **Note:** For Supabase credentials, create a free project at https://supabase.com
@@ -288,6 +293,7 @@ Full API documentation: `/docs/API_CONSUMERS.md`
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/db` |
+| `DIRECT_DATABASE_URL` | Direct Prisma connection string for migrate/validate | `postgresql://user:pass@localhost:5432/db` |
 | `JWT_SECRET_KEY` | JWT signing secret | Random 64-char hex string |
 | `CREATION_SECRET_KEY` | Account creation secret | Random 64-char hex string |
 | `BLUE_SECRET_KEY` | Premium verification code | `thanksforcaring` |
@@ -301,6 +307,8 @@ Full API documentation: `/docs/API_CONSUMERS.md`
 | `UPLOAD_STORAGE_PROVIDER` | Upload backend mode | `local`, `supabase`, or `auto` |
 | `UPLOAD_MAX_FILES_PER_DAY` | Per-user upload count limit (24h) | `40` |
 | `UPLOAD_MAX_BYTES_PER_DAY` | Per-user upload byte budget (24h) | `262144000` |
+| `UPLOAD_MAX_REQUEST_BYTES` | Hard request cap for multipart upload body | `54525952` |
+| `UPLOAD_ALLOWED_MEDIA_HOSTS` | Optional comma-separated host allowlist for external media URLs | `cdn.example.com,images.example.com` |
 
 ---
 

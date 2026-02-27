@@ -1,5 +1,15 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - Upload + Media Security Hardening (v1.8.5)
+
+-   hardened `/api/upload` request validation with strict `multipart/form-data` and request-size guardrails
+-   added declared-vs-detected MIME enforcement and reject-on-mismatch behavior to block spoofed uploads
+-   enforced optimizer hard output limits so oversized images fail fast instead of being stored
+-   centralized media URL sanitization across profile edit, tweets, replies, and messages APIs
+-   restricted accepted media URLs to local uploads and configured storage origins/hosts only
+-   switched upload/storage object key suffixes from `Math.random` to crypto-grade random bytes
+-   extended live upload smoke with explicit MIME-mismatch negative checks
+
 ## 2026-02-27 - CI/Prisma Env Hotfix (v1.8.4)
 
 -   fixed `DIRECT_DATABASE_URL` validation failures in quality scripts by auto-falling back to `DATABASE_URL` when missing

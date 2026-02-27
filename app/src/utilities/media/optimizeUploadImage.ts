@@ -4,8 +4,16 @@ import type { ServerUploadType } from "@/utilities/storage/server";
 
 const MAX_INPUT_PIXELS = 40_000_000;
 const WEBP_SCALE_STEPS = [1, 0.92, 0.84, 0.76, 0.68, 0.6, 0.52, 0.44];
-const WEBP_QUALITY_STEPS = [82, 74, 66, 58, 50, 42, 34];
+const WEBP_QUALITY_STEPS = [84, 76, 68, 60, 52, 44, 36, 28, 22];
 const JPEG_QUALITY_STEPS = [72, 62, 52, 42, 34];
+const SUPPORTED_INPUT_FORMAT_TO_MIME: Record<string, string> = {
+    jpeg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    webp: "image/webp",
+    heif: "image/heif",
+    avif: "image/avif",
+};
 
 type CompressionProfile = {
     maxWidth: number;
@@ -59,6 +67,7 @@ export type OptimizedUploadImage = {
     buffer: Buffer;
     mimeType: "image/webp" | "image/jpeg";
     extension: "webp" | "jpg";
+    inputMimeType: string;
     width: number;
     height: number;
     outputBytes: number;
@@ -167,6 +176,11 @@ export const optimizeUploadImage = async ({
     if (inputWidth <= 0 || inputHeight <= 0) {
         throw new InvalidUploadImageError("Unable to read image dimensions.");
     }
+    const detectedFormat = (metadata.format ?? "").toLowerCase();
+    const inputMimeType = SUPPORTED_INPUT_FORMAT_TO_MIME[detectedFormat];
+    if (!inputMimeType) {
+        throw new InvalidUploadImageError("Unsupported image format. Allowed: JPEG, PNG, GIF, WEBP, HEIF, AVIF.");
+    }
 
     const wasAnimated = (metadata.pages ?? 1) > 1;
     const { width: baseWidth, height: baseHeight } = calculateBaseDimensions(inputWidth, inputHeight, profile);
@@ -196,6 +210,7 @@ export const optimizeUploadImage = async ({
             if (candidate.size <= profile.targetBytes) {
                 return {
                     ...candidate,
+                    inputMimeType,
                     outputBytes: candidate.size,
                     targetBytes: profile.targetBytes,
                     hardMaxBytes: profile.hardMaxBytes,
@@ -228,6 +243,7 @@ export const optimizeUploadImage = async ({
                 if (candidate.size <= profile.hardMaxBytes) {
                     return {
                         ...candidate,
+                        inputMimeType,
                         outputBytes: candidate.size,
                         targetBytes: profile.targetBytes,
                         hardMaxBytes: profile.hardMaxBytes,
@@ -242,9 +258,15 @@ export const optimizeUploadImage = async ({
     if (!bestCandidate) {
         throw new InvalidUploadImageError();
     }
+    if (bestCandidate.size > profile.hardMaxBytes) {
+        throw new InvalidUploadImageError(
+            `Image could not be optimized under ${Math.round(profile.hardMaxBytes / 1024)}KB. Please upload a smaller image.`
+        );
+    }
 
     return {
         ...bestCandidate,
+        inputMimeType,
         outputBytes: bestCandidate.size,
         targetBytes: profile.targetBytes,
         hardMaxBytes: profile.hardMaxBytes,
@@ -252,4 +274,3 @@ export const optimizeUploadImage = async ({
         wasAnimated,
     };
 };
-

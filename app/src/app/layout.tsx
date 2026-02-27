@@ -59,10 +59,12 @@ const poppins = localFont({
 });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-    return (
-        <ClerkProvider>
-            <html lang="en" className={`${roboto.variable} ${poppins.variable}`}>
-                <body>
+    const skipClerkDuringCiBuild = process.env.SKIP_CLERK_CI_BUILD === "1";
+
+    const document = (
+        <html lang="en" className={`${roboto.variable} ${poppins.variable}`}>
+            <body>
+                {!skipClerkDuringCiBuild && (
                     <header className="clerk-auth-header">
                         <SignedOut>
                             <SignInButton mode="modal">
@@ -80,10 +82,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             <UserButton afterSignOutUrl="/" />
                         </SignedIn>
                     </header>
-                    <ClerkAuthBridge />
-                    <Providers>{children}</Providers>
-                </body>
-            </html>
-        </ClerkProvider>
+                )}
+                {!skipClerkDuringCiBuild && <ClerkAuthBridge />}
+                <Providers>{children}</Providers>
+            </body>
+        </html>
     );
+
+    if (skipClerkDuringCiBuild) {
+        return document;
+    }
+
+    return <ClerkProvider>{document}</ClerkProvider>;
 }

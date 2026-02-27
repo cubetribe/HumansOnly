@@ -13,6 +13,15 @@ npm run build
 
 echo "[3/3] Prisma migration status"
 cd "${APP_DIR}/src"
+if [[ -f "${APP_DIR}/.env" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "${APP_DIR}/.env"
+    set +a
+fi
+if [[ -z "${DIRECT_DATABASE_URL:-}" && -n "${DATABASE_URL:-}" ]]; then
+    export DIRECT_DATABASE_URL="${DATABASE_URL}"
+fi
 npx prisma migrate status
 
 echo

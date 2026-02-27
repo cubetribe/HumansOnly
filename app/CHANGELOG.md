@@ -1,5 +1,12 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - CI/Prisma Env Hotfix (v1.8.4)
+
+-   fixed `DIRECT_DATABASE_URL` validation failures in quality scripts by auto-falling back to `DATABASE_URL` when missing
+-   limited `.env` sourcing in quality scripts to Prisma steps so `NODE_ENV=development` does not break production builds
+-   updated `.env.example` with `DIRECT_DATABASE_URL` to match Prisma schema requirements
+-   hardened upload compression smoke script with startup readiness/retry handling for fresh deploy runs
+
 ## 2026-02-27 - Adaptive Image Compression Pipeline (v1.8.3)
 
 -   added adaptive upload optimizer with iterative quality + rescale passes per upload type (`profile`, `header`, `post`)

@@ -56,12 +56,40 @@ echo "[2/6] Create user session"
 USERNAME="u$(date +%s)"
 PASSWORD="UploadSmokePass123!"
 
-CREATE_RESPONSE="$(curl -sS -c "${COOKIE_FILE}" -H 'Content-Type: application/json' \
-    -d "{\"username\":\"${USERNAME}\",\"password\":\"${PASSWORD}\",\"name\":\"${USERNAME}\"}" \
-    "${BASE_URL}/api/users/create")"
-LOGIN_RESPONSE="$(curl -sS -b "${COOKIE_FILE}" -c "${COOKIE_FILE}" -H 'Content-Type: application/json' \
-    -d "{\"username\":\"${USERNAME}\",\"password\":\"${PASSWORD}\"}" \
-    "${BASE_URL}/api/auth/login")"
+for attempt in {1..15}; do
+    HEALTH_CODE="$(curl -sS -o /dev/null -w '%{http_code}' "${BASE_URL}/api/health" || true)"
+    if [[ "${HEALTH_CODE}" == "200" ]]; then
+        break
+    fi
+    sleep 1
+done
+
+post_with_retry() {
+    local url="$1"
+    local payload="$2"
+    local cookie_read="$3"
+    local cookie_write="$4"
+    local response=""
+
+    for _attempt in {1..5}; do
+        if [[ -n "${cookie_read}" ]]; then
+            response="$(curl -sS -b "${cookie_read}" -c "${cookie_write}" -H 'Content-Type: application/json' -d "${payload}" "${url}" || true)"
+        else
+            response="$(curl -sS -c "${cookie_write}" -H 'Content-Type: application/json' -d "${payload}" "${url}" || true)"
+        fi
+        if [[ "${response}" == *'"success":'* ]]; then
+            echo "${response}"
+            return 0
+        fi
+        sleep 1
+    done
+
+    echo "${response}"
+    return 0
+}
+
+CREATE_RESPONSE="$(post_with_retry "${BASE_URL}/api/users/create" "{\"username\":\"${USERNAME}\",\"password\":\"${PASSWORD}\",\"name\":\"${USERNAME}\"}" "" "${COOKIE_FILE}")"
+LOGIN_RESPONSE="$(post_with_retry "${BASE_URL}/api/auth/login" "{\"username\":\"${USERNAME}\",\"password\":\"${PASSWORD}\"}" "${COOKIE_FILE}" "${COOKIE_FILE}")"
 
 if [[ "${CREATE_RESPONSE}" != *'"success":true'* ]]; then
     echo "Create user failed: ${CREATE_RESPONSE}" >&2

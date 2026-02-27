@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useFormik } from "formik";
 import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, TextField } from "@mui/material";
@@ -30,8 +30,27 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
 
     const queryClient = useQueryClient();
 
+    // Cleanup memory leaks for preview URLs
+    useEffect(() => {
+        return () => {
+            if (photoPreview) {
+                URL.revokeObjectURL(photoPreview);
+            }
+            if (headerPreview) {
+                URL.revokeObjectURL(headerPreview);
+            }
+        };
+    }, [photoPreview, headerPreview]);
+
     const handleHeaderChange = (event: any) => {
         const file = event.target.files[0];
+        if (!file) return;
+
+        // Revoke old preview URL before creating new one
+        if (headerPreview) {
+            URL.revokeObjectURL(headerPreview);
+        }
+
         setHeaderPreview(URL.createObjectURL(file));
         setHeaderFile(file);
     };
@@ -40,6 +59,13 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
     };
     const handlePhotoChange = (event: any) => {
         const file = event.target.files[0];
+        if (!file) return;
+
+        // Revoke old preview URL before creating new one
+        if (photoPreview) {
+            URL.revokeObjectURL(photoPreview);
+        }
+
         setPhotoPreview(URL.createObjectURL(file));
         setPhotoFile(file);
     };
@@ -67,32 +93,41 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
         },
         validationSchema: validationSchema,
         onSubmit: async (values) => {
-            if (headerFile) {
-                const path: string | void = await uploadFile(headerFile);
-                if (!path) throw new Error("Header upload failed.");
-                values.headerUrl = path;
-            }
-            if (photoFile) {
-                const path: string | void = await uploadFile(photoFile);
-                if (!path) throw new Error("Photo upload failed.");
-                values.photoUrl = path;
-            }
-            const jsonValues = JSON.stringify(values);
-            const response = await editUser(jsonValues, profile.username);
-            if (!response.success) {
-                return setSnackbar({
-                    message: "Something went wrong while updating profile. Please try again.",
+            try {
+                if (headerFile) {
+                    const path: string = await uploadFile(headerFile, 'header');
+                    if (!path) throw new Error("Header upload failed.");
+                    values.headerUrl = path;
+                }
+                if (photoFile) {
+                    const path: string = await uploadFile(photoFile, 'profile');
+                    if (!path) throw new Error("Photo upload failed.");
+                    values.photoUrl = path;
+                }
+                const jsonValues = JSON.stringify(values);
+                const response = await editUser(jsonValues, profile.username);
+                if (!response.success) {
+                    return setSnackbar({
+                        message: "Something went wrong while updating profile. Please try again.",
+                        severity: "error",
+                        open: true,
+                    });
+                }
+                setSnackbar({
+                    message: "Your profile has been updated successfully.",
+                    severity: "success",
+                    open: true,
+                });
+                refreshToken();
+                queryClient.invalidateQueries(["users", profile.username]);
+            } catch (error) {
+                console.error("Profile update error:", error);
+                setSnackbar({
+                    message: error instanceof Error ? error.message : "Upload failed. Please try again.",
                     severity: "error",
                     open: true,
                 });
             }
-            setSnackbar({
-                message: "Your profile has been updated successfully.",
-                severity: "success",
-                open: true,
-            });
-            refreshToken();
-            queryClient.invalidateQueries(["users", profile.username]);
         },
     });
 

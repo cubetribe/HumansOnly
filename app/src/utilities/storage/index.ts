@@ -1,7 +1,10 @@
-export const uploadFile = async (file: File): Promise<string> => {
+export type UploadType = 'post' | 'profile' | 'header';
+
+export const uploadFile = async (file: File, type: UploadType = 'post'): Promise<string> => {
     try {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('type', type);
 
         const response = await fetch('/api/upload', {
             method: 'POST',

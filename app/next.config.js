@@ -2,7 +2,9 @@
 
 const nextConfig = {
     experimental: {
-        serverActions: true,
+        serverActions: {
+            bodySizeLimit: '50mb',
+        },
     },
     images: {
         domains: ["localhost", "ho.nm-forum.de"],

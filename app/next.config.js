@@ -1,6 +1,17 @@
 /** @type {import('next').NextConfig} */
 
 const allowedOrigin = process.env.NEXT_PUBLIC_HOST_URL || "http://localhost:3000";
+const allowedOriginHostname = (() => {
+    try {
+        return new URL(allowedOrigin).hostname;
+    } catch {
+        return null;
+    }
+})();
+const imageDomains = ["localhost", "ho.nm-forum.de", "humans-only.de"];
+if (allowedOriginHostname && !imageDomains.includes(allowedOriginHostname)) {
+    imageDomains.push(allowedOriginHostname);
+}
 
 const nextConfig = {
     experimental: {
@@ -9,7 +20,7 @@ const nextConfig = {
         },
     },
     images: {
-        domains: ["localhost", "ho.nm-forum.de"],
+        domains: imageDomains,
         remotePatterns: [
             {
                 protocol: 'https',

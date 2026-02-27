@@ -12,10 +12,12 @@ export const uploadFile = async (file: File, type: UploadType = 'post'): Promise
             credentials: 'include',
         });
 
-        const data = await response.json();
+        const contentType = response.headers.get("content-type") || "";
+        const data = contentType.includes("application/json") ? await response.json() : null;
 
-        if (!response.ok || !data.success) {
-            throw new Error(data.error || 'Upload failed');
+        if (!response.ok || !data?.success) {
+            const fallbackMessage = `Upload failed (${response.status})`;
+            throw new Error(data?.error || data?.message || fallbackMessage);
         }
 
         return data.path;

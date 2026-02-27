@@ -1,5 +1,14 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - Upload Hardening Hotfix (v1.8.2)
+
+-   hardened `/api/upload` with real image parsing validation and decompression safeguards
+-   expanded supported upload types (`AVIF`, `HEIC`, `HEIF`) and aligned stored MIME type with processed output
+-   improved upload client error handling for non-JSON/HTTP error responses
+-   added strict profile/header file validation + accepted MIME filters in edit profile UI
+-   extended Next.js image domain allowlist to include `humans-only.de` to prevent optimizer `400` failures
+-   improved `/api/users/preferences` handling for stale/missing user records to avoid avoidable `500` responses
+
 ## 2026-02-27 - Hotfix (v1.8.1)
 
 -   fixed frontend API base URL handling to use same-origin calls in the browser

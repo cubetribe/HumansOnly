@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { ChangeEvent, useRef, useState, useEffect } from "react";
 import { useFormik } from "formik";
 import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, TextField } from "@mui/material";
@@ -13,6 +13,29 @@ import { editUser } from "@/utilities/fetch";
 import { getFullURL } from "@/utilities/misc/getFullURL";
 import CustomSnackbar from "../misc/CustomSnackbar";
 import { SnackbarProps } from "@/types/SnackbarProps";
+
+const ACCEPTED_IMAGE_TYPES = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/avif",
+    "image/heic",
+    "image/heif",
+]);
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+
+const validateUploadFile = (file: File): string | null => {
+    if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
+        return "Unsupported file type. Use JPEG, PNG, GIF, WebP, AVIF, HEIC or HEIF.";
+    }
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+        return "File too large. Maximum 50MB allowed.";
+    }
+
+    return null;
+};
 
 export default function EditProfile({ profile, refreshToken }: { profile: UserProps; refreshToken: () => void }) {
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -41,9 +64,22 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
         };
     }, [photoPreview, headerPreview]);
 
-    const handleHeaderChange = (event: any) => {
-        const file = event.target.files[0];
+    const handleHeaderChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+        const file = files[0];
         if (!file) return;
+
+        const validationError = validateUploadFile(file);
+        if (validationError) {
+            setSnackbar({
+                message: validationError,
+                severity: "error",
+                open: true,
+            });
+            event.target.value = "";
+            return;
+        }
 
         // Revoke old preview URL before creating new one
         if (headerPreview) {
@@ -56,9 +92,22 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
     const handleHeaderClick = () => {
         headerUploadInputRef.current?.click();
     };
-    const handlePhotoChange = (event: any) => {
-        const file = event.target.files[0];
+    const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+        const file = files[0];
         if (!file) return;
+
+        const validationError = validateUploadFile(file);
+        if (validationError) {
+            setSnackbar({
+                message: validationError,
+                severity: "error",
+                open: true,
+            });
+            event.target.value = "";
+            return;
+        }
 
         // Revoke old preview URL before creating new one
         if (photoPreview) {
@@ -183,6 +232,7 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
                     <input
                         ref={headerUploadInputRef}
                         type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/heic,image/heif"
                         style={{ display: "none" }}
                         onChange={handleHeaderChange}
                     />
@@ -203,6 +253,7 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
                         <input
                             ref={photoUploadInputRef}
                             type="file"
+                            accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/heic,image/heif"
                             style={{ display: "none" }}
                             onChange={handlePhotoChange}
                         />

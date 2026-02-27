@@ -30,6 +30,9 @@ export default function Uploader({ handlePhotoChange }: { handlePhotoChange: (fi
             "image/png": [".png"],
             "image/gif": [".gif"],
             "image/webp": [".webp"],
+            "image/avif": [".avif"],
+            "image/heic": [".heic"],
+            "image/heif": [".heif"],
         },
         maxFiles: 1,
         maxSize: 50 * 1024 * 1024, // 50MB
@@ -42,7 +45,7 @@ export default function Uploader({ handlePhotoChange }: { handlePhotoChange: (fi
                 if (errorCode === 'file-too-large') {
                     setError('File too large. Maximum 50MB allowed.');
                 } else if (errorCode === 'file-invalid-type') {
-                    setError('Invalid file type. Use JPEG, PNG, GIF or WebP.');
+                    setError('Invalid file type. Use JPEG, PNG, GIF, WebP, AVIF, HEIC or HEIF.');
                 } else {
                     setError('Upload error. Please try again.');
                 }
@@ -64,7 +67,7 @@ export default function Uploader({ handlePhotoChange }: { handlePhotoChange: (fi
             <div {...getRootProps()}>
                 <input {...getInputProps()} />
                 <p>Drag and drop an image file here, or click to select one</p>
-                <p style={{ fontSize: '0.875rem', color: '#666' }}>Max 50MB - JPEG, PNG, GIF, WebP</p>
+                <p style={{ fontSize: '0.875rem', color: '#666' }}>Max 50MB - JPEG, PNG, GIF, WebP, AVIF, HEIC, HEIF</p>
             </div>
             {error && (
                 <Typography color="error" sx={{ mt: 1, fontSize: '0.875rem' }}>

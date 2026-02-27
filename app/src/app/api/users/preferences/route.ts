@@ -22,6 +22,10 @@ export async function GET() {
             },
         });
 
+        if (!user) {
+            return unauthorizedResponse("Your account could not be found. Please sign in again.");
+        }
+
         return successResponse(requestId, { success: true, preferences: user });
     } catch (error: unknown) {
         return errorResponse(requestId, "Failed to load user preferences.", 500, error);
@@ -75,6 +79,10 @@ export async function POST(request: NextRequest) {
 
         return successResponse(requestId, { success: true, preferences: user });
     } catch (error: unknown) {
+        if (typeof error === "object" && error && "code" in error && (error as { code?: string }).code === "P2025") {
+            return unauthorizedResponse("Your account could not be found. Please sign in again.");
+        }
+
         return errorResponse(requestId, "Failed to update user preferences.", 500, error);
     }
 }

@@ -76,7 +76,7 @@ Acceptance:
 - Complete, coherent social UX with robust account controls
 
 ### Wave 5 - Operations, Quality, and Observability
-Status: `pending`
+Status: `completed` (v1.7.0, validated live 2026-02-27)
 
 Scope:
 - Add integration + E2E tests for critical journeys

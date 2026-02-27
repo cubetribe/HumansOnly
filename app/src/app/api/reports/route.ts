@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, logApiEvent, successResponse } from "@/utilities/observability";
 
 type ReportPayload = {
     targetType?: "user" | "tweet";
@@ -12,6 +13,7 @@ type ReportPayload = {
 };
 
 export async function POST(request: NextRequest) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -21,15 +23,15 @@ export async function POST(request: NextRequest) {
     const details = typeof body.details === "string" ? body.details.trim() : "";
 
     if (!targetType || (targetType !== "user" && targetType !== "tweet")) {
-        return NextResponse.json({ success: false, message: "Invalid target type." }, { status: 400 });
+        return errorResponse(requestId, "Invalid target type.", 400);
     }
 
     if (!reason || reason.length > 80) {
-        return NextResponse.json({ success: false, message: "Invalid reason." }, { status: 400 });
+        return errorResponse(requestId, "Invalid reason.", 400);
     }
 
     if (details.length > 500) {
-        return NextResponse.json({ success: false, message: "Report details are too long." }, { status: 400 });
+        return errorResponse(requestId, "Report details are too long.", 400);
     }
 
     try {
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
         if (targetType === "user") {
             const targetUsername = typeof body.targetUsername === "string" ? body.targetUsername.trim() : "";
             if (!targetUsername) {
-                return NextResponse.json({ success: false, message: "Missing target username." }, { status: 400 });
+                return errorResponse(requestId, "Missing target username.", 400);
             }
 
             const targetUser = await prisma.user.findUnique({
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
             });
 
             if (!targetUser) {
-                return NextResponse.json({ success: false, message: "User not found." }, { status: 404 });
+                return errorResponse(requestId, "User not found.", 404);
             }
             targetUserId = targetUser.id;
         }
@@ -60,7 +62,7 @@ export async function POST(request: NextRequest) {
         if (targetType === "tweet") {
             const candidateTweetId = typeof body.targetTweetId === "string" ? body.targetTweetId.trim() : "";
             if (!candidateTweetId) {
-                return NextResponse.json({ success: false, message: "Missing target tweet." }, { status: 400 });
+                return errorResponse(requestId, "Missing target tweet.", 400);
             }
 
             const targetTweet = await prisma.tweet.findUnique({
@@ -73,7 +75,7 @@ export async function POST(request: NextRequest) {
             });
 
             if (!targetTweet) {
-                return NextResponse.json({ success: false, message: "Tweet not found." }, { status: 404 });
+                return errorResponse(requestId, "Tweet not found.", 404);
             }
             targetTweetId = targetTweet.id;
         }
@@ -89,8 +91,21 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        return NextResponse.json({ success: true });
+        logApiEvent("warn", {
+            event: "report_created",
+            requestId,
+            route: "/api/reports",
+            details: {
+                reporterId: authUser.id,
+                targetType,
+                targetUserId,
+                targetTweetId,
+                reason,
+            },
+        });
+
+        return successResponse(requestId, { success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error }, { status: 500 });
+        return errorResponse(requestId, "Failed to create report.", 500, error);
     }
 }

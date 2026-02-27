@@ -1,0 +1,98 @@
+# Operations Playbook - Humans Only
+
+Last Updated: 2026-02-27
+Scope: Wave 5 operations hardening (quality gates, observability, backup/restore, rollback)
+
+## 1) Release Gates
+
+### Required before merge/release
+- `Quality Gates` GitHub workflow passes (`.github/workflows/quality-gates.yml`).
+- `Deploy HumansOnly` workflow passes on `main`.
+- Live smoke passes (`scripts/live-social-smoke.sh https://humans-only.de`).
+
+### Local preflight
+```bash
+./scripts/ci-quality.sh
+./scripts/baseline-check.sh
+```
+
+## 2) Observability
+
+### Request IDs
+- Middleware injects `x-request-id` for all app and API routes.
+- API responses from observability-enabled handlers include `requestId` and `x-request-id` response header.
+
+### Structured Logs
+- Use `utilities/observability` helpers:
+  - `logApiEvent(level, payload)`
+  - `errorResponse(requestId, ...)`
+  - `successResponse(requestId, ...)`
+- Log lines are JSON for easier parsing/search.
+
+### Health Endpoint
+- `GET /api/health` returns:
+  - runtime status
+  - server uptime
+  - node version
+  - release metadata from `.deploy/release.txt` (when available)
+
+## 3) Backup and Restore
+
+### Database backup (server)
+```bash
+# Full dump (custom format)
+pg_dump -h localhost -U humansonly_user -d humansonly_prod -Fc -f /var/backups/humansonly_prod_$(date +%F_%H%M).dump
+
+# Verify backup file
+pg_restore --list /var/backups/humansonly_prod_YYYY-MM-DD_HHMM.dump >/dev/null
+```
+
+### Upload/media backup (server local storage)
+```bash
+tar -czf /var/backups/humansonly_uploads_$(date +%F_%H%M).tar.gz /var/www/humansonly/public/uploads
+```
+
+### Restore drill (staging or isolated DB)
+```bash
+# Restore database to target DB
+createdb -h localhost -U humansonly_user humansonly_restore_test
+pg_restore -h localhost -U humansonly_user -d humansonly_restore_test /var/backups/humansonly_prod_YYYY-MM-DD_HHMM.dump
+
+# Optional: restore uploads
+mkdir -p /var/www/humansonly_restore/public
+cd /var/www/humansonly_restore/public
+tar -xzf /var/backups/humansonly_uploads_YYYY-MM-DD_HHMM.tar.gz
+```
+
+## 4) Rollback Playbook
+
+### Trigger criteria
+- Repeated deploy health check failures
+- Critical auth/data-loss regressions in production
+- Live smoke failures with blocker severity
+
+### Procedure
+1. Identify last known-good commit/tag in `main`.
+2. Re-deploy known-good revision to server:
+```bash
+# local machine
+cd /path/to/HumansOnly
+git checkout <known-good-sha>
+./scripts/deploy-server.sh
+```
+3. Validate:
+```bash
+curl -sS https://humans-only.de/api/health
+./scripts/live-social-smoke.sh https://humans-only.de
+```
+4. Return local repo to `main` after incident response:
+```bash
+git checkout main
+git pull
+```
+
+## 5) On-call Checklist
+- Confirm `https://humans-only.de/` HTTP 200.
+- Confirm `https://humans-only.de/api/health` status `ok`.
+- Check latest `Deploy HumansOnly` workflow conclusion.
+- Run live smoke if behavior is uncertain.

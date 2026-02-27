@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, logApiEvent, successResponse } from "@/utilities/observability";
 
 export async function POST(request: NextRequest, { params: { username } }: { params: { username: string } }) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -19,11 +21,11 @@ export async function POST(request: NextRequest, { params: { username } }: { par
         });
 
         if (!target) {
-            return NextResponse.json({ success: false, message: "User not found." }, { status: 404 });
+            return errorResponse(requestId, "User not found.", 404);
         }
 
         if (target.id === authUser.id) {
-            return NextResponse.json({ success: false, message: "You cannot block yourself." }, { status: 400 });
+            return errorResponse(requestId, "You cannot block yourself.", 400);
         }
 
         await prisma.$transaction([
@@ -79,8 +81,18 @@ export async function POST(request: NextRequest, { params: { username } }: { par
             }),
         ]);
 
-        return NextResponse.json({ success: true });
+        logApiEvent("info", {
+            event: "user_blocked",
+            requestId,
+            route: "/api/users/[username]/block",
+            details: {
+                blockerId: authUser.id,
+                blockedId: target.id,
+            },
+        });
+
+        return successResponse(requestId, { success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error }, { status: 500 });
+        return errorResponse(requestId, "Failed to block user.", 500, error);
     }
 }

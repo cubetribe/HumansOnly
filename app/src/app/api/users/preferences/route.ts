@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, logApiEvent, successResponse } from "@/utilities/observability";
 
 const MESSAGE_PRIVACY_OPTIONS = new Set(["everyone", "followers"]);
 
 export async function GET() {
+    const requestId = crypto.randomUUID();
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -20,13 +22,14 @@ export async function GET() {
             },
         });
 
-        return NextResponse.json({ success: true, preferences: user });
+        return successResponse(requestId, { success: true, preferences: user });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error }, { status: 500 });
+        return errorResponse(requestId, "Failed to load user preferences.", 500, error);
     }
 }
 
 export async function POST(request: NextRequest) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -39,13 +42,13 @@ export async function POST(request: NextRequest) {
 
     if (typeof body?.messagePrivacy === "string") {
         if (!MESSAGE_PRIVACY_OPTIONS.has(body.messagePrivacy)) {
-            return NextResponse.json({ success: false, message: "Invalid message privacy value." }, { status: 400 });
+            return errorResponse(requestId, "Invalid message privacy value.", 400);
         }
         updates.messagePrivacy = body.messagePrivacy;
     }
 
     if (Object.keys(updates).length === 0) {
-        return NextResponse.json({ success: false, message: "No valid preference fields provided." }, { status: 400 });
+        return errorResponse(requestId, "No valid preference fields provided.", 400);
     }
 
     try {
@@ -60,8 +63,18 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        return NextResponse.json({ success: true, preferences: user });
+        logApiEvent("info", {
+            event: "user_preferences_updated",
+            requestId,
+            route: "/api/users/preferences",
+            details: {
+                userId: authUser.id,
+                fields: Object.keys(updates),
+            },
+        });
+
+        return successResponse(requestId, { success: true, preferences: user });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error }, { status: 500 });
+        return errorResponse(requestId, "Failed to update user preferences.", 500, error);
     }
 }

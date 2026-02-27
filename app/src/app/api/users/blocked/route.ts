@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, logApiEvent, successResponse } from "@/utilities/observability";
 
 export async function GET() {
+    const requestId = crypto.randomUUID();
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -28,8 +28,18 @@ export async function GET() {
             },
         });
 
-        return NextResponse.json({ success: true, users: blocked.map((entry) => entry.blocked) });
+        logApiEvent("info", {
+            event: "blocked_users_listed",
+            requestId,
+            route: "/api/users/blocked",
+            details: {
+                userId: authUser.id,
+                count: blocked.length,
+            },
+        });
+
+        return successResponse(requestId, { success: true, users: blocked.map((entry) => entry.blocked) });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error }, { status: 500 });
+        return errorResponse(requestId, "Failed to load blocked users.", 500, error);
     }
 }

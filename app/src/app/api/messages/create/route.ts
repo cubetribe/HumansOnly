@@ -1,22 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { createNotification } from "@/utilities/fetch";
 import { shouldCreateNotification } from "@/utilities/misc/shouldCreateNotification";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { canUsersInteract } from "@/utilities/social/access";
+import { errorResponse, getRequestId, logApiEvent, successResponse } from "@/utilities/observability";
 
 export async function POST(request: NextRequest) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse("Unauthorized");
 
     const secret = process.env.CREATION_SECRET_KEY;
 
     if (!secret) {
-        return NextResponse.json({
-            success: false,
-            message: "Secret key not found.",
-        });
+        return errorResponse(requestId, "Secret key not found.", 500);
     }
 
     // Parse request body
@@ -24,24 +23,15 @@ export async function POST(request: NextRequest) {
 
     // Validate input
     if (!text || typeof text !== 'string') {
-        return NextResponse.json({
-            success: false,
-            message: "Text is required"
-        }, { status: 400 });
+        return errorResponse(requestId, "Text is required", 400);
     }
 
     if (text.length === 0 || text.length > 280) {
-        return NextResponse.json({
-            success: false,
-            message: "Text must be 1-280 characters"
-        }, { status: 400 });
+        return errorResponse(requestId, "Text must be 1-280 characters", 400);
     }
 
     if (!recipient || typeof recipient !== 'string') {
-        return NextResponse.json({
-            success: false,
-            message: "Recipient is required"
-        }, { status: 400 });
+        return errorResponse(requestId, "Recipient is required", 400);
     }
 
     // Sanitize photoUrl
@@ -69,12 +59,12 @@ export async function POST(request: NextRequest) {
         });
 
         if (!recipientUser) {
-            return NextResponse.json({ success: false, message: "Recipient does not exist." });
+            return errorResponse(requestId, "Recipient does not exist.", 404);
         }
 
         const relation = await canUsersInteract(authUser.id, recipientUser.id);
         if (relation.blocked) {
-            return NextResponse.json({ success: false, message: "Messaging is not allowed due to account restrictions." }, { status: 403 });
+            return errorResponse(requestId, "Messaging is not allowed due to account restrictions.", 403);
         }
 
         if (
@@ -82,7 +72,7 @@ export async function POST(request: NextRequest) {
             recipientUser.username !== authUser.username &&
             !recipientUser.followers.some((follower) => follower.id === authUser.id)
         ) {
-            return NextResponse.json({ success: false, message: "This user only accepts messages from followers." }, { status: 403 });
+            return errorResponse(requestId, "This user only accepts messages from followers.", 403);
         }
 
         await prisma.message.create({
@@ -116,8 +106,19 @@ export async function POST(request: NextRequest) {
             await createNotification(recipient, "message", secret, notificationContent);
         }
 
-        return NextResponse.json({ success: true });
+        logApiEvent("info", {
+            event: "message_created",
+            requestId,
+            route: "/api/messages/create",
+            details: {
+                senderId: authUser.id,
+                recipientId: recipientUser.id,
+                hasPhoto: Boolean(sanitizedPhotoUrl),
+            },
+        });
+
+        return successResponse(requestId, { success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to create message.", 500, error);
     }
 }

@@ -27,6 +27,7 @@ New account control endpoints:
 - `POST /api/users/[username]/mute`
 - `POST /api/users/[username]/unmute`
 - `POST /api/reports`
+- `GET /api/health`
 
 ---
 

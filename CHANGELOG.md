@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] - 2026-02-27
+
+### Added
+
+- CI quality gate script and workflow:
+  - `scripts/ci-quality.sh`
+  - `.github/workflows/quality-gates.yml`
+- Live-domain smoke automation:
+  - `scripts/live-social-smoke.sh`
+  - `.github/workflows/live-smoke.yml`
+- Operations documentation:
+  - `docs/OPERATIONS.md`
+- Health endpoint:
+  - `GET /api/health`
+- Observability utility:
+  - `app/src/utilities/observability/index.ts`
+- Wave 5 agent artifacts:
+  - `Agents/RESEARCHER_brief-2026-02-27-wave5-operations.md`
+  - `Agents/ARCHITECT_spec-2026-02-27-wave5-operations.md`
+  - `Agents/BUILDER_wave5-operations-2026-02-27.md`
+  - `Agents/VALIDATOR_wave5-operations-2026-02-27.md`
+
+### Changed
+
+- Middleware now injects and propagates `x-request-id` for request correlation.
+- Key account-control/message/follow APIs now emit structured JSON logs and return request-correlated responses via observability helpers.
+- README now documents CI quality and live smoke workflows.
+
 ## [1.6.0] - 2026-02-27
 
 ### Added

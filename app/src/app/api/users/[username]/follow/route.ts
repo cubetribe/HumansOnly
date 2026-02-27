@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { createNotification } from "@/utilities/fetch";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { canUsersInteract } from "@/utilities/social/access";
+import { errorResponse, getRequestId, logApiEvent, successResponse } from "@/utilities/observability";
 
 export async function POST(request: NextRequest, { params: { username } }: { params: { username: string } }) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -19,25 +21,22 @@ export async function POST(request: NextRequest, { params: { username } }: { par
     });
 
     if (!targetUser) {
-        return NextResponse.json({ success: false, message: "User not found." }, { status: 404 });
+        return errorResponse(requestId, "User not found.", 404);
     }
 
     if (targetUser.id === authUser.id) {
-        return NextResponse.json({ success: false, message: "You cannot follow yourself." }, { status: 400 });
+        return errorResponse(requestId, "You cannot follow yourself.", 400);
     }
 
     const relation = await canUsersInteract(authUser.id, targetUser.id);
     if (relation.blocked) {
-        return NextResponse.json({ success: false, message: "Follow is not allowed due to account restrictions." }, { status: 403 });
+        return errorResponse(requestId, "Follow is not allowed due to account restrictions.", 403);
     }
 
     const secret = process.env.CREATION_SECRET_KEY;
 
     if (!secret) {
-        return NextResponse.json({
-            success: false,
-            message: "Secret key not found.",
-        });
+        return errorResponse(requestId, "Secret key not found.", 500);
     }
 
     try {
@@ -65,8 +64,18 @@ export async function POST(request: NextRequest, { params: { username } }: { par
 
         await createNotification(username, "follow", secret, notificationContent);
 
-        return NextResponse.json({ success: true });
+        logApiEvent("info", {
+            event: "user_followed",
+            requestId,
+            route: "/api/users/[username]/follow",
+            details: {
+                followerId: authUser.id,
+                followedId: targetUser.id,
+            },
+        });
+
+        return successResponse(requestId, { success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to follow user.", 500, error);
     }
 }

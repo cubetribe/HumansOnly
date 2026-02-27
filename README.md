@@ -171,8 +171,14 @@ npm run dev
 # Baseline gates (lint, build, prisma)
 ./scripts/baseline-check.sh
 
+# CI-compatible quality gates (no DB migration status)
+./scripts/ci-quality.sh
+
 # Auth smoke test (app must be running on :3000)
 ./scripts/auth-smoke-local.sh
+
+# Full live-domain social smoke
+./scripts/live-social-smoke.sh https://humans-only.de
 
 # Deploy (or --dry-run)
 ./scripts/deploy-server.sh
@@ -196,14 +202,15 @@ HumansOnly/
 │   └── ecosystem.config.js
 ├── docs/
 │   ├── DEPLOYMENT.md
-│   └── API_CONSUMERS.md   # 31 endpoints documented
+│   ├── API_CONSUMERS.md
+│   └── OPERATIONS.md      # release gates, backup/restore, rollback
 ├── scripts/                # Deploy & checks
 └── .github/workflows/      # CI/CD
 ```
 
 ### API
 
-44 endpoints across 8 categories:
+45 endpoints across 9 categories:
 
 | Category | Routes | Scope |
 |----------|--------|-------|
@@ -214,6 +221,7 @@ HumansOnly/
 | Notifications | 4 | Feed, create, read, preferences |
 | Upload | 1 | Media upload pipeline |
 | Reports | 1 | Abuse reporting |
+| Health | 1 | Runtime/service health |
 | Search | 1 | Global |
 
 Full docs: [`docs/API_CONSUMERS.md`](docs/API_CONSUMERS.md)

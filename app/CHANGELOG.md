@@ -1,5 +1,10 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - CI Gate Env Fallback Fix (v1.8.6)
+
+-   fixed recurring GitHub Quality Gate failures by providing CI-safe fallback `DATABASE_URL`/`DIRECT_DATABASE_URL` when no `.env` exists on runners
+-   aligned `baseline-check.sh` with the same Prisma env fallback behavior for consistent local/CI results
+
 ## 2026-02-27 - Upload + Media Security Hardening (v1.8.5)
 
 -   hardened `/api/upload` request validation with strict `multipart/form-data` and request-size guardrails

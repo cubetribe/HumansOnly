@@ -19,6 +19,9 @@ if [[ -f "${APP_DIR}/.env" ]]; then
     source "${APP_DIR}/.env"
     set +a
 fi
+if [[ -z "${DATABASE_URL:-}" ]]; then
+    export DATABASE_URL="postgresql://ci:ci@127.0.0.1:5432/humansonly_ci?schema=public"
+fi
 if [[ -z "${DIRECT_DATABASE_URL:-}" && -n "${DATABASE_URL:-}" ]]; then
     export DIRECT_DATABASE_URL="${DATABASE_URL}"
 fi

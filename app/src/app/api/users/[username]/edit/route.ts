@@ -1,25 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { SignJWT } from "jose";
 
 import { prisma } from "@/prisma/client";
-import { getJwtSecretKey, verifyJwtToken } from "@/utilities/auth";
+import { getJwtSecretKey } from "@/utilities/auth";
 import { buildAuthCookie } from "@/utilities/auth/cookies";
-import { UserProps } from "@/types/UserProps";
+import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 
 export async function POST(request: NextRequest, { params: { username } }: { params: { username: string } }) {
     const body = await request.json();
     const { name, description, location, website, photoUrl, headerUrl, isVerifiedHuman, verificationCode } = body;
 
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
-    const verifiedToken: UserProps = token && (await verifyJwtToken(token));
-
-    if (!verifiedToken)
-        return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
-
-    if (verifiedToken.username !== username)
-        return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
+    const authUser = await getAuthenticatedUser();
+    if (!authUser) return unauthorizedResponse();
+    if (authUser.username !== username) return unauthorizedResponse();
 
     const hasPhotoUrl = Object.prototype.hasOwnProperty.call(body, "photoUrl");
     const hasHeaderUrl = Object.prototype.hasOwnProperty.call(body, "headerUrl");

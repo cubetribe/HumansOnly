@@ -1,49 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 import { prisma } from "@/prisma/client";
-import { verifyJwtToken } from "@/utilities/auth";
-import { UserProps } from "@/types/UserProps";
+import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 
 export async function POST(request: NextRequest) {
-    // Verify authentication first
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
-
-    if (!token) {
-        return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const verifiedToken: UserProps = await verifyJwtToken(token);
-
-    if (!verifiedToken || !verifiedToken.id) {
-        return NextResponse.json({ success: false, message: "Invalid token" }, { status: 401 });
-    }
+    const authUser = await getAuthenticatedUser();
+    if (!authUser) return unauthorizedResponse("Unauthorized");
 
     // Parse request body
-    const { tokenOwnerId, participants }: { tokenOwnerId: string; participants: string[] } = await request.json();
-
-    // Validate tokenOwnerId safely
-    if (!tokenOwnerId || typeof tokenOwnerId !== 'string') {
-        return NextResponse.json({ success: false, message: "Invalid request" }, { status: 400 });
-    }
-    const normalizedTokenOwnerId = tokenOwnerId.trim().replace(/^"+|"+$/g, "");
-    if (!normalizedTokenOwnerId) {
-        return NextResponse.json({ success: false, message: "Invalid request" }, { status: 400 });
-    }
+    const { participants }: { participants: string[] } = await request.json();
 
     // Validate participants
     if (!Array.isArray(participants) || participants.length !== 2) {
         return NextResponse.json({ success: false, message: "Invalid participants" }, { status: 400 });
     }
 
-    // Verify token owner matches
-    if (verifiedToken.id !== normalizedTokenOwnerId) {
-        return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
-    }
-
     // Verify token owner is one of the participants
-    if (!participants.includes(verifiedToken.username)) {
+    if (!participants.includes(authUser.username)) {
         return NextResponse.json({ success: false, message: "You are not authorized to delete these messages." });
     }
 

@@ -165,7 +165,7 @@ export const editUser = async (updatedUser: string, username: string) => {
     return response.json();
 };
 
-export const updateTweetLikes = async (tweetId: string, tweetAuthor: string, tokenOwnerId: string, isLiked: boolean) => {
+export const updateTweetLikes = async (tweetId: string, tweetAuthor: string, isLiked: boolean) => {
     const route = isLiked ? "unlike" : "like";
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/${route}`, {
         method: "POST",
@@ -173,14 +173,13 @@ export const updateTweetLikes = async (tweetId: string, tweetAuthor: string, tok
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tokenOwnerId }),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
     return json;
 };
 
-export const updateReposts = async (tweetId: string, tweetAuthor: string, tokenOwnerId: string, isReposted: boolean) => {
+export const updateReposts = async (tweetId: string, tweetAuthor: string, isReposted: boolean) => {
     const route = isReposted ? "unretweet" : "retweet";
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/${route}`, {
         method: "POST",
@@ -188,14 +187,13 @@ export const updateReposts = async (tweetId: string, tweetAuthor: string, tokenO
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tokenOwnerId }),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
     return json;
 };
 
-export const updateUserFollows = async (followedUsername: string, tokenOwnerId: string, isFollowed: boolean) => {
+export const updateUserFollows = async (followedUsername: string, isFollowed: boolean) => {
     const route = isFollowed ? "unfollow" : "follow";
     const response = await fetch(`${HOST_URL}/api/users/${followedUsername}/${route}`, {
         method: "POST",
@@ -203,21 +201,19 @@ export const updateUserFollows = async (followedUsername: string, tokenOwnerId: 
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tokenOwnerId }),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
     return json;
 };
 
-export const deleteTweet = async (tweetId: string, tweetAuthor: string, tokenOwnerId: string) => {
+export const deleteTweet = async (tweetId: string, tweetAuthor: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/delete`, {
         method: "POST",
         credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tokenOwnerId }),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
@@ -299,14 +295,14 @@ export const checkUserExists = async (username: string) => {
     return response.json();
 };
 
-export const deleteConversation = async (participants: string[], tokenOwnerId: string) => {
+export const deleteConversation = async (participants: string[]) => {
     const response = await fetch(`${HOST_URL}/api/messages/delete`, {
         method: "POST",
         credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ participants, tokenOwnerId }),
+        body: JSON.stringify({ participants }),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");

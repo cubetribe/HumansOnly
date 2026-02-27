@@ -1,27 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 import { prisma } from "@/prisma/client";
-import { verifyJwtToken } from "@/utilities/auth";
-import { UserProps } from "@/types/UserProps";
+import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 
 export async function POST(request: NextRequest) {
-    // Verify authentication first
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
-
-    if (!token) {
-        return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const verifiedToken: UserProps = await verifyJwtToken(token);
-
-    if (!verifiedToken || !verifiedToken.id) {
-        return NextResponse.json({ success: false, message: "Invalid token" }, { status: 401 });
-    }
-
-    // Extract authorId from JWT (secure)
-    const authorId = verifiedToken.id;
+    const authUser = await getAuthenticatedUser();
+    if (!authUser) return unauthorizedResponse("Unauthorized");
 
     // Parse request body
     const { text, photoUrl } = await request.json();
@@ -55,7 +39,7 @@ export async function POST(request: NextRequest) {
                 photoUrl: sanitizedPhotoUrl,
                 author: {
                     connect: {
-                        id: authorId,
+                        id: authUser.id,
                     },
                 },
             },

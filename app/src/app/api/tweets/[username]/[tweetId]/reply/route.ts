@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 import { prisma } from "@/prisma/client";
-import { verifyJwtToken } from "@/utilities/auth";
 import { createNotification } from "@/utilities/fetch";
-import { UserProps } from "@/types/UserProps";
+import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 
 export async function GET(request: NextRequest, { params: { tweetId } }: { params: { tweetId: string } }) {
     try {
@@ -76,22 +74,8 @@ export async function POST(
     request: NextRequest,
     { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
 ) {
-    // Verify authentication first
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
-
-    if (!token) {
-        return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const verifiedToken: UserProps = await verifyJwtToken(token);
-
-    if (!verifiedToken || !verifiedToken.id) {
-        return NextResponse.json({ success: false, message: "Invalid token" }, { status: 401 });
-    }
-
-    // Extract authorId from JWT (secure)
-    const authorId = verifiedToken.id;
+    const authUser = await getAuthenticatedUser();
+    if (!authUser) return unauthorizedResponse("Unauthorized");
 
     const secret = process.env.CREATION_SECRET_KEY;
 
@@ -135,7 +119,7 @@ export async function POST(
                 photoUrl: sanitizedPhotoUrl,
                 author: {
                     connect: {
-                        id: authorId,
+                        id: authUser.id,
                     },
                 },
                 repliedTo: {
@@ -146,12 +130,12 @@ export async function POST(
             },
         });
 
-        if (username !== verifiedToken.username) {
+        if (username !== authUser.username) {
             const notificationContent = {
                 sender: {
-                    username: verifiedToken.username,
-                    name: verifiedToken.name,
-                    photoUrl: verifiedToken.photoUrl,
+                    username: authUser.username,
+                    name: authUser.name || "",
+                    photoUrl: authUser.photoUrl || "",
                 },
                 content: {
                     id: tweetId,

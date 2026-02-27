@@ -1,29 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 import { prisma } from "@/prisma/client";
-import { verifyJwtToken } from "@/utilities/auth";
 import { createNotification } from "@/utilities/fetch";
-import { UserProps } from "@/types/UserProps";
+import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 
 export async function POST(
     request: NextRequest,
     { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
 ) {
-    const body = await request.json();
-    const tokenOwnerId = typeof body === "string" ? body : body?.tokenOwnerId;
-
-    if (!tokenOwnerId || typeof tokenOwnerId !== "string") {
-        return NextResponse.json({ success: false, message: "Invalid payload." }, { status: 400 });
-    }
-    const normalizedTokenOwnerId = tokenOwnerId.trim().replace(/^"+|"+$/g, "");
-    if (!normalizedTokenOwnerId) {
-        return NextResponse.json({ success: false, message: "Invalid payload." }, { status: 400 });
-    }
-
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
-    const verifiedToken: UserProps = token && (await verifyJwtToken(token));
+    const authUser = await getAuthenticatedUser();
+    if (!authUser) return unauthorizedResponse();
 
     const secret = process.env.CREATION_SECRET_KEY;
 
@@ -34,12 +20,6 @@ export async function POST(
         });
     }
 
-    if (!verifiedToken)
-        return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
-
-    if (verifiedToken.id !== normalizedTokenOwnerId)
-        return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
-
     try {
         await prisma.tweet.update({
             where: {
@@ -48,7 +28,7 @@ export async function POST(
             data: {
                 retweetedBy: {
                     connect: {
-                        id: normalizedTokenOwnerId,
+                        id: authUser.id,
                     },
                 },
             },
@@ -59,7 +39,7 @@ export async function POST(
                 text: "",
                 author: {
                     connect: {
-                        id: normalizedTokenOwnerId,
+                        id: authUser.id,
                     },
                 },
                 retweetOf: {
@@ -70,12 +50,12 @@ export async function POST(
             },
         });
 
-        if (username !== verifiedToken.username) {
+        if (username !== authUser.username) {
             const notificationContent = {
                 sender: {
-                    username: verifiedToken.username,
-                    name: verifiedToken.name,
-                    photoUrl: verifiedToken.photoUrl,
+                    username: authUser.username,
+                    name: authUser.name || "",
+                    photoUrl: authUser.photoUrl || "",
                 },
                 content: {
                     id: tweetId,

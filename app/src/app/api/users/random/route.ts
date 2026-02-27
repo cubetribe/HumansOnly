@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 import { prisma } from "@/prisma/client";
-import { verifyJwtToken } from "@/utilities/auth";
-import { UserProps } from "@/types/UserProps";
+import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 
 export async function GET(request: NextRequest) {
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
-    const verifiedToken: UserProps = token && (await verifyJwtToken(token));
+    const authUser = await getAuthenticatedUser();
+    if (!authUser) return unauthorizedResponse("You are not logged in.");
 
-    if (!verifiedToken) return NextResponse.json({ success: false, message: "You are not logged in." });
-
-    const username = verifiedToken.username as string;
+    const username = authUser.username;
 
     const usersCount = await prisma.user.count({
         where: {

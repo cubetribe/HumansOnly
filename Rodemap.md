@@ -10,7 +10,7 @@ Build Humans Only into a production-grade social network (photo-first, no video 
 ## Wave Overview
 
 ### Wave 0 - Stabilization and Security Baseline
-Status: `in_progress`
+Status: `completed` (v1.2.3, validated live 2026-02-27)
 
 Scope:
 - Fix critical frontend/backend contract mismatches (actions: like, repost, follow, conversation delete)
@@ -27,7 +27,7 @@ Acceptance:
 - Live-domain smoke checks pass
 
 ### Wave 1 - Auth Consolidation (Clerk-first)
-Status: `pending`
+Status: `completed` (v1.3.0, validated live 2026-02-27)
 
 Scope:
 - Migrate all route authorization to Clerk server auth
@@ -40,7 +40,7 @@ Acceptance:
 - No legacy-only route dependencies in main UX
 
 ### Wave 2 - Media Pipeline Hardening
-Status: `pending`
+Status: `completed` (v1.4.0, validated live 2026-02-27)
 
 Scope:
 - Move media to managed object storage (signed uploads)

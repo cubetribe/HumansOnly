@@ -21,7 +21,7 @@ export default function Conversation({ conversation, token, handleConversations 
     const queryClient = useQueryClient();
 
     const mutation = useMutation({
-        mutationFn: (tokenOwnerId: string) => deleteConversation(conversation.participants, tokenOwnerId),
+        mutationFn: () => deleteConversation(conversation.participants),
         onSuccess: () => {
             setIsConfirmationOpen(false);
             setIsDeleting(false);
@@ -62,7 +62,7 @@ export default function Conversation({ conversation, token, handleConversations 
         e.stopPropagation();
         handlePopoverClose();
         setIsDeleting(true);
-        mutation.mutate(token.id);
+        mutation.mutate();
     };
 
     return (

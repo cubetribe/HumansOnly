@@ -25,7 +25,7 @@ export default function Repost({ tweetId, tweetAuthor }: TweetOptionsProps) {
     });
 
     const mutation = useMutation({
-        mutationFn: (variables: any) => updateReposts(tweetId, tweetAuthor, variables.tokenOwnerId, variables.isReposted),
+        mutationFn: (variables: { isReposted: boolean }) => updateReposts(tweetId, tweetAuthor, variables.isReposted),
         onMutate: () => {
             setIsButtonDisabled(true);
             setIsReposted(!isReposted);
@@ -55,7 +55,6 @@ export default function Repost({ tweetId, tweetAuthor }: TweetOptionsProps) {
         if (isReposted !== isRepostedBy) setIsReposted(isRepostedBy);
 
         const variables = {
-            tokenOwnerId,
             isReposted,
         };
 

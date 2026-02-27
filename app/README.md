@@ -33,7 +33,7 @@ In an era of AI-generated content flooding the internet, Humans Only provides a 
 - **Forms**: Formik 2.2 + Yup 1.1
 
 ### Backend
-- **Authentication**: Clerk (App Router) + JWT bridge for existing API auth
+- **Authentication**: Clerk-first (App Router) with legacy JWT fallback bridge
 - **API**: Next.js API Routes
 - **Storage**: Supabase (for media uploads)
 
@@ -64,7 +64,7 @@ In an era of AI-generated content flooding the internet, Humans Only provides a 
 - Premium-only features (coming soon)
 
 ### Technical Features
-- Custom JWT Authentication with secure bcrypt hashing
+- Clerk-first session auth with legacy JWT compatibility for migration routes
 - Real-time data fetching with React Query
 - Infinite Scroll pagination
 - Optimistic UI updates
@@ -255,9 +255,11 @@ See full schema: `/src/schema.prisma`
 ## API Routes
 
 ### Authentication
-- `POST /api/auth/signup` - Create account
+- `POST /api/auth/clerk/bridge` - Sync Clerk session to legacy cookie
 - `POST /api/auth/login` - Login
-- `POST /api/auth/logout` - Logout
+- `GET /api/auth/logout` - Logout
+- `GET /api/auth/session` - Canonical session payload (`source: clerk|legacy|null`)
+- `POST /api/auth/verify` - Verify legacy JWT payload (compatibility)
 
 ### Users
 - `GET /api/users/[username]` - Get user profile
@@ -294,6 +296,11 @@ Full API documentation: `/docs/API_CONSUMERS.md`
 | `PORT` | Server port | `3000` (dev), `3001` (prod) |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | From Supabase dashboard |
 | `NEXT_PUBLIC_SUPABASE_KEY` | Supabase anon key | From Supabase dashboard |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase server upload key (optional managed storage) | From Supabase dashboard |
+| `SUPABASE_STORAGE_BUCKET` | Supabase bucket for media uploads | `humansonly-media` |
+| `UPLOAD_STORAGE_PROVIDER` | Upload backend mode | `local`, `supabase`, or `auto` |
+| `UPLOAD_MAX_FILES_PER_DAY` | Per-user upload count limit (24h) | `40` |
+| `UPLOAD_MAX_BYTES_PER_DAY` | Per-user upload byte budget (24h) | `262144000` |
 
 ---
 

@@ -1,26 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 import { prisma } from "@/prisma/client";
-import { verifyJwtToken } from "@/utilities/auth";
 import { createNotification } from "@/utilities/fetch";
 import { shouldCreateNotification } from "@/utilities/misc/shouldCreateNotification";
-import { UserProps } from "@/types/UserProps";
+import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 
 export async function POST(request: NextRequest) {
-    // Verify authentication first
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
-
-    if (!token) {
-        return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const verifiedToken: UserProps = await verifyJwtToken(token);
-
-    if (!verifiedToken || !verifiedToken.username) {
-        return NextResponse.json({ success: false, message: "Invalid token" }, { status: 401 });
-    }
+    const authUser = await getAuthenticatedUser();
+    if (!authUser) return unauthorizedResponse("Unauthorized");
 
     const secret = process.env.CREATION_SECRET_KEY;
 
@@ -32,12 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    const { recipient, sender, text, photoUrl } = await request.json();
-
-    // Validate sender matches token
-    if (verifiedToken.username !== sender) {
-        return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
-    }
+    const { recipient, text, photoUrl } = await request.json();
 
     // Validate input
     if (!text || typeof text !== 'string') {
@@ -85,7 +67,7 @@ export async function POST(request: NextRequest) {
                 photoUrl: sanitizedPhotoUrl,
                 sender: {
                     connect: {
-                        username: sender,
+                        username: authUser.username,
                     },
                 },
                 recipient: {
@@ -96,12 +78,12 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        if (recipient !== verifiedToken.username && (await shouldCreateNotification(verifiedToken.username, recipient))) {
+        if (recipient !== authUser.username && (await shouldCreateNotification(authUser.username, recipient))) {
             const notificationContent = {
                 sender: {
-                    username: verifiedToken.username,
-                    name: verifiedToken.name,
-                    photoUrl: verifiedToken.photoUrl,
+                    username: authUser.username,
+                    name: authUser.name || "",
+                    photoUrl: authUser.photoUrl || "",
                 },
                 content: null,
             };

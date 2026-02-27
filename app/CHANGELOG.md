@@ -1,5 +1,23 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - Wave 2 Media Pipeline Hardening (v1.4.0)
+
+-   added `MediaAsset` Prisma model for upload audit and moderation metadata
+-   added storage abstraction in `src/utilities/storage/server.ts` (`local`, `supabase`, `auto`)
+-   hardened `/api/upload` with per-user daily upload count + byte quotas
+-   added checksum dedupe/reuse for identical uploads (`reused: true`)
+-   extended upload response with `assetId`, `provider`, `moderationStatus`
+-   deployed migration `20260227211236_add_media_assets` to production
+
+## 2026-02-27 - Wave 1 Auth Consolidation (v1.3.0)
+
+-   added centralized Clerk-first auth resolver in `src/utilities/auth/session.ts`
+-   migrated protected tweets/users/messages/notifications/upload routes to shared auth resolver
+-   updated `/api/auth/session` to return canonical session data with `source` metadata
+-   removed server dependency on client-sent `tokenOwnerId` for authorization
+-   updated frontend fetch + mutation callers to stop sending `tokenOwnerId`
+-   removed unused legacy auth dialogs (`LogInDialog`, `SignUpDialog`)
+
 ## 2026-02-27 - Hotfix (v1.2.3)
 
 -   added `bcryptjs` fallback for hashing/comparison when native `bcrypt` fails at runtime

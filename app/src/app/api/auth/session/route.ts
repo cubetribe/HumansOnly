@@ -1,20 +1,10 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-
-import { verifyJwtToken } from "@/utilities/auth";
+import { getAuthenticatedUser } from "@/utilities/auth/session";
 
 export async function GET() {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const user = await getAuthenticatedUser();
+    if (!user) return NextResponse.json({ success: true, token: null, source: null });
 
-    if (!token) {
-        return NextResponse.json({ success: true, token: null });
-    }
-
-    try {
-        const verifiedToken = await verifyJwtToken(token);
-        return NextResponse.json({ success: true, token: verifiedToken ?? null });
-    } catch {
-        return NextResponse.json({ success: false, token: null });
-    }
+    const { authSource, clerkId: _clerkId, ...token } = user;
+    return NextResponse.json({ success: true, token, source: authSource });
 }

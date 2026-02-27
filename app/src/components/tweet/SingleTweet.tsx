@@ -38,7 +38,7 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
     const router = useRouter();
 
     const mutation = useMutation({
-        mutationFn: (jsonId: string) => deleteTweet(tweet.id, tweet.authorId, jsonId),
+        mutationFn: () => deleteTweet(tweet.id, tweet.authorId),
         onSuccess: async () => {
             setIsConfirmationOpen(false);
             setIsDeleting(false);
@@ -85,7 +85,7 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
         }
         handleAnchorClose();
         setIsDeleting(true);
-        mutation.mutate(token.id);
+        mutation.mutate();
     };
 
     return (

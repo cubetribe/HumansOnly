@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-02-27
+
+### Added
+
+- Media audit model in Prisma:
+  - `MediaAsset` with ownership, checksum, provider/key, dimensions, and moderation fields.
+- Storage provider abstraction for uploads:
+  - local filesystem
+  - optional Supabase managed storage (`supabase`/`auto` mode)
+- Wave 2 agent artifacts:
+  - `Agents/RESEARCHER_brief-2026-02-27-wave2-media.md`
+  - `Agents/ARCHITECT_spec-2026-02-27-wave2-media.md`
+  - `Agents/BUILDER_wave2-media-2026-02-27.md`
+  - `Agents/VALIDATOR_wave2-media-2026-02-27.md`
+
+### Changed
+
+- `/api/upload` now enforces per-user daily file-count and bandwidth quotas.
+- `/api/upload` now supports duplicate media reuse by checksum (per user/type), reducing redundant storage writes.
+- Upload responses now include audit metadata (`assetId`, `provider`, `moderationStatus`, `reused`) while preserving `path`.
+
+### Fixed
+
+- Upload pipeline is now auditable end-to-end (DB record + live validation), not just file-write based.
+
+## [1.3.0] - 2026-02-27
+
+### Added
+
+- Centralized Clerk-first auth/session utility:
+  - `app/src/utilities/auth/session.ts`
+- New Wave 1 agent artifacts:
+  - `Agents/RESEARCHER_brief-2026-02-27-wave1-auth.md`
+  - `Agents/ARCHITECT_spec-2026-02-27-wave1-auth.md`
+  - `Agents/BUILDER_wave1-auth-2026-02-27.md`
+  - `Agents/VALIDATOR_wave1-auth-2026-02-27.md`
+
+### Changed
+
+- Protected routes now resolve authenticated users via Clerk-first auth with legacy JWT fallback instead of direct JWT-only checks.
+- `/api/auth/session` now exposes a canonical session response with auth source metadata (`clerk`, `legacy`, or `null`).
+- Core mutation endpoints no longer depend on client-supplied `tokenOwnerId` for authorization decisions.
+- Frontend fetch layer and mutation callers were simplified to stop sending `tokenOwnerId` in request bodies.
+
+### Fixed
+
+- Server-side message sender identity now derives from authenticated session, preventing sender spoofing from request payload.
+- Tweet deletion now enforces author ownership server-side prior to deletion.
+
+### Removed
+
+- Unused legacy login/signup dialog components from the frontend codebase.
+
 ## [1.2.3] - 2026-02-27
 
 ### Fixed

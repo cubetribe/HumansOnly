@@ -8,7 +8,9 @@ export default function UnreadNotificationsBadge() {
     const { data } = useQuery(["notifications"], getNotifications);
 
     const lengthOfUnreadNotifications =
-        data?.notifications?.filter((notification: NotificationProps) => !notification.isRead)?.length ?? 0;
+        data?.unreadCount ??
+        data?.notifications?.filter((notification: NotificationProps) => !notification.isRead)?.length ??
+        0;
 
     const animationVariants = {
         initial: { opacity: 0, scale: 0 },

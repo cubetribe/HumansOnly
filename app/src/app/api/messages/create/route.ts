@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
             data: {
                 text,
                 photoUrl: sanitizedPhotoUrl,
+                isRead: false,
                 sender: {
                     connect: {
                         username: authUser.username,

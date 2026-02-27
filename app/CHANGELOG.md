@@ -1,5 +1,15 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - Wave 3 Messaging + Notifications Reliability (v1.5.0)
+
+-   added `Message.isRead` field and `POST /api/messages/read` endpoint
+-   added `NotificationPreference` model and `GET/POST /api/notifications/preferences`
+-   updated `/api/messages/[username]` with `totalUnread`, per-conversation `unreadCount`, and pagination metadata
+-   updated `/api/notifications` with `unreadCount` + pagination metadata
+-   updated `/api/notifications/create` to respect recipient preference toggles
+-   updated message UI to mark conversations as read on open and refresh unread counters
+-   deployed migration `20260227212241_add_notification_preferences_and_message_reads`
+
 ## 2026-02-27 - Wave 2 Media Pipeline Hardening (v1.4.0)
 
 -   added `MediaAsset` Prisma model for upload audit and moderation metadata

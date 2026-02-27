@@ -31,6 +31,7 @@ model User {
     sentMessages     Message[]      @relation("userMessagesSent")
     receivedMessages Message[]      @relation("userMessagesReceived")
     notifications    Notification[]
+    notificationPreference NotificationPreference?
     mediaAssets      MediaAsset[]
 }
 
@@ -62,6 +63,7 @@ model Message {
     recipient   User     @relation("userMessagesReceived", fields: [recipientId], references: [id])
     recipientId String
     photoUrl    String?
+    isRead      Boolean  @default(false)
 }
 
 model Notification {
@@ -95,4 +97,17 @@ model MediaAsset {
 
     @@index([ownerId, createdAt])
     @@index([checksum])
+}
+
+model NotificationPreference {
+    id        String   @id @default(uuid())
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId    String   @unique
+    like      Boolean  @default(true)
+    reply     Boolean  @default(true)
+    follow    Boolean  @default(true)
+    retweet   Boolean  @default(true)
+    message   Boolean  @default(true)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

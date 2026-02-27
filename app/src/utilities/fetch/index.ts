@@ -276,8 +276,8 @@ export const createMessage = async (message: string) => {
     return json;
 };
 
-export const getUserMessages = async (username: string) => {
-    const response = await fetch(`${HOST_URL}/api/messages/${username}`, {
+export const getUserMessages = async (username: string, page = "1", limit = "20") => {
+    const response = await fetch(`${HOST_URL}/api/messages/${username}?page=${page}&limit=${limit}`, {
         credentials: "include",
         next: {
             revalidate: 0,
@@ -309,8 +309,22 @@ export const deleteConversation = async (participants: string[]) => {
     return json;
 };
 
-export const getNotifications = async () => {
-    const response = await fetch(`${HOST_URL}/api/notifications`, {
+export const markMessagesRead = async (messagedUsername: string) => {
+    const response = await fetch(`${HOST_URL}/api/messages/read`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ messagedUsername }),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getNotificationsPage = async (page = "1", limit = "50") => {
+    const response = await fetch(`${HOST_URL}/api/notifications?page=${page}&limit=${limit}`, {
         credentials: "include",
         next: {
             revalidate: 0,
@@ -320,6 +334,8 @@ export const getNotifications = async () => {
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
     return json;
 };
+
+export const getNotifications = async () => getNotificationsPage();
 
 export const createNotification = async (
     recipient: string,
@@ -346,6 +362,34 @@ export const markNotificationsRead = async () => {
         next: {
             revalidate: 0,
         },
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getNotificationPreferences = async () => {
+    const response = await fetch(`${HOST_URL}/api/notifications/preferences`, {
+        credentials: "include",
+        next: {
+            revalidate: 0,
+        },
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const updateNotificationPreferences = async (
+    preferences: Partial<{ like: boolean; reply: boolean; follow: boolean; retweet: boolean; message: boolean }>
+) => {
+    const response = await fetch(`${HOST_URL}/api/notifications/preferences`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(preferences),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");

@@ -38,6 +38,7 @@ export default function Conversation({ conversation, token, handleConversations 
             : conversation.messages[conversation.messages.length - 1].sender;
 
     const lastMessage = conversation.messages[conversation.messages.length - 1];
+    const unreadCount = conversation.unreadCount || 0;
 
     const handlePopoverOpen = (e: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(e.currentTarget);
@@ -101,6 +102,7 @@ export default function Conversation({ conversation, token, handleConversations 
                     </Tooltip>
                 </section>
                 <div className="last-message text-muted">{lastMessage.text}</div>
+                {unreadCount > 0 && <div className="badge">{unreadCount}</div>}
             </div>
             <>
                 <button className="three-dots icon-hoverable" onClick={handleThreeDotsClick}>

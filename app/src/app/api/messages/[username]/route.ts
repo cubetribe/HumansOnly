@@ -8,6 +8,11 @@ export async function GET(request: NextRequest, { params: { username } }: { para
     if (!authUser) return unauthorizedResponse();
     if (authUser.username !== username) return unauthorizedResponse();
 
+    const page = Math.max(1, Number.parseInt(request.nextUrl.searchParams.get("page") || "1", 10));
+    const limit = Math.min(100, Math.max(1, Number.parseInt(request.nextUrl.searchParams.get("limit") || "20", 10)));
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
     try {
         const messages = await prisma.message.findMany({
             where: {
@@ -44,7 +49,7 @@ export async function GET(request: NextRequest, { params: { username } }: { para
             },
             orderBy: [
                 {
-                    createdAt: "asc",
+                    createdAt: "desc",
                 },
             ],
         });
@@ -66,7 +71,11 @@ export async function GET(request: NextRequest, { params: { username } }: { para
             conversations[conversationKey].messages.push(message);
         });
 
-        const formattedConversations = Object.values(conversations);
+        const formattedConversations = Object.values(conversations) as Array<{
+            participants: string[];
+            messages: any[];
+            unreadCount?: number;
+        }>;
 
         formattedConversations.sort((a: any, b: any) => {
             const lastMessageA = a.messages[a.messages.length - 1];
@@ -81,7 +90,30 @@ export async function GET(request: NextRequest, { params: { username } }: { para
             }
         });
 
-        return NextResponse.json({ success: true, formattedConversations });
+        for (const conversation of formattedConversations) {
+            const unreadCount = conversation.messages.filter(
+                (message: any) => message.recipient.username === username && message.isRead === false
+            ).length;
+            conversation.unreadCount = unreadCount;
+            conversation.messages.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        }
+
+        const paginatedConversations = formattedConversations.slice(start, end);
+        const totalConversations = formattedConversations.length;
+        const totalUnread = formattedConversations.reduce((sum, conversation) => sum + (conversation.unreadCount || 0), 0);
+
+        return NextResponse.json({
+            success: true,
+            formattedConversations: paginatedConversations,
+            totalUnread,
+            pagination: {
+                page,
+                limit,
+                totalConversations,
+                totalPages: Math.max(1, Math.ceil(totalConversations / limit)),
+                hasMore: end < totalConversations,
+            },
+        });
     } catch (error: unknown) {
         return NextResponse.json({ success: false, error });
     }

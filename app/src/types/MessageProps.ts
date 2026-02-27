@@ -7,11 +7,13 @@ export type MessageProps = {
     text: string;
     createdAt: Date;
     photoUrl: string;
+    isRead?: boolean;
 };
 
 export type ConversationResponse = {
     participants: string[];
     messages: MessageProps[];
+    unreadCount?: number;
 };
 
 export type ConversationProps = {

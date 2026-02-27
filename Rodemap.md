@@ -51,7 +51,7 @@ Acceptance:
 - Uploads are authenticated, auditable, and storage-agnostic
 
 ### Wave 3 - Messaging and Notifications Reliability
-Status: `pending`
+Status: `completed` (v1.5.0, validated live 2026-02-27)
 
 Scope:
 - Introduce conversation model + unread tracking

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0] - 2026-02-27
+
+### Added
+
+- Message read-state support via `Message.isRead`.
+- Notification preference model and APIs:
+  - `GET/POST /api/notifications/preferences`
+- Message read endpoint:
+  - `POST /api/messages/read`
+- Wave 3 agent artifacts:
+  - `Agents/RESEARCHER_brief-2026-02-27-wave3-messaging-notifications.md`
+  - `Agents/ARCHITECT_spec-2026-02-27-wave3-messaging-notifications.md`
+  - `Agents/BUILDER_wave3-messaging-notifications-2026-02-27.md`
+  - `Agents/VALIDATOR_wave3-messaging-notifications-2026-02-27.md`
+
+### Changed
+
+- `/api/messages/[username]` now returns pagination metadata, `totalUnread`, and per-conversation `unreadCount`.
+- `/api/notifications` now returns pagination metadata and `unreadCount`.
+- `/api/notifications/create` now applies recipient notification preferences before persisting event notifications.
+- Frontend conversation view now marks incoming messages as read when opening a thread.
+
+### Fixed
+
+- Notification unread badge can now use server-provided unread aggregate, reducing client-side counting drift.
+
 ## [1.4.0] - 2026-02-27
 
 ### Added

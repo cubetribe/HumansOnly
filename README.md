@@ -180,6 +180,9 @@ npm run dev
 # Full live-domain social smoke
 ./scripts/live-social-smoke.sh https://humans-only.de
 
+# Upload compression/resize hardening smoke
+./scripts/upload-compression-smoke.sh https://humans-only.de
+
 # Final live validation matrix
 ./scripts/live-wave6-validation.sh https://humans-only.de
 

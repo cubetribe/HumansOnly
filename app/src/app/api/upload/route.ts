@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import sharp from "sharp";
 import { createHash } from "crypto";
 
 import { getAuthenticatedUser } from "@/utilities/auth/session";
 import { prisma } from "@/prisma/client";
 import { storeMediaBuffer, type ServerUploadType } from "@/utilities/storage/server";
+import { InvalidUploadImageError, optimizeUploadImage } from "@/utilities/media/optimizeUploadImage";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/heic", "image/heif"];
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB raw input
-const MAX_OUTPUT_WIDTH = 1920;
-const MAX_OUTPUT_HEIGHT = 1080;
-const JPEG_QUALITY = 85;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const MAX_INPUT_PIXELS = 40_000_000; // 40MP safety cap against decompression bombs
 
 const DAILY_UPLOAD_LIMIT = Number.parseInt(process.env.UPLOAD_MAX_FILES_PER_DAY || "40", 10);
 const DAILY_BYTE_LIMIT = Number.parseInt(process.env.UPLOAD_MAX_BYTES_PER_DAY || `${250 * 1024 * 1024}`, 10);
@@ -78,23 +74,6 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(bytes);
         const checksum = createHash("sha256").update(buffer).digest("hex");
 
-        let sourceMetadata: sharp.Metadata;
-        try {
-            sourceMetadata = await sharp(buffer, { limitInputPixels: MAX_INPUT_PIXELS }).metadata();
-        } catch {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: "The uploaded file is not a valid or supported image.",
-                },
-                { status: 400 }
-            );
-        }
-
-        if (!sourceMetadata.width || !sourceMetadata.height) {
-            return NextResponse.json({ success: false, error: "Unable to read image dimensions." }, { status: 400 });
-        }
-
         const duplicate = await prisma.mediaAsset.findFirst({
             where: {
                 ownerId: authUser.id,
@@ -123,46 +102,28 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Determine dimensions based on type
-        let maxWidth = MAX_OUTPUT_WIDTH;
-        let maxHeight = MAX_OUTPUT_HEIGHT;
+        let optimized: Awaited<ReturnType<typeof optimizeUploadImage>>;
+        try {
+            optimized = await optimizeUploadImage({
+                inputBuffer: buffer,
+                uploadType: type,
+            });
+        } catch (error) {
+            if (error instanceof InvalidUploadImageError) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: error.message,
+                    },
+                    { status: 400 }
+                );
+            }
 
-        if (type === "profile") {
-            maxWidth = 400;
-            maxHeight = 400;
-        } else if (type === "header") {
-            maxWidth = 1500;
-            maxHeight = 500;
+            throw error;
         }
-
-        // Process image with Sharp
-        let processedBuffer: Buffer;
-        let outputMimeType = "image/jpeg";
-
-        if (file.type === "image/gif") {
-            // GIFs: only resize, keep animation
-            processedBuffer = await sharp(buffer, { animated: true })
-                .resize(maxWidth, maxHeight, {
-                    fit: "inside",
-                    withoutEnlargement: true,
-                })
-                .toBuffer();
-            outputMimeType = "image/gif";
-        } else {
-            // Other images: resize and convert to JPEG for compression
-            processedBuffer = await sharp(buffer)
-                .resize(maxWidth, maxHeight, {
-                    fit: "inside",
-                    withoutEnlargement: true,
-                })
-                .jpeg({ quality: JPEG_QUALITY, progressive: true })
-                .toBuffer();
-        }
-
-        const ext = file.type === "image/gif" ? "gif" : "jpg";
 
         const originalSize = file.size;
-        const compressedSize = processedBuffer.length;
+        const compressedSize = optimized.outputBytes;
         const uploadedBytesInWindow = usage._sum.compressedSize ?? 0;
         if (uploadedBytesInWindow + compressedSize > DAILY_BYTE_LIMIT) {
             return NextResponse.json({
@@ -172,16 +133,12 @@ export async function POST(request: NextRequest) {
         }
 
         const stored = await storeMediaBuffer({
-            buffer: processedBuffer,
-            extension: ext,
-            mimeType: outputMimeType,
+            buffer: optimized.buffer,
+            extension: optimized.extension,
+            mimeType: optimized.mimeType,
             uploadType: type,
             userId: authUser.id,
         });
-
-        const metadata = await sharp(processedBuffer, {
-            animated: file.type === "image/gif",
-        }).metadata();
 
         const asset = await prisma.mediaAsset.create({
             data: {
@@ -190,12 +147,12 @@ export async function POST(request: NextRequest) {
                 storageKey: stored.storageKey,
                 url: stored.publicUrl,
                 uploadType: type,
-                mimeType: outputMimeType,
+                mimeType: optimized.mimeType,
                 originalSize,
                 compressedSize,
                 checksum,
-                width: metadata.width ?? null,
-                height: metadata.height ?? null,
+                width: optimized.width,
+                height: optimized.height,
             },
         });
 
@@ -210,6 +167,13 @@ export async function POST(request: NextRequest) {
             assetId: asset.id,
             provider: asset.provider,
             moderationStatus: asset.moderationStatus,
+            outputFormat: optimized.mimeType,
+            outputWidth: optimized.width,
+            outputHeight: optimized.height,
+            targetBytes: optimized.targetBytes,
+            hardMaxBytes: optimized.hardMaxBytes,
+            attempts: optimized.attempts,
+            wasAnimated: optimized.wasAnimated,
             reused: false,
         });
     } catch (error) {

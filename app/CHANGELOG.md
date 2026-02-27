@@ -1,5 +1,13 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - Adaptive Image Compression Pipeline (v1.8.3)
+
+-   added adaptive upload optimizer with iterative quality + rescale passes per upload type (`profile`, `header`, `post`)
+-   introduced per-type output byte budgets with hard caps and automatic fallback encoding
+-   normalized uploaded images to web delivery formats (`image/webp` primary, JPEG fallback for hard-limit cases)
+-   extended upload API response with compression diagnostics (`outputFormat`, dimensions, target/hard limits, attempt count)
+-   added live verification script `scripts/upload-compression-smoke.sh` for large image fixtures and invalid-image rejection checks
+
 ## 2026-02-27 - Upload Hardening Hotfix (v1.8.2)
 
 -   hardened `/api/upload` with real image parsing validation and decompression safeguards

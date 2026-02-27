@@ -16,6 +16,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      DEPLOY_PORT: "2222"
 
     steps:
       - name: Checkout repository
@@ -39,19 +41,17 @@ jobs:
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
           test -n "$DEPLOY_SSH_KEY"
           test -n "$DEPLOY_HOST"
           mkdir -p ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p "${DEPLOY_PORT:-2222}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -p "${DEPLOY_PORT}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
       - name: Sync app files
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
@@ -65,17 +65,16 @@ jobs:
             --exclude ".env.local" \
             --exclude ".env.backup*" \
             --exclude "public/uploads" \
-            -e "ssh -i ~/.ssh/id_ed25519 -p ${DEPLOY_PORT:-2222} -o StrictHostKeyChecking=yes" \
+            -e "ssh -i ~/.ssh/id_ed25519 -p ${DEPLOY_PORT} -o StrictHostKeyChecking=yes" \
             app/ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
 
       - name: Run remote deploy commands
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-          ssh -i ~/.ssh/id_ed25519 -p "${DEPLOY_PORT:-2222}" "${DEPLOY_USER}@${DEPLOY_HOST}" "bash -s" <<EOF
+          ssh -i ~/.ssh/id_ed25519 -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" "bash -s" <<EOF
           set -euo pipefail
           cd "${DEPLOY_PATH}"
           npm ci

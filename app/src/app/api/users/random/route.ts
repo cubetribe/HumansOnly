@@ -23,6 +23,27 @@ export async function GET(request: NextRequest) {
                         },
                     },
                 },
+                {
+                    blocksInitiated: {
+                        some: {
+                            blockedId: authUser.id,
+                        },
+                    },
+                },
+                {
+                    blocksReceived: {
+                        some: {
+                            blockerId: authUser.id,
+                        },
+                    },
+                },
+                {
+                    mutesReceived: {
+                        some: {
+                            muterId: authUser.id,
+                        },
+                    },
+                },
             ],
         },
     });
@@ -48,12 +69,34 @@ export async function GET(request: NextRequest) {
                             },
                         },
                     },
+                    {
+                        blocksInitiated: {
+                            some: {
+                                blockedId: authUser.id,
+                            },
+                        },
+                    },
+                    {
+                        blocksReceived: {
+                            some: {
+                                blockerId: authUser.id,
+                            },
+                        },
+                    },
+                    {
+                        mutesReceived: {
+                            some: {
+                                muterId: authUser.id,
+                            },
+                        },
+                    },
                 ],
                 photoUrl: {
                     not: "",
                 },
             },
             select: {
+                id: true,
                 name: true,
                 username: true,
                 createdAt: true,

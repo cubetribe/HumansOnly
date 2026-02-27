@@ -33,7 +33,7 @@ export default function User({ user }: { user: UserProps }) {
                     <div className="flex">
                         <div className="flex-left">
                             <span className="user-name">
-                                {user.name !== "" ? user.name : user.username}
+                                {user.name ? user.name : user.username}
                                 {user.isVerifiedHuman && (
                                     <span className="blue-tick" data-blue="Verified Human">
                                         <VerifiedHumanBadge />

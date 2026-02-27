@@ -2,29 +2,48 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { visibleAuthorWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
+    const visibleAuthorWhere = visibleAuthorWhereForViewer(authUser.id);
 
     try {
         const tweets = await prisma.tweet.findMany({
             where: {
-                OR: [
+                isReply: false,
+                author: visibleAuthorWhere,
+                AND: [
                     {
-                        authorId: authUser.id,
-                    },
-                    {
-                        author: {
-                            followers: {
-                                some: {
-                                    id: authUser.id,
+                        OR: [
+                            {
+                                authorId: authUser.id,
+                            },
+                            {
+                                author: {
+                                    followers: {
+                                        some: {
+                                            id: authUser.id,
+                                        },
+                                    },
                                 },
                             },
-                        },
+                        ],
+                    },
+                    {
+                        OR: [
+                            {
+                                isRetweet: false,
+                            },
+                            {
+                                retweetOf: {
+                                    author: visibleAuthorWhere,
+                                },
+                            },
+                        ],
                     },
                 ],
-                isReply: false,
             },
             include: {
                 author: {

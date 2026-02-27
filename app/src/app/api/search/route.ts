@@ -1,39 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
+import { getAuthenticatedUser } from "@/utilities/auth/session";
+import { visibleAuthorWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest) {
     const query = request.nextUrl.searchParams.get("q");
+    const authUser = await getAuthenticatedUser();
+    const visibleAuthorWhere = visibleAuthorWhereForViewer(authUser?.id ?? null);
 
     if (!query) return NextResponse.json({ success: false, message: "Missing query." });
 
     try {
         const tweets = await prisma.tweet.findMany({
             where: {
-                OR: [
+                author: visibleAuthorWhere,
+                AND: [
                     {
-                        text: {
-                            contains: query,
-                            mode: "insensitive",
-                        },
+                        OR: [
+                            {
+                                text: {
+                                    contains: query,
+                                    mode: "insensitive",
+                                },
+                            },
+                            {
+                                author: {
+                                    OR: [
+                                        {
+                                            name: {
+                                                contains: query,
+                                                mode: "insensitive",
+                                            },
+                                        },
+                                        {
+                                            username: {
+                                                contains: query,
+                                                mode: "insensitive",
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
                     },
                     {
-                        author: {
-                            OR: [
-                                {
-                                    name: {
-                                        contains: query,
-                                        mode: "insensitive",
-                                    },
+                        OR: [
+                            {
+                                isRetweet: false,
+                            },
+                            {
+                                retweetOf: {
+                                    author: visibleAuthorWhere,
                                 },
-                                {
-                                    username: {
-                                        contains: query,
-                                        mode: "insensitive",
-                                    },
-                                },
-                            ],
-                        },
+                            },
+                        ],
                     },
                 ],
             },
@@ -147,6 +168,9 @@ export async function GET(request: NextRequest) {
                         },
                     },
                 },
+            },
+            orderBy: {
+                createdAt: "desc",
             },
         });
         return NextResponse.json({ success: true, tweets });

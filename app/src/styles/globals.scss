@@ -1136,6 +1136,12 @@ main {
                 gap: 0.5rem;
             }
 
+            .profile-actions-secondary {
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+
             .profile-info-main {
                 display: flex;
                 flex-direction: column;
@@ -1191,6 +1197,11 @@ main {
                 }
             }
         }
+    }
+
+    .profile-restricted {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
     }
 }
 
@@ -2067,6 +2078,43 @@ button.icon-hoverable {
         vertical-align: middle;
         font-size: 0.7rem;
         color: var(--ho-muted);
+    }
+}
+
+.settings-page {
+    .settings-section {
+        padding: 1rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .settings-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .settings-user-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .settings-user-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .settings-user-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: inherit;
     }
 }
 

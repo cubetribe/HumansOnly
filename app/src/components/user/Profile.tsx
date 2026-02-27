@@ -6,6 +6,7 @@ import { useContext, useState } from "react";
 import { usePathname } from "next/navigation";
 import { FaArrowLeft, FaRegEnvelope } from "react-icons/fa";
 import { Avatar, Dialog, DialogContent, DialogTitle } from "@mui/material";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BiCalendarCheck } from "react-icons/bi";
 import { GoLocation } from "react-icons/go";
 import { AiOutlineLink } from "react-icons/ai";
@@ -22,6 +23,7 @@ import PreviewDialog from "../dialog/PreviewDialog";
 import { SnackbarProps } from "@/types/SnackbarProps";
 import CustomSnackbar from "../misc/CustomSnackbar";
 import NewMessageDialog from "../dialog/NewMessageDialog";
+import { createReport, updateUserBlock, updateUserMute } from "@/utilities/fetch";
 
 export default function Profile({ profile }: { profile: UserProps }) {
     const [dialogType, setDialogType] = useState("");
@@ -32,6 +34,71 @@ export default function Profile({ profile }: { profile: UserProps }) {
 
     const { token } = useContext(AuthContext);
     const pathname = usePathname();
+    const queryClient = useQueryClient();
+    const canViewContent = profile.canViewContent !== false || token?.id === profile.id;
+
+    const muteMutation = useMutation({
+        mutationFn: (isMuted: boolean) => updateUserMute(profile.username, isMuted),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["users", profile.username] });
+            setSnackbar({
+                message: profile.isMutedByMe ? "User unmuted." : "User muted.",
+                severity: "success",
+                open: true,
+            });
+        },
+        onError: (error: Error) => {
+            setSnackbar({
+                message: error.message || "Could not update mute state.",
+                severity: "error",
+                open: true,
+            });
+        },
+    });
+
+    const blockMutation = useMutation({
+        mutationFn: (isBlocked: boolean) => updateUserBlock(profile.username, isBlocked),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["users", profile.username] });
+            await queryClient.invalidateQueries({ queryKey: ["tweets"] });
+            setSnackbar({
+                message: profile.isBlockedByMe ? "User unblocked." : "User blocked.",
+                severity: "success",
+                open: true,
+            });
+        },
+        onError: (error: Error) => {
+            setSnackbar({
+                message: error.message || "Could not update block state.",
+                severity: "error",
+                open: true,
+            });
+        },
+    });
+
+    const reportMutation = useMutation({
+        mutationFn: (payload: { reason: string; details?: string }) =>
+            createReport({
+                targetType: "user",
+                targetUsername: profile.username,
+                reason: payload.reason,
+                details: payload.details,
+            }),
+        onSuccess: () => {
+            setSnackbar({
+                message: "Report submitted.",
+                severity: "success",
+                open: true,
+            });
+        },
+        onError: (error: Error) => {
+            setSnackbar({
+                message: error.message || "Could not submit report.",
+                severity: "error",
+                open: true,
+            });
+        },
+    });
 
     const handleDialogOpen = (type: string) => {
         if (!token) {
@@ -44,6 +111,7 @@ export default function Profile({ profile }: { profile: UserProps }) {
 
         if (type === "following" && profile.following.length === 0) return;
         if (type === "followers" && profile.followers.length === 0) return;
+        if (!canViewContent) return;
 
         setDialogType(type);
         setIsDialogOpen(true);
@@ -79,7 +147,30 @@ export default function Profile({ profile }: { profile: UserProps }) {
                 open: true,
             });
         }
+        if (profile.isBlockedByMe || profile.hasBlockedMe) {
+            return setSnackbar({
+                message: "Messaging is unavailable due to account restrictions.",
+                severity: "info",
+                open: true,
+            });
+        }
         setIsNewMessageOpen(true);
+    };
+
+    const handleReportUser = () => {
+        if (!token) {
+            return setSnackbar({
+                message: "You need to login first to report someone.",
+                severity: "info",
+                open: true,
+            });
+        }
+
+        const reason = window.prompt("Reason for reporting this user (max 80 chars):", "abuse");
+        if (!reason) return;
+
+        const details = window.prompt("Optional details (max 500 chars):") || undefined;
+        reportMutation.mutate({ reason: reason.trim(), details: details?.trim() });
     };
 
     const isFollowingTokenOwner = () => {
@@ -121,7 +212,7 @@ export default function Profile({ profile }: { profile: UserProps }) {
                 <div className="profile-info">
                     <div className="profile-info-main">
                         <h1>
-                            {profile.name !== "" ? profile.name : profile.username}
+                            {profile.name ? profile.name : profile.username}
                             {profile.isVerifiedHuman && (
                                 <span className="blue-tick" data-blue="Verified Human">
                                     <VerifiedHumanBadge />
@@ -171,37 +262,66 @@ export default function Profile({ profile }: { profile: UserProps }) {
                             <button className="btn btn-white icon-hoverable new-message" onClick={handleNewMessageClick}>
                                 <FaRegEnvelope />
                             </button>
-                            <Follow profile={profile} />
+                            {!profile.isBlockedByMe && !profile.hasBlockedMe && <Follow profile={profile} />}
+                        </div>
+                    )}
+                    {token?.username !== profile.username && token && (
+                        <div className="profile-actions-secondary">
+                            <button
+                                className="btn btn-white"
+                                disabled={muteMutation.isLoading || blockMutation.isLoading}
+                                onClick={() => muteMutation.mutate(Boolean(profile.isMutedByMe))}
+                            >
+                                {profile.isMutedByMe ? "Unmute" : "Mute"}
+                            </button>
+                            <button
+                                className={`btn ${profile.isBlockedByMe ? "btn-white" : "btn-danger-outline"}`}
+                                disabled={blockMutation.isLoading}
+                                onClick={() => blockMutation.mutate(Boolean(profile.isBlockedByMe))}
+                            >
+                                {profile.isBlockedByMe ? "Unblock" : "Block"}
+                            </button>
+                            <button className="btn btn-white" disabled={reportMutation.isLoading} onClick={handleReportUser}>
+                                Report
+                            </button>
                         </div>
                     )}
                 </div>
             </div>
-            <nav className="profile-nav">
-                <Link
-                    className={`profile-nav-link ${pathname === `/${profile.username}` ? "active" : ""}`}
-                    href={`/${profile.username}`}
-                >
-                    <span>Posts</span>
-                </Link>
-                <Link
-                    className={`profile-nav-link ${pathname === `/${profile.username}/replies` ? "active" : ""}`}
-                    href={`/${profile.username}/replies`}
-                >
-                    <span>Replies</span>
-                </Link>
-                <Link
-                    className={`profile-nav-link ${pathname === `/${profile.username}/media` ? "active" : ""}`}
-                    href={`/${profile.username}/media`}
-                >
-                    <span>Media</span>
-                </Link>
-                <Link
-                    className={`profile-nav-link ${pathname === `/${profile.username}/likes` ? "active" : ""}`}
-                    href={`/${profile.username}/likes`}
-                >
-                    <span>Likes</span>
-                </Link>
-            </nav>
+            {canViewContent ? (
+                <nav className="profile-nav">
+                    <Link
+                        className={`profile-nav-link ${pathname === `/${profile.username}` ? "active" : ""}`}
+                        href={`/${profile.username}`}
+                    >
+                        <span>Posts</span>
+                    </Link>
+                    <Link
+                        className={`profile-nav-link ${pathname === `/${profile.username}/replies` ? "active" : ""}`}
+                        href={`/${profile.username}/replies`}
+                    >
+                        <span>Replies</span>
+                    </Link>
+                    <Link
+                        className={`profile-nav-link ${pathname === `/${profile.username}/media` ? "active" : ""}`}
+                        href={`/${profile.username}/media`}
+                    >
+                        <span>Media</span>
+                    </Link>
+                    <Link
+                        className={`profile-nav-link ${pathname === `/${profile.username}/likes` ? "active" : ""}`}
+                        href={`/${profile.username}/likes`}
+                    >
+                        <span>Likes</span>
+                    </Link>
+                </nav>
+            ) : (
+                <div className="profile-restricted text-muted">
+                    {profile.hasBlockedMe
+                        ? "You cannot view this account because this user blocked you."
+                        : "This account is private. Follow to view posts."}
+                </div>
+            )}
             {isDialogOpen && (
                 <Dialog className="dialog" open={isDialogOpen} onClose={handleDialogClose} fullWidth maxWidth="xs">
                     <DialogTitle className="title">

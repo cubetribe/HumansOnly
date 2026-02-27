@@ -207,6 +207,108 @@ export const updateUserFollows = async (followedUsername: string, isFollowed: bo
     return json;
 };
 
+export const updateUserMute = async (targetUsername: string, isMuted: boolean) => {
+    const route = isMuted ? "unmute" : "mute";
+    const response = await fetch(`${HOST_URL}/api/users/${targetUsername}/${route}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const updateUserBlock = async (targetUsername: string, isBlocked: boolean) => {
+    const route = isBlocked ? "unblock" : "block";
+    const response = await fetch(`${HOST_URL}/api/users/${targetUsername}/${route}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getUserPrivacyPreferences = async () => {
+    const response = await fetch(`${HOST_URL}/api/users/preferences`, {
+        credentials: "include",
+        next: {
+            revalidate: 0,
+        },
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const updateUserPrivacyPreferences = async (
+    preferences: Partial<{ isPrivate: boolean; messagePrivacy: "everyone" | "followers" }>
+) => {
+    const response = await fetch(`${HOST_URL}/api/users/preferences`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(preferences),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getBlockedUsers = async () => {
+    const response = await fetch(`${HOST_URL}/api/users/blocked`, {
+        credentials: "include",
+        next: {
+            revalidate: 0,
+        },
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getMutedUsers = async () => {
+    const response = await fetch(`${HOST_URL}/api/users/muted`, {
+        credentials: "include",
+        next: {
+            revalidate: 0,
+        },
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const createReport = async (
+    payload: {
+        targetType: "user" | "tweet";
+        targetUsername?: string;
+        targetTweetId?: string;
+        reason: string;
+        details?: string;
+    }
+) => {
+    const response = await fetch(`${HOST_URL}/api/reports`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
 export const deleteTweet = async (tweetId: string, tweetAuthor: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/delete`, {
         method: "POST",

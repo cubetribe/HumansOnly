@@ -1,6 +1,6 @@
 # API Consumer Registry - Humans Only
 
-**Last Updated:** 2025-12-21
+**Last Updated:** 2026-02-27
 **Project:** Humans Only Anti-AI Social Platform
 **Purpose:** Track all API endpoints and their consumers for safe refactoring
 
@@ -15,6 +15,18 @@ This registry tracks:
 4. Last verification date
 
 **CRITICAL:** Update this file after ANY API change to prevent breaking the frontend!
+
+## Wave 4 Additions (2026-02-27)
+
+New account control endpoints:
+- `GET/POST /api/users/preferences`
+- `GET /api/users/blocked`
+- `GET /api/users/muted`
+- `POST /api/users/[username]/block`
+- `POST /api/users/[username]/unblock`
+- `POST /api/users/[username]/mute`
+- `POST /api/users/[username]/unmute`
+- `POST /api/reports`
 
 ---
 

@@ -25,7 +25,7 @@ export default function Follow({ profile }: { profile: UserProps }) {
             await queryClient.cancelQueries({ queryKey: queryKey });
             const previous = queryClient.getQueryData<UserResponse>(queryKey);
             setIsFollowed(true);
-            if (previous) {
+            if (previous?.user) {
                 queryClient.setQueryData(queryKey, {
                     ...previous,
                     user: {
@@ -53,7 +53,7 @@ export default function Follow({ profile }: { profile: UserProps }) {
             await queryClient.cancelQueries({ queryKey: queryKey });
             const previous = queryClient.getQueryData<UserResponse>(queryKey);
             setIsFollowed(false);
-            if (previous) {
+            if (previous?.user) {
                 queryClient.setQueryData(queryKey, {
                     ...previous,
                     user: {

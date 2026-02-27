@@ -65,7 +65,7 @@ export default function Notification({ notification, token }: { notification: No
                 />
                 <div className="profile-info-main">
                     <h1>
-                        {content?.sender.name !== "" ? content?.sender.name : content?.sender.username}{" "}
+                        {content?.sender.name ? content?.sender.name : content?.sender.username}{" "}
                         <span className="text-muted">(@{content?.sender.username})</span>
                     </h1>
                 </div>

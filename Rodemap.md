@@ -64,7 +64,7 @@ Acceptance:
 - Notification behavior is deterministic and user-configurable
 
 ### Wave 4 - Product Completion (Final UX)
-Status: `pending`
+Status: `completed` (v1.6.0, validated live 2026-02-27)
 
 Scope:
 - Complete profile settings (privacy, notification controls)

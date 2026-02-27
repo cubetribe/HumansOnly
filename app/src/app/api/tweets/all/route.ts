@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
+import { getAuthenticatedUser } from "@/utilities/auth/session";
+import { visibleAuthorWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest) {
     let page = request.nextUrl.searchParams.get("page");
     const limit = "10";
+    const authUser = await getAuthenticatedUser();
+    const viewerId = authUser?.id ?? null;
+    const visibleAuthorWhere = visibleAuthorWhereForViewer(viewerId);
 
     if (!page) {
         page = "1";
@@ -18,6 +23,17 @@ export async function GET(request: NextRequest) {
         const tweets = await prisma.tweet.findMany({
             where: {
                 isReply: false,
+                author: visibleAuthorWhere,
+                OR: [
+                    {
+                        isRetweet: false,
+                    },
+                    {
+                        retweetOf: {
+                            author: visibleAuthorWhere,
+                        },
+                    },
+                ],
             },
             include: {
                 author: {
@@ -143,6 +159,17 @@ export async function GET(request: NextRequest) {
         const totalTweets = await prisma.tweet.count({
             where: {
                 isReply: false,
+                author: visibleAuthorWhere,
+                OR: [
+                    {
+                        isRetweet: false,
+                    },
+                    {
+                        retweetOf: {
+                            author: visibleAuthorWhere,
+                        },
+                    },
+                ],
             },
         });
         const lastPage = Math.ceil(totalTweets / parsedLimit);

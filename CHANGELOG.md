@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.0] - 2026-02-27
+
+### Added
+
+- Account safety and controls APIs:
+  - `POST /api/users/[username]/block`
+  - `POST /api/users/[username]/unblock`
+  - `POST /api/users/[username]/mute`
+  - `POST /api/users/[username]/unmute`
+  - `GET /api/users/blocked`
+  - `GET /api/users/muted`
+  - `GET/POST /api/users/preferences` (`isPrivate`, `messagePrivacy`)
+  - `POST /api/reports` (user/tweet reports)
+- New database models:
+  - `Block`
+  - `Mute`
+  - `Report`
+- New user preference columns:
+  - `User.isPrivate`
+  - `User.messagePrivacy`
+- Wave 4 agent artifacts:
+  - `Agents/RESEARCHER_brief-2026-02-27-wave4-account-controls.md`
+  - `Agents/ARCHITECT_spec-2026-02-27-wave4-account-controls.md`
+  - `Agents/BUILDER_wave4-account-controls-2026-02-27.md`
+  - `Agents/VALIDATOR_wave4-account-controls-2026-02-27.md`
+
+### Changed
+
+- Feed/search/profile tweet endpoints now enforce visibility rules for:
+  - private accounts
+  - mutual block relationships
+  - viewer mute relationships
+- Interaction endpoints (`like`, `retweet`, `reply`) now reject actions when visibility/account restrictions apply.
+- Profile API now exposes account-control state:
+  - `isBlockedByMe`, `hasBlockedMe`, `isMutedByMe`, `canViewContent`
+- Settings page now includes:
+  - private account toggle
+  - message privacy selector
+  - blocked/muted management lists with actions
+- Profile page now includes:
+  - block/unblock
+  - mute/unmute
+  - report user
+- Single tweet menu now supports reporting posts for non-authors.
+
+### Fixed
+
+- Build/type safety regressions caused by nullable user payloads in client cache updates.
+
 ## [1.5.1] - 2026-02-27
 
 ### Fixed

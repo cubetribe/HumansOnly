@@ -85,7 +85,7 @@ export default function Conversation({ conversation, token, handleConversations 
                         onMouseLeave={handlePopoverClose}
                     >
                         <span className="user-name">
-                            {name !== "" ? name : username}
+                            {name ? name : username}
                             {isVerifiedHuman && (
                                 <span className="blue-tick" data-blue="Verified Human">
                                     <VerifiedHumanBadge />

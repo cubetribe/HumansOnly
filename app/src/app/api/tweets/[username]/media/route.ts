@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
+import { getAuthenticatedUser } from "@/utilities/auth/session";
+import { visibleAuthorWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest, { params: { username } }: { params: { username: string } }) {
+    const authUser = await getAuthenticatedUser();
+    const visibleAuthorWhere = visibleAuthorWhereForViewer(authUser?.id ?? null);
+
     try {
         const tweets = await prisma.tweet.findMany({
             where: {
                 author: {
                     username: username,
+                    ...visibleAuthorWhere,
                 },
                 isRetweet: false,
                 NOT: {

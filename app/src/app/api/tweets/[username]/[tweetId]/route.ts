@@ -1,12 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
+import { getAuthenticatedUser } from "@/utilities/auth/session";
+import { visibleAuthorWhereForViewer } from "@/utilities/social/access";
 
-export async function GET(request: NextRequest, { params: { tweetId } }: { params: { tweetId: string } }) {
+export async function GET(
+    request: NextRequest,
+    { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
+) {
+    const authUser = await getAuthenticatedUser();
+    const visibleAuthorWhere = visibleAuthorWhereForViewer(authUser?.id ?? null);
+
     try {
-        const tweet = await prisma.tweet.findUnique({
+        const tweet = await prisma.tweet.findFirst({
             where: {
                 id: tweetId,
+                author: {
+                    username,
+                    ...visibleAuthorWhere,
+                },
+                OR: [
+                    {
+                        isRetweet: false,
+                    },
+                    {
+                        retweetOf: {
+                            author: visibleAuthorWhere,
+                        },
+                    },
+                ],
             },
             include: {
                 author: {

@@ -21,6 +21,8 @@ model User {
     username         String         @unique @db.VarChar(20)
     password         String
     isVerifiedHuman  Boolean        @default(false)
+    isPrivate        Boolean        @default(false)
+    messagePrivacy   String         @default("everyone") @db.VarChar(20)
     createdAt        DateTime       @default(now())
     updatedAt        DateTime       @default(now()) @updatedAt
     createdTweets    Tweet[]        @relation("userTweets")
@@ -33,6 +35,12 @@ model User {
     notifications    Notification[]
     notificationPreference NotificationPreference?
     mediaAssets      MediaAsset[]
+    blocksInitiated  Block[]        @relation("blocksInitiated")
+    blocksReceived   Block[]        @relation("blocksReceived")
+    mutesInitiated   Mute[]         @relation("mutesInitiated")
+    mutesReceived    Mute[]         @relation("mutesReceived")
+    submittedReports Report[]       @relation("reportsSubmitted")
+    reportsAgainstUser Report[]     @relation("reportsAgainstUser")
 }
 
 model Tweet {
@@ -52,6 +60,7 @@ model Tweet {
     isReply     Boolean  @default(false)
     repliedTo   Tweet?   @relation("tweetReplies", fields: [repliedToId], references: [id], onDelete: Cascade)
     repliedToId String?
+    reports     Report[] @relation("reportsAgainstTweet")
 }
 
 model Message {
@@ -110,4 +119,47 @@ model NotificationPreference {
     message   Boolean  @default(true)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+}
+
+model Block {
+    id        String   @id @default(uuid())
+    blocker   User     @relation("blocksInitiated", fields: [blockerId], references: [id], onDelete: Cascade)
+    blockerId String
+    blocked   User     @relation("blocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+    blockedId String
+    createdAt DateTime @default(now())
+
+    @@unique([blockerId, blockedId])
+    @@index([blockedId])
+}
+
+model Mute {
+    id        String   @id @default(uuid())
+    muter     User     @relation("mutesInitiated", fields: [muterId], references: [id], onDelete: Cascade)
+    muterId   String
+    muted     User     @relation("mutesReceived", fields: [mutedId], references: [id], onDelete: Cascade)
+    mutedId   String
+    createdAt DateTime @default(now())
+
+    @@unique([muterId, mutedId])
+    @@index([mutedId])
+}
+
+model Report {
+    id           String   @id @default(uuid())
+    reporter     User     @relation("reportsSubmitted", fields: [reporterId], references: [id], onDelete: Cascade)
+    reporterId   String
+    targetUser   User?    @relation("reportsAgainstUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+    targetUserId String?
+    targetTweet  Tweet?   @relation("reportsAgainstTweet", fields: [targetTweetId], references: [id], onDelete: SetNull)
+    targetTweetId String?
+    reason       String   @db.VarChar(80)
+    details      String?  @db.VarChar(500)
+    status       String   @default("open") @db.VarChar(20)
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    @@index([status, createdAt])
+    @@index([targetUserId])
+    @@index([targetTweetId])
 }

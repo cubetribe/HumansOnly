@@ -138,7 +138,7 @@ export default function LeftSidebar() {
                                 </div>
                                 <div>
                                     <div className="token-name">
-                                        {token.name !== "" ? token.name : token.username}
+                                        {token.name ? token.name : token.username}
                                         {token.isVerifiedHuman && (
                                             <span className="blue-tick" data-blue="Verified Human">
                                                 <VerifiedHumanBadge />

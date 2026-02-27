@@ -98,7 +98,7 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
                         onMouseLeave={handlePopoverClose}
                     >
                         <span className="tweet-author">
-                            {displayedTweet.author.name !== "" ? displayedTweet.author.name : displayedTweet.author.username}
+                            {displayedTweet.author.name ? displayedTweet.author.name : displayedTweet.author.username}
                             {displayedTweet.author.isVerifiedHuman && (
                                 <span className="blue-tick" data-blue="Verified Human">
                                     <VerifiedHumanBadge />

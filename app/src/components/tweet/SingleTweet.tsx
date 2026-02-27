@@ -16,7 +16,7 @@ import Share from "./Share";
 import Counters from "./Counters";
 import { getFullURL } from "@/utilities/misc/getFullURL";
 import { VerifiedToken } from "@/types/TokenProps";
-import { deleteTweet } from "@/utilities/fetch";
+import { createReport, deleteTweet } from "@/utilities/fetch";
 import PreviewDialog from "../dialog/PreviewDialog";
 import { shimmer } from "@/utilities/misc/shimmer";
 import NewReply from "./NewReply";
@@ -54,6 +54,30 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
         onError: (error) => console.log(error),
     });
 
+    const reportMutation = useMutation({
+        mutationFn: (payload: { reason: string; details?: string }) =>
+            createReport({
+                targetType: "tweet",
+                targetTweetId: tweet.id,
+                reason: payload.reason,
+                details: payload.details,
+            }),
+        onSuccess: () => {
+            setSnackbar({
+                message: "Report submitted.",
+                severity: "success",
+                open: true,
+            });
+        },
+        onError: (error: Error) => {
+            setSnackbar({
+                message: error.message || "Could not submit report.",
+                severity: "error",
+                open: true,
+            });
+        },
+    });
+
     const handleAnchorClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(e.currentTarget);
     };
@@ -73,6 +97,14 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
     const handleConfirmationClick = () => {
         handleAnchorClose();
         setIsConfirmationOpen(true);
+    };
+    const handleReportTweet = () => {
+        if (!token) return;
+        const reason = window.prompt("Reason for reporting this post (max 80 chars):", "abuse");
+        if (!reason) return;
+        const details = window.prompt("Optional details (max 500 chars):") || undefined;
+        reportMutation.mutate({ reason: reason.trim(), details: details?.trim() });
+        handleAnchorClose();
     };
 
     const handleDelete = async () => {
@@ -105,7 +137,7 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
                     <div className="tweet-author-section">
                         <Link className="tweet-author-link" href={`/${tweet.author.username}`}>
                             <span className="tweet-author">
-                                {tweet.author.name !== "" ? tweet.author.name : tweet.author.username}
+                                {tweet.author.name ? tweet.author.name : tweet.author.username}
                                 {tweet.author.isVerifiedHuman && (
                                     <span className="blue-tick" data-blue="Verified Human">
                                         <VerifiedHumanBadge />
@@ -114,15 +146,19 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
                             </span>
                             <span className="text-muted">@{tweet.author.username}</span>
                         </Link>
-                        {token && token.username === tweet.author.username && (
+                        {token && (
                             <>
                                 <button className="three-dots icon-hoverable" onClick={handleAnchorClick}>
                                     <RxDotsHorizontal />
                                 </button>
                                 <Menu anchorEl={anchorEl} onClose={handleAnchorClose} open={Boolean(anchorEl)}>
-                                    <MenuItem onClick={handleConfirmationClick} className="delete">
-                                        Delete
-                                    </MenuItem>
+                                    {token.username === tweet.author.username ? (
+                                        <MenuItem onClick={handleConfirmationClick} className="delete">
+                                            Delete
+                                        </MenuItem>
+                                    ) : (
+                                        <MenuItem onClick={handleReportTweet}>Report post</MenuItem>
+                                    )}
                                 </Menu>
                             </>
                         )}

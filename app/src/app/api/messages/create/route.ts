@@ -4,6 +4,7 @@ import { prisma } from "@/prisma/client";
 import { createNotification } from "@/utilities/fetch";
 import { shouldCreateNotification } from "@/utilities/misc/shouldCreateNotification";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { canUsersInteract } from "@/utilities/social/access";
 
 export async function POST(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
@@ -51,14 +52,37 @@ export async function POST(request: NextRequest) {
         : null;
 
     try {
-        const isRecipient = await prisma.user.findUnique({
+        const recipientUser = await prisma.user.findUnique({
             where: {
                 username: recipient,
             },
+            select: {
+                id: true,
+                username: true,
+                messagePrivacy: true,
+                followers: {
+                    select: {
+                        id: true,
+                    },
+                },
+            },
         });
 
-        if (!isRecipient) {
+        if (!recipientUser) {
             return NextResponse.json({ success: false, message: "Recipient does not exist." });
+        }
+
+        const relation = await canUsersInteract(authUser.id, recipientUser.id);
+        if (relation.blocked) {
+            return NextResponse.json({ success: false, message: "Messaging is not allowed due to account restrictions." }, { status: 403 });
+        }
+
+        if (
+            recipientUser.messagePrivacy === "followers" &&
+            recipientUser.username !== authUser.username &&
+            !recipientUser.followers.some((follower) => follower.id === authUser.id)
+        ) {
+            return NextResponse.json({ success: false, message: "This user only accepts messages from followers." }, { status: 403 });
         }
 
         await prisma.message.create({

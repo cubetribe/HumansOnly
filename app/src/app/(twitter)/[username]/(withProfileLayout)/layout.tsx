@@ -26,7 +26,7 @@ export default function ProfileLayout({
     return (
         <div className="profile-layout">
             {isFetched && <Profile profile={data.user} />}
-            {children}
+            {isFetched && data.user.canViewContent !== false && children}
         </div>
     );
 }

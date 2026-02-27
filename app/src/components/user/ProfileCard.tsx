@@ -15,6 +15,7 @@ export default function ProfileCard({ username, token }: { username: string; tok
     });
 
     if (isLoading) return <CircularLoading />;
+    if (!data || !data.user) return null;
 
     const isFollowingTokenOwner = () => {
         if (data.user.following.length === 0 || !token) return false;
@@ -33,7 +34,7 @@ export default function ProfileCard({ username, token }: { username: string; tok
             </div>
             <div className="profile-info-main">
                 <h1>
-                    {data.user.name !== "" ? data.user.name : data.user.username}
+                    {data.user.name ? data.user.name : data.user.username}
                     {data.user.isVerifiedHuman && (
                         <span className="blue-tick" data-blue="Verified Human">
                             <VerifiedHumanBadge />

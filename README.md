@@ -63,6 +63,8 @@ This isn't a concept. It's not a pitch deck. It's deployed, it's live, and you c
 - Follow system, likes, reposts
 - Direct messaging
 - Real-time notifications
+- Private profiles + message privacy controls
+- Block, mute, and report flows
 - Global search
 - Dark mode (because we're a resistance, not savages)
 - Fully responsive - works on your phone, your laptop, your smart fridge (untested, but probably)
@@ -201,15 +203,17 @@ HumansOnly/
 
 ### API
 
-31 endpoints across 6 categories:
+44 endpoints across 8 categories:
 
 | Category | Routes | Scope |
 |----------|--------|-------|
-| Auth | 3 | Login, logout, verify |
-| Users | 7 | Profiles, follow/unfollow |
-| Posts | 15 | CRUD, likes, reposts, replies |
-| Messages | 3 | DMs |
-| Notifications | 3 | Read, mark, clear |
+| Auth | 5 | Session, bridge, login/logout, verify |
+| Users | 14 | Profile, social graph, privacy, moderation |
+| Posts | 14 | CRUD, likes, reposts, replies, feeds |
+| Messages | 4 | DMs + read state |
+| Notifications | 4 | Feed, create, read, preferences |
+| Upload | 1 | Media upload pipeline |
+| Reports | 1 | Abuse reporting |
 | Search | 1 | Global |
 
 Full docs: [`docs/API_CONSUMERS.md`](docs/API_CONSUMERS.md)

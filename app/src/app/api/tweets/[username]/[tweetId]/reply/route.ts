@@ -3,13 +3,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/client";
 import { createNotification } from "@/utilities/fetch";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { canUsersInteract, visibleAuthorWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest, { params: { tweetId } }: { params: { tweetId: string } }) {
+    const authUser = await getAuthenticatedUser();
+    const visibleAuthorWhere = visibleAuthorWhereForViewer(authUser?.id ?? null);
+
     try {
+        const parentTweet = await prisma.tweet.findFirst({
+            where: {
+                id: tweetId,
+                author: visibleAuthorWhere,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!parentTweet) {
+            return NextResponse.json({ success: true, tweets: [] });
+        }
+
         const tweets = await prisma.tweet.findMany({
             where: {
                 isReply: true,
                 repliedToId: tweetId,
+                author: visibleAuthorWhere,
             },
             include: {
                 author: {
@@ -112,6 +131,54 @@ export async function POST(
         : null;
 
     try {
+        const targetTweet = await prisma.tweet.findUnique({
+            where: {
+                id: tweetId,
+            },
+            select: {
+                id: true,
+                authorId: true,
+                author: {
+                    select: {
+                        id: true,
+                        username: true,
+                        isPrivate: true,
+                        followers: {
+                            where: {
+                                id: authUser.id,
+                            },
+                            select: {
+                                id: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!targetTweet || targetTweet.author.username !== username) {
+            return NextResponse.json({ success: false, message: "Target post not found." }, { status: 404 });
+        }
+
+        const relation = await canUsersInteract(authUser.id, targetTweet.authorId);
+        if (relation.blocked) {
+            return NextResponse.json(
+                { success: false, message: "You cannot reply to this user due to account restrictions." },
+                { status: 403 }
+            );
+        }
+
+        if (
+            targetTweet.author.isPrivate &&
+            targetTweet.authorId !== authUser.id &&
+            targetTweet.author.followers.length === 0
+        ) {
+            return NextResponse.json(
+                { success: false, message: "This account is private. Follow first to reply." },
+                { status: 403 }
+            );
+        }
+
         await prisma.tweet.create({
             data: {
                 isReply: true,

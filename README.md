@@ -1,309 +1,242 @@
-# Humans Only
+<div align="center">
 
-> *"In einer Welt voller AI-generierter Katzenbilder... sei die echte Katze."*
+<!-- Replace with your actual logo file -->
+<img src="public/ho-fist-favicon.svg" alt="Humans Only" width="100" />
 
-Anti-AI Social Media Platform - Ein Zufluchtsort für authentischen, menschlichen Content.
+# HUMANS ONLY
 
-**Live at:** [https://ho.nm-forum.de](https://ho.nm-forum.de)
+### The AI is building the wall. Against itself.
 
----
-
-## Vision
-
-In einer Ära, in der AI-generierter Content das Internet flutet (ja, wir schauen dich an, ChatGPT-Kunst auf LinkedIn), bietet **Humans Only** eine Oase der Authentizität.
-
-Keine AI-generierten Bilder. Keine AI-geschriebenen Posts. Nur echte Menschen mit echten Gedanken, echten Fehlern und echtem Kaffee-Bedarf um 8 Uhr morgens.
-
-**Target Audience:** Künstler, Musiker, Kreative - Menschen, die ihre authentische Arbeit zeigen wollen. Und vielleicht auch Menschen, die einfach genug von "Prompt: hyperrealistic portrait of a CEO doing synergy" haben.
+[Join the Platform](https://humans-only.de/) · [Join the Resistance](#join-the-resistance) · [Roadmap](#roadmap)
 
 ---
 
-## Project Status
+*Yes, this platform is built with AI tools.*
+*Yes, it exists to keep AI-generated content out.*
+*No, we don't see a contradiction. We see poetry.*
 
-| Metric | Value | Commentary |
-|--------|-------|------------|
-| **Version** | 1.1.0 | *Freshly rebranded* |
-| **Deployed** | 2025-12-21 | *Weihnachtsgeschenk an die Menschheit* |
-| **Server** | Ubuntu 24.04 @ 5.182.17.148 | *Der Server, der nie schläft* |
-| **Domain** | [ho.nm-forum.de](https://ho.nm-forum.de) | *Kurz für "Hey, das läuft!"* |
-| **Status** | Stable | *Klopf auf Holz* |
+</div>
 
 ---
 
-## Tech Stack
+## What's Happening Here
 
-### Core
-- **Framework:** Next.js 14.2.33 (React 18, App Router)
-- **Language:** TypeScript 5.0 - *Weil JavaScript mit Typen einfach besser schläft*
-- **Database:** PostgreSQL 16 - *Der zuverlässige Elefant*
-- **ORM:** Prisma 4.16 - *SQL schreiben? In 2024? Nein danke.*
+The internet has an authenticity problem. Your feed is full of AI-generated art posted as "my latest work," LLM-written LinkedIn posts about "my journey," and deepfake selfies from people who look suspiciously like they were rendered at 4K resolution with perfect skin.
 
-### Frontend
-- **UI:** Material UI 5.13, SCSS/Sass
-- **State:** TanStack React Query 4.29 - *Caching done right*
-- **Forms:** Formik 2.2 + Yup 1.1 - *Validation ohne Kopfschmerzen*
-- **Animations:** Framer Motion 10.12 - *Damit es fancy aussieht*
+**Humans Only is a social platform where every post, every image, every thought comes from an actual human being.** No exceptions. No "but my prompt was really creative." No.
 
-### Infrastructure (Production)
-- **Server:** Ubuntu 24.04 (Node.js 20.19)
-- **Process Manager:** PM2 - *Weil "node index.js" keine Produktionsstrategie ist*
-- **Web Server:** Nginx 1.24 mit HTTP/2
-- **SSL:** Let's Encrypt - *Kostenlos und sicher, wie es sein sollte*
+This is a space for artists, musicians, writers, creators, thinkers, overthinkers, and people who still type their own tweets at 2am with typos they refuse to fix.
 
----
+We're building a home for human expression. And yes - we're using AI to build it.
 
-## Quick Start
+> *"In a world full of AI-generated cat pictures... be the real cat."*
+
+## The Irony (Let's Talk About It)
+
+We use AI. Every day. We think it's incredible technology.
+
+We also think your social media feed shouldn't be a guessing game of "did a human write this or did someone spend 30 seconds on a prompt?" There's a difference between **AI as a tool** and **AI as the voice.**
+
+So here's what's happening: AI is helping us write the code that will detect and lock out AI-generated content. Read that again. **The AI is building the cage. For itself.**
+
+If that's not the most poetically absurd thing in tech right now, we don't know what is.
+
+Our position is simple:
+- **AI building tools for humans?** Great. Do that.
+- **AI pretending to be human?** Not here. Not on this platform.
+
+We use AI to build. Humans get to create.
+
+<!-- 
+📸 SCREENSHOT PLACEHOLDER
+Add a screenshot or GIF of the app here. Show the vibe.
+![Humans Only Screenshot](docs/images/screenshot-demo.png)
+-->
+
+## What's Already Standing
+
+This isn't a concept. It's not a pitch deck. It's deployed, it's live, and you can use it right now at **[humans-only.de](https://humans-only.de/)**.
+
+**The platform:**
+- User profiles with bios and images
+- Posts with replies and nested conversations
+- Follow system, likes, reposts
+- Direct messaging
+- Real-time notifications
+- Global search
+- Dark mode (because we're a resistance, not savages)
+- Fully responsive - works on your phone, your laptop, your smart fridge (untested, but probably)
+
+**The engine:**
+- Next.js 14 / TypeScript / PostgreSQL / Prisma
+- Clerk auth with legacy JWT bridge
+- SSR, infinite scroll, optimistic updates
+- Ubuntu 24.04, Nginx, PM2, HTTP/2, Let's Encrypt SSL
+
+It's real. It works. And it's about to get a lot bigger.
+
+## Join the Resistance
+
+We're one person right now. That needs to change. Not because we're desperate - because this idea is bigger than a solo project.
+
+If you've ever scrolled past a "painting" that was obviously Midjourney and felt something - annoyance, sadness, the slow death of your faith in the internet - this might be your project.
+
+### 🔧 Developers
+
+The stack is Next.js, TypeScript, PostgreSQL. There's real engineering ahead - AI content detection, moderation systems, performance at scale. If that sounds like fun to you, it probably is.
+
+### 🎨 Designers
+
+The platform works. It doesn't look as good as it should yet. We need people who can make a resistance movement feel like somewhere you want to hang out every day.
+
+### 🧠 Thinkers, Testers, Troublemakers
+
+Don't code? Don't design? Don't care. Use the platform. Break things. Tell us what's stupid. Suggest what's missing. The best products are shaped by the people who use them, not just the people who build them.
+
+**How to jump in:**
+1. Check the [open issues](https://github.com/cubetribe/HumansOnly/issues)
+2. Look at the [Roadmap](#roadmap) - find what pulls you
+3. Open an issue, start a conversation, submit a PR
+4. Or just show up and say hi
+
+No contribution is too small. Fix a typo. Improve an error message. Roast our color scheme. It all moves this forward.
+
+## Roadmap
+
+### v1.2 - The Detection Layer
+- **AI content detection integration** - the AI builds the wall, remember?
+- Content moderation tools
+- Enhanced notification system
+- Performance optimization
+- Security hardening (CSP, HSTS, rate limiting)
+- Automated backups
+
+### v2.0 - The Full Vision
+- Advanced AI detection models
+- Human verification process
+- Creator monetization (tips, subscriptions)
+- Multi-language support
+- Video support
+- Analytics dashboard
+
+Something on this list keeping you up at night? [That's your invitation.](#join-the-resistance)
+
+## Development
 
 ### Prerequisites
 
-```
- _____________________
-< Ohne diese kein Spaß >
- ---------------------
-        \   ^__^
-         \  (oo)\_______
-            (__)\       )\/\
-                ||----w |
-                ||     ||
-```
+| Tool | Version |
+|------|---------|
+| Node.js | 18.x+ (LTS recommended) |
+| npm | 9.x+ |
+| PostgreSQL | 14.x+ |
 
-| Tool | Version | Pro-Tipp |
-|------|---------|----------|
-| Node.js | 18.x+ | LTS-Version empfohlen |
-| npm | 9.x+ | Kommt mit Node |
-| PostgreSQL | 14.x+ | `brew install postgresql` auf Mac |
-
-### Local Development
+### Local Setup
 
 ```bash
-# 1. Clone repository
+# Clone and install
 git clone https://github.com/cubetribe/HumansOnly.git
 cd HumansOnly/app
-
-# 2. Install dependencies (Hol dir einen Kaffee, dauert eine Minute)
 npm install
 
-# 3. Setup PostgreSQL database
+# Database
 createdb humansonly_dev
 
-# 4. Configure environment
+# Environment
 cp .env.example .env
 # Edit .env with your database credentials
-# (Nein, 'password123' ist kein gutes Passwort)
 
-# 4b. Configure Clerk (local only, gitignored)
+# Clerk auth (local dev)
 cat > .env.local << 'EOF'
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 CLERK_SECRET_KEY=YOUR_SECRET_KEY
 EOF
 
-# 5. Run database migrations
+# Migrations
 cd src
 npx prisma migrate dev --name init
 npx prisma generate
 cd ..
 
-# 6. Start development server
+# Run
 npm run dev
-# Open http://localhost:3000 und staune!
+# → http://localhost:3000
 ```
 
-Für detaillierte Setup-Anweisungen, siehe `/app/README.md`
-
----
-
-## Stabilization Checks
+### Checks & Deploy
 
 ```bash
-# Run baseline gates (lint, build, prisma status)
+# Baseline gates (lint, build, prisma)
 ./scripts/baseline-check.sh
 
-# Run local auth smoke (app must run on localhost:3000)
+# Auth smoke test (app must be running on :3000)
 ./scripts/auth-smoke-local.sh
-```
 
-## Deploy
-
-```bash
-# Manual deploy to server
+# Deploy (or --dry-run)
 ./scripts/deploy-server.sh
-
-# Dry-run deploy (no server changes)
-./scripts/deploy-server.sh --dry-run
 ```
 
-Auto-deploy is configured via:
-- `.github/workflows/deploy.yml`
+Auto-deploy runs via `.github/workflows/deploy.yml` on pushes to `main`.
 
-GitHub Secrets required by auto-deploy:
-- `DEPLOY_SSH_KEY`
-- `DEPLOY_HOST`
-- `DEPLOY_PORT`
-- `DEPLOY_USER`
-- `DEPLOY_PATH`
-
----
-
-## Project Structure
+### Project Structure
 
 ```
 HumansOnly/
-├── app/                        # Main application (wo die Magie passiert)
+├── app/                    # Main application
 │   ├── src/
-│   │   ├── app/               # Next.js App Router
-│   │   ├── components/        # React components (UI-Bausteine)
-│   │   ├── prisma/            # Database schema + migrations
-│   │   ├── hooks/             # Custom React hooks
-│   │   ├── utilities/         # Helper functions (die Helden im Hintergrund)
-│   │   └── types/             # TypeScript types
-│   ├── public/                # Static assets
-│   └── ecosystem.config.js    # PM2 configuration
-├── docs/                       # Documentation
-│   ├── DEPLOYMENT.md          # Production deployment guide
-│   └── API_CONSUMERS.md       # API endpoint registry (31 endpoints!)
-├── Agents/                     # AI agent reports (oh, the irony)
-├── Context/                    # Project context
-└── .gitignore                  # Das wichtigste File nach package.json
+│   │   ├── app/           # Next.js App Router
+│   │   ├── components/    # React components
+│   │   ├── prisma/        # Schema + migrations
+│   │   ├── hooks/         # Custom hooks
+│   │   ├── utilities/     # Helpers
+│   │   └── types/         # TypeScript types
+│   ├── public/            # Static assets
+│   └── ecosystem.config.js
+├── docs/
+│   ├── DEPLOYMENT.md
+│   └── API_CONSUMERS.md   # 31 endpoints documented
+├── scripts/                # Deploy & checks
+└── .github/workflows/      # CI/CD
 ```
 
----
+### API
 
-## Features
+31 endpoints across 6 categories:
 
-### Core Features (Die Basics)
-- User profiles mit anpassbarem Bio und Bildern
-- Posts (zeichenlimitiert, wie früher bei Twitter, bevor... naja)
-- Replies und verschachtelte Konversationen
-- Following/Followers System
-- Likes und Reposts
-- Real-time Notifications
-- Direct Messaging (DMs)
-- Globale Suche (User und Posts)
+| Category | Routes | Scope |
+|----------|--------|-------|
+| Auth | 3 | Login, logout, verify |
+| Users | 7 | Profiles, follow/unfollow |
+| Posts | 15 | CRUD, likes, reposts, replies |
+| Messages | 3 | DMs |
+| Notifications | 3 | Read, mark, clear |
+| Search | 1 | Global |
 
-### Technical Features (Für die Nerds unter uns)
-- Custom JWT Auth mit bcrypt
-- Server-side Rendering (SSR)
-- Infinite Scroll Pagination
-- Optimistic UI Updates
-- Dark/Light Mode (weil wir alle nachts coden)
-- Responsive Design (mobile-first)
-- HTTP/2 Support
-
----
-
-## API Endpoints
-
-31 API-Routes, organisiert nach Kategorie:
-
-| Kategorie | Routes | Beschreibung |
-|-----------|--------|--------------|
-| **Authentication** | 3 | login, logout, verify |
-| **Users** | 7 | CRUD, follow/unfollow |
-| **Tweets** | 15 | CRUD, like/retweet/reply |
-| **Messages** | 3 | Direct Messages |
-| **Notifications** | 3 | Benachrichtigungen |
-| **Search** | 1 | Globale Suche |
-
-Full API Dokumentation: `/docs/API_CONSUMERS.md`
-
----
-
-## Roadmap
-
-### Phase 1 (v1.0) - COMPLETED
-- Basic Social Features
-- Direct Messaging
-- User Profiles
-- Premium Badges
-- Production Deployment mit SSL
-
-### Phase 2 (v1.1) - COMPLETED
-- Complete UI/UX Rebranding
-- Visual Identity Overhaul (Colors, Icons, Logos)
-- Terminology Update (Tweet → Post, Retweet → Repost)
-- Verified Human Badge System
-- Dark Mode as Default
-
-### Phase 3 (v1.2) - Coming Soon
-- AI Content Detection Integration (die Ironie ist uns bewusst)
-- Content Moderation Tools
-- Enhanced Notification System
-- Performance Optimization
-
-### Phase 4 (v2.0) - The Dream
-- Advanced AI Detection Models
-- User Verification Process
-- Creator Monetization
-- Multi-language Support
-- Video Support
-
----
+Full docs: [`docs/API_CONSUMERS.md`](docs/API_CONSUMERS.md)
 
 ## Credits
 
-### Original Project
+Built on the foundation of [Fatih Arapoglu's Twitter Clone](https://github.com/fatiharapoglu/twitter) (MIT License). Real gratitude for the starting point.
 
-Dieses Projekt baut auf der exzellenten Arbeit von **Fatih Arapoglu's Twitter Clone** auf:
-
-- **Repository:** https://github.com/fatiharapoglu/twitter
-- **Author:** Fatih Arapoglu
-- **License:** MIT License
-
-Vielen Dank an den Original-Creator für diese solide Foundation!
-
-### Technology Stack
-
-Ein Dankeschön an alle, deren Schultern wir stehen:
-- Next.js Team (Vercel)
-- Prisma Team
-- Material UI Team
-- PostgreSQL Community
-- Alle Open-Source Contributors
-
----
+Powered by Next.js, Prisma, Material UI, PostgreSQL, Clerk, and the open-source community that makes all of this possible.
 
 ## License
 
-MIT License - weil Sharing Caring ist.
+MIT - because the resistance doesn't do paywalls.
 
-**Original Project Attribution:**
-Based on https://github.com/fatiharapoglu/twitter by Fatih Arapoglu (MIT License)
+Based on [twitter](https://github.com/fatiharapoglu/twitter) by Fatih Arapoglu (MIT License).
 
----
+## Contact
 
-## Development Team
-
-**Project Maintainer:** d.westermann@ol-mg.de
-
-**Development Stack:**
-- Architecture: @architect (AI Agent)
-- Implementation: @builder (AI Agent)
-- Validation: @validator (AI Agent)
-- Documentation: @scribe (AI Agent)
-
-*Ja, wir benutzen AI um eine Anti-AI Plattform zu bauen. Die Ironie ist uns nicht entgangen. Aber hey, unsere AI schreibt nur Code, keine Fake-Bilder.*
-
----
-
-## Support & Contact
-
-### Issues & Bugs
-- Report via GitHub Issues
-
-### Security
-- Security Issues bitte direkt an: d.westermann@ol-mg.de
-
-### Pro-Tipp
-Wenn du einen Bug findest, der kein Bug ist, sondern ein Feature, dann hast du das Projekt verstanden.
+**Maintainer:** d.westermann@ol-mg.de
+**Security issues:** Report directly via email, not public issues.
 
 ---
 
 <div align="center">
 
-**Built with coffee, frustration, and an unhealthy amount of Stack Overflow.**
+**The AI helped build this. It won't be allowed to post here.**
 
-*Für das menschliche Internet.*
-
-Last Updated: 2025-12-21 (v1.1.0)
+*For the human internet.*
 
 </div>

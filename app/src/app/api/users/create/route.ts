@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
     if (!userData) {
         return NextResponse.json({ success: false, message: "Invalid request body." }, { status: 400 });
     }
-    const hashedPassword = await hashPassword(userData.password);
     const secret = process.env.CREATION_SECRET_KEY;
 
     if (!secret) {
@@ -71,6 +70,8 @@ export async function POST(request: NextRequest) {
                 message: "Username already exists.",
             }, { status: 409 });
         }
+
+        const hashedPassword = await hashPassword(userData.password);
 
         const newUser = await prisma.user.create({
             data: {

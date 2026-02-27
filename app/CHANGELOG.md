@@ -1,5 +1,10 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - Hotfix (v1.5.1)
+
+-   fixed `POST /api/users/create` unhandled hashing failure path by moving password hashing into route `try/catch`
+-   restored JSON error handling path and eliminated HTML `500 Internal Server Error` regression on user signup
+
 ## 2026-02-27 - Wave 3 Messaging + Notifications Reliability (v1.5.0)
 
 -   added `Message.isRead` field and `POST /api/messages/read` endpoint

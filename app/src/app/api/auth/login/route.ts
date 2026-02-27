@@ -4,31 +4,53 @@ import { SignJWT } from "jose";
 import { prisma } from "@/prisma/client";
 import { comparePasswords } from "@/utilities/bcrypt";
 import { getJwtSecretKey } from "@/utilities/auth";
+import { buildAuthCookie } from "@/utilities/auth/cookies";
+
+const INVALID_CREDENTIALS_MESSAGE = "Username or password is not correct.";
+
+type LoginPayload = {
+    username: string;
+    password: string;
+};
+
+const parseLoginPayload = async (request: NextRequest): Promise<LoginPayload | null> => {
+    try {
+        const body = await request.json();
+        const username = typeof body?.username === "string" ? body.username.trim() : "";
+        const password = typeof body?.password === "string" ? body.password : "";
+
+        if (!username || !password || username.length > 20 || password.length > 128) {
+            return null;
+        }
+
+        return { username, password };
+    } catch {
+        return null;
+    }
+};
 
 export async function POST(request: NextRequest) {
-    const { username, password } = await request.json();
+    const payload = await parseLoginPayload(request);
+    if (!payload) {
+        return NextResponse.json({ success: false, message: "Invalid request body." }, { status: 400 });
+    }
+    const { username, password } = payload;
 
     try {
-        const user = await prisma.user.findFirst({
+        const user = await prisma.user.findUnique({
             where: {
                 username: username,
             },
         });
 
         if (!user) {
-            return NextResponse.json({
-                success: false,
-                message: "Username or password is not correct.",
-            });
+            return NextResponse.json({ success: false, message: INVALID_CREDENTIALS_MESSAGE }, { status: 401 });
         }
 
         const isPasswordValid = await comparePasswords(password, user.password);
 
         if (!isPasswordValid) {
-            return NextResponse.json({
-                success: false,
-                message: "Username or password is not correct.",
-            });
+            return NextResponse.json({ success: false, message: INVALID_CREDENTIALS_MESSAGE }, { status: 401 });
         }
 
         const token = await new SignJWT({
@@ -54,18 +76,10 @@ export async function POST(request: NextRequest) {
             success: true,
         });
 
-        response.cookies.set({
-            name: "token",
-            value: token,
-            path: "/",
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 86400,
-        });
+        response.cookies.set(buildAuthCookie(token));
 
         return response;
-    } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+    } catch {
+        return NextResponse.json({ success: false, message: "Unable to login right now." }, { status: 500 });
     }
 }

@@ -33,7 +33,7 @@ In an era of AI-generated content flooding the internet, Humans Only provides a 
 - **Forms**: Formik 2.2 + Yup 1.1
 
 ### Backend
-- **Authentication**: Custom JWT + bcrypt
+- **Authentication**: Clerk (App Router) + JWT bridge for existing API auth
 - **API**: Next.js API Routes
 - **Storage**: Supabase (for media uploads)
 
@@ -147,6 +147,13 @@ NEXT_PUBLIC_STORAGE_URL="your_supabase_storage_url"
 ```
 
 **Note:** For Supabase credentials, create a free project at https://supabase.com
+
+Create `.env.local` for Clerk keys:
+
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="YOUR_PUBLISHABLE_KEY"
+CLERK_SECRET_KEY="YOUR_SECRET_KEY"
+```
 
 #### 5. Database Migration
 ```bash

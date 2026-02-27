@@ -4,10 +4,50 @@ import { SignJWT } from "jose";
 import { prisma } from "@/prisma/client";
 import { hashPassword } from "@/utilities/bcrypt";
 import { getJwtSecretKey } from "@/utilities/auth";
+import { buildAuthCookie } from "@/utilities/auth/cookies";
 import { createNotification } from "@/utilities/fetch";
 
+type CreateUserPayload = {
+    username: string;
+    password: string;
+    name?: string | null;
+    description?: string | null;
+    location?: string | null;
+    website?: string | null;
+    photoUrl?: string | null;
+    headerUrl?: string | null;
+};
+
+const parseCreateUserPayload = async (request: NextRequest): Promise<CreateUserPayload | null> => {
+    try {
+        const body = await request.json();
+        const username = typeof body?.username === "string" ? body.username.trim() : "";
+        const password = typeof body?.password === "string" ? body.password : "";
+
+        if (!username || !password || username.length > 20 || password.length > 128) {
+            return null;
+        }
+
+        return {
+            username,
+            password,
+            name: typeof body?.name === "string" ? body.name : null,
+            description: typeof body?.description === "string" ? body.description : null,
+            location: typeof body?.location === "string" ? body.location : null,
+            website: typeof body?.website === "string" ? body.website : null,
+            photoUrl: typeof body?.photoUrl === "string" ? body.photoUrl : null,
+            headerUrl: typeof body?.headerUrl === "string" ? body.headerUrl : null,
+        };
+    } catch {
+        return null;
+    }
+};
+
 export async function POST(request: NextRequest) {
-    const userData = await request.json();
+    const userData = await parseCreateUserPayload(request);
+    if (!userData) {
+        return NextResponse.json({ success: false, message: "Invalid request body." }, { status: 400 });
+    }
     const hashedPassword = await hashPassword(userData.password);
     const secret = process.env.CREATION_SECRET_KEY;
 
@@ -29,7 +69,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 success: false,
                 message: "Username already exists.",
-            });
+            }, { status: 409 });
         }
 
         const newUser = await prisma.user.create({
@@ -63,18 +103,10 @@ export async function POST(request: NextRequest) {
         const response = NextResponse.json({
             success: true,
         });
-        response.cookies.set({
-            name: "token",
-            value: token,
-            path: "/",
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 86400,
-        });
+        response.cookies.set(buildAuthCookie(token));
 
         return response;
-    } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+    } catch {
+        return NextResponse.json({ success: false, message: "Unable to create user right now." }, { status: 500 });
     }
 }

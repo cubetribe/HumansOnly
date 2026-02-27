@@ -1,8 +1,10 @@
 import localFont from "next/font/local";
+import { ClerkProvider, SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 import "../styles/reset.scss";
 import "../styles/globals.scss";
 import Providers from "./providers";
+import ClerkAuthBridge from "@/components/auth/ClerkAuthBridge";
 
 export const metadata = {
     title: "Humans Only",
@@ -58,10 +60,30 @@ const poppins = localFont({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="en" className={`${roboto.variable} ${poppins.variable}`}>
-            <body>
-                <Providers>{children}</Providers>
-            </body>
-        </html>
+        <ClerkProvider>
+            <html lang="en" className={`${roboto.variable} ${poppins.variable}`}>
+                <body>
+                    <header className="clerk-auth-header">
+                        <SignedOut>
+                            <SignInButton mode="modal">
+                                <button className="clerk-auth-btn" type="button">
+                                    Log in
+                                </button>
+                            </SignInButton>
+                            <SignUpButton mode="modal">
+                                <button className="clerk-auth-btn clerk-auth-btn-primary" type="button">
+                                    Sign up
+                                </button>
+                            </SignUpButton>
+                        </SignedOut>
+                        <SignedIn>
+                            <UserButton afterSignOutUrl="/" />
+                        </SignedIn>
+                    </header>
+                    <ClerkAuthBridge />
+                    <Providers>{children}</Providers>
+                </body>
+            </html>
+        </ClerkProvider>
     );
 }

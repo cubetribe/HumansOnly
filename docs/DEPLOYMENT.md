@@ -190,6 +190,13 @@ NEXT_PUBLIC_STORAGE_URL="https://placeholder.supabase.co/storage/v1/object/publi
 openssl rand -hex 32
 ```
 
+**Important:** Production must point to `humansonly_prod` (not `humansonly_dev`).
+Validate before restart:
+```bash
+cd /var/www/humansonly
+grep -E 'DATABASE_URL|DIRECT_DATABASE_URL' .env
+```
+
 #### Install Dependencies
 ```bash
 cd /var/www/humansonly

@@ -2098,6 +2098,288 @@ button.icon-hoverable {
     }
 }
 
+/* ==================== LANDING PAGE ==================== */
+.landing-page {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    background-color: #0A0A0A;
+
+    .landing-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+
+        img {
+            object-fit: cover;
+        }
+
+        .landing-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                135deg,
+                rgba(10, 10, 10, 0.9) 0%,
+                rgba(10, 10, 10, 0.7) 50%,
+                rgba(10, 10, 10, 0.8) 100%
+            );
+        }
+    }
+
+    .landing-content {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: 100vh;
+        padding: 2rem;
+        gap: 2rem;
+    }
+
+    .landing-left {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 2rem 4rem;
+        gap: 2rem;
+
+        .landing-logo {
+            img {
+                width: 180px;
+                height: auto;
+            }
+        }
+
+        .landing-slogan {
+            font-family: var(--font-poppins);
+            font-size: 3rem;
+            font-weight: 600;
+            font-style: italic;
+            color: var(--ho-primary);
+            line-height: 1.2;
+            text-shadow: 0 0 30px rgba(255, 61, 31, 0.3);
+        }
+
+        .btn-landing {
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, var(--ho-primary) 0%, #FF6B4D 100%);
+            border: none;
+            box-shadow: 0 4px 20px rgba(255, 61, 31, 0.4);
+            transition: all 0.3s ease;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 30px rgba(255, 61, 31, 0.6);
+            }
+        }
+    }
+
+    .landing-right {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+
+        .landing-form {
+            background: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 61, 31, 0.2);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+
+            .form-field {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+
+                label {
+                    color: rgba(255, 255, 255, 0.7);
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+
+                .landing-input {
+                    .MuiOutlinedInput-root {
+                        background: rgba(10, 10, 10, 0.6);
+                        border-radius: 0.5rem;
+                        color: #fff;
+
+                        fieldset {
+                            border-color: rgba(255, 255, 255, 0.1);
+                        }
+
+                        &:hover fieldset {
+                            border-color: rgba(255, 61, 31, 0.5);
+                        }
+
+                        &.Mui-focused fieldset {
+                            border-color: var(--ho-primary);
+                        }
+
+                        input {
+                            color: #fff;
+                            padding: 0.875rem 1rem;
+
+                            &::placeholder {
+                                color: rgba(255, 255, 255, 0.3);
+                            }
+                        }
+                    }
+
+                    .input-icon {
+                        color: var(--ho-primary);
+                        font-size: 1rem;
+                    }
+
+                    .MuiFormHelperText-root {
+                        color: #ff6b6b;
+                    }
+                }
+            }
+
+            .btn-submit {
+                margin-top: 1rem;
+                padding: 1rem;
+                font-size: 1rem;
+                width: 100%;
+                position: relative;
+                overflow: hidden;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(
+                        90deg,
+                        transparent,
+                        rgba(255, 255, 255, 0.2),
+                        transparent
+                    );
+                    transition: left 0.5s ease;
+                }
+
+                &:hover::before {
+                    left: 100%;
+                }
+            }
+
+            .login-link {
+                text-align: center;
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 0.9rem;
+
+                button {
+                    background: none;
+                    border: none;
+                    color: var(--ho-primary);
+                    font-weight: 600;
+                    cursor: pointer;
+                    text-decoration: underline;
+                    font-size: inherit;
+
+                    &:hover {
+                        color: #FF6B4D;
+                    }
+                }
+            }
+        }
+    }
+
+    .explore-link {
+        position: fixed;
+        top: 1.5rem;
+        right: 2rem;
+        z-index: 10;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+
+        &:hover {
+            color: var(--ho-primary);
+        }
+
+        svg {
+            font-size: 0.8rem;
+        }
+    }
+}
+
+/* Landing Page Mobile */
+@media (max-width: 900px) {
+    .landing-page {
+        .landing-content {
+            grid-template-columns: 1fr;
+            padding: 1rem;
+        }
+
+        .landing-left {
+            align-items: center;
+            text-align: center;
+            padding: 2rem 1rem;
+            gap: 1.5rem;
+
+            .landing-logo img {
+                width: 140px;
+            }
+
+            .landing-slogan {
+                font-size: 2rem;
+            }
+
+            .btn-landing {
+                display: none;
+            }
+        }
+
+        .landing-right {
+            padding: 0 1rem 2rem;
+
+            .landing-form {
+                padding: 1.5rem;
+                max-width: 100%;
+            }
+        }
+
+        .explore-link {
+            position: relative;
+            top: auto;
+            right: auto;
+            justify-content: center;
+            padding: 1rem;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .landing-page {
+        .landing-left .landing-slogan {
+            font-size: 1.6rem;
+        }
+
+        .landing-right .landing-form {
+            padding: 1.25rem;
+            gap: 1rem;
+        }
+    }
+}
+
 @media (width <= 1300px) {
     .layout {
         grid-template-columns: auto minmax(360px, 600px) 1fr;
@@ -2236,4 +2518,30 @@ button.icon-hoverable {
     .tweet .tweet-main .tweet-image img {
         max-height: 200px;
     }
+}
+
+.clerk-auth-header {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.clerk-auth-btn {
+    border: 1px solid var(--border-color, #4f4f4f);
+    background: transparent;
+    color: inherit;
+    border-radius: 999px;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.clerk-auth-btn-primary {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
 }

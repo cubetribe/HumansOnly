@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-02-27
+
+### Added
+
+- Clerk App Router integration (`@clerk/nextjs`) with:
+  - `src/proxy.ts` using `clerkMiddleware()`
+  - `ClerkProvider` in root layout
+  - Clerk auth UI controls (`SignInButton`, `SignUpButton`, `UserButton`, `SignedIn`, `SignedOut`)
+- Clerk-to-legacy JWT bridge endpoint: `POST /api/auth/clerk/bridge`
+- `ClerkAuthBridge` client sync component to issue/clear legacy JWT cookie based on Clerk session
+- Prisma migration `20260227121000_add_clerk_id_to_user` with optional unique `User.clerkId`
+- New stabilization scripts:
+  - `scripts/baseline-check.sh`
+  - `scripts/auth-smoke-local.sh`
+
+### Changed
+
+- Landing page registration/login flow now uses Clerk modal auth components.
+- Auth cookie handling centralized via `src/utilities/auth/cookies.ts`.
+- Auth endpoints hardened with stricter request validation and sanitized error responses.
+- Updated setup docs to include `.env.local` Clerk placeholders and baseline checks.
+
+### Fixed
+
+- Local build blocker from stale Retweet component/import mismatch (legacy Retweet files removed).
+- Production runtime DB configuration mismatch corrected on server (`humansonly_prod` connectivity restored).
+
 ## [1.0.0] - 2025-12-21
 
 ### Project Initialization

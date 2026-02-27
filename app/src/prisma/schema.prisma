@@ -11,6 +11,7 @@ datasource db {
 
 model User {
     id               String         @id @default(uuid())
+    clerkId          String?        @unique
     name             String?        @db.VarChar(50)
     description      String?        @db.VarChar(160)
     location         String?        @db.VarChar(30)

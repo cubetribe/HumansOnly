@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { buildClearedAuthCookie } from "@/utilities/auth/cookies";
 
 export async function GET(request: NextRequest) {
     const response = NextResponse.json({
@@ -6,15 +7,7 @@ export async function GET(request: NextRequest) {
         message: "Logged out successfully",
     });
 
-    response.cookies.set({
-        name: "token",
-        value: "",
-        path: "/",
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 0,
-    });
+    response.cookies.set(buildClearedAuthCookie());
 
     return response;
 }

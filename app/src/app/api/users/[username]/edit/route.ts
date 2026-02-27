@@ -4,10 +4,12 @@ import { SignJWT } from "jose";
 
 import { prisma } from "@/prisma/client";
 import { getJwtSecretKey, verifyJwtToken } from "@/utilities/auth";
+import { buildAuthCookie } from "@/utilities/auth/cookies";
 import { UserProps } from "@/types/UserProps";
 
 export async function POST(request: NextRequest, { params: { username } }: { params: { username: string } }) {
-    const data = await request.json();
+    // Parse request body
+    const { name, description, location, website, photoUrl, headerUrl } = await request.json();
 
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
@@ -19,12 +21,33 @@ export async function POST(request: NextRequest, { params: { username } }: { par
     if (verifiedToken.username !== username)
         return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
 
+    // Sanitize photoUrl
+    const sanitizedPhotoUrl = photoUrl && typeof photoUrl === 'string'
+        ? (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('http://') || photoUrl.startsWith('https://'))
+            ? photoUrl
+            : null
+        : null;
+
+    // Sanitize headerUrl
+    const sanitizedHeaderUrl = headerUrl && typeof headerUrl === 'string'
+        ? (headerUrl.startsWith('/uploads/') || headerUrl.startsWith('http://') || headerUrl.startsWith('https://'))
+            ? headerUrl
+            : null
+        : null;
+
     try {
         const user = await prisma.user.update({
             where: {
                 username: username,
             },
-            data: data,
+            data: {
+                name,
+                description,
+                location,
+                website,
+                photoUrl: sanitizedPhotoUrl,
+                headerUrl: sanitizedHeaderUrl,
+            },
         });
 
         const newToken = await new SignJWT({
@@ -49,11 +72,7 @@ export async function POST(request: NextRequest, { params: { username } }: { par
         const response = NextResponse.json({
             success: true,
         });
-        response.cookies.set({
-            name: "token",
-            value: newToken,
-            path: "/",
-        });
+        response.cookies.set(buildAuthCookie(newToken));
 
         return response;
     } catch (error: unknown) {

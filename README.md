@@ -91,6 +91,12 @@ cp .env.example .env
 # Edit .env with your database credentials
 # (Nein, 'password123' ist kein gutes Passwort)
 
+# 4b. Configure Clerk (local only, gitignored)
+cat > .env.local << 'EOF'
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
+CLERK_SECRET_KEY=YOUR_SECRET_KEY
+EOF
+
 # 5. Run database migrations
 cd src
 npx prisma migrate dev --name init
@@ -103,6 +109,18 @@ npm run dev
 ```
 
 Für detaillierte Setup-Anweisungen, siehe `/app/README.md`
+
+---
+
+## Stabilization Checks
+
+```bash
+# Run baseline gates (lint, build, prisma status)
+./scripts/baseline-check.sh
+
+# Run local auth smoke (app must run on localhost:3000)
+./scripts/auth-smoke-local.sh
+```
 
 ---
 

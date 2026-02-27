@@ -1,5 +1,11 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - Hotfix (v1.8.1)
+
+-   fixed frontend API base URL handling to use same-origin calls in the browser
+-   added server-only fallback base URL (`INTERNAL_API_BASE_URL`) for route-to-route fetches
+-   resolved production auth/session mismatch on `humans-only.de` affecting messaging, profile edit, and settings actions
+
 ## 2026-02-27 - Hotfix (v1.5.1)
 
 -   fixed `POST /api/users/create` unhandled hashing failure path by moving password hashing into route `try/catch`

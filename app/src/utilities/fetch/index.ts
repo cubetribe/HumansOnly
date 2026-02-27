@@ -1,6 +1,10 @@
 import { NotificationContent, NotificationTypes } from "@/types/NotificationProps";
 
-const HOST_URL = process.env.NEXT_PUBLIC_HOST_URL;
+// Browser calls must stay same-origin so auth/session cookies are sent for the active domain.
+const HOST_URL =
+    typeof window === "undefined"
+        ? process.env.INTERNAL_API_BASE_URL || process.env.NEXT_PUBLIC_HOST_URL || "http://localhost:3000"
+        : "";
 
 export const getAllTweets = async (page = "1") => {
     const response = await fetch(`${HOST_URL}/api/tweets/all?page=${page}`, {

@@ -1,14 +1,12 @@
 import React from "react";
-import Cookies from "universal-cookie";
-
-import { verifyJwtToken } from "@/utilities/auth";
 import { VerifiedToken } from "@/types/TokenProps";
 
 const fromServer = async () => {
-    const cookies = require("next/headers").cookies;
-    const cookieList = cookies();
-    const { value: token } = cookieList.get("token") ?? { value: null };
-    const verifiedToken = token && (await verifyJwtToken(token));
+    const { cookies } = await import("next/headers");
+    const { verifyJwtToken } = await import("@/utilities/auth");
+    const cookieList = await cookies();
+    const token = cookieList.get("token")?.value;
+    const verifiedToken = token ? await verifyJwtToken(token) : null;
     return verifiedToken;
 };
 
@@ -16,25 +14,48 @@ export default function useAuth() {
     const [token, setToken] = React.useState<VerifiedToken>(null);
     const [isPending, setIsPending] = React.useState<boolean>(true);
 
-    const getVerifiedToken = async () => {
-        setIsPending(true);
-        const cookies = new Cookies();
-        const token = cookies.get("token") ?? null;
-        const verifiedToken = token && (await verifyJwtToken(token));
-        setToken(verifiedToken);
-        setIsPending(false);
-    };
+    const readSessionToken = React.useCallback(async (): Promise<VerifiedToken> => {
+        try {
+            const response = await fetch("/api/auth/session", {
+                method: "GET",
+                credentials: "include",
+                cache: "no-store",
+            });
 
-    const refreshToken = async () => {
-        const cookies = new Cookies();
-        const token = cookies.get("token") ?? null;
-        const verifiedToken = token && (await verifyJwtToken(token));
-        setToken(verifiedToken);
-    };
+            if (!response.ok) {
+                return null;
+            }
+
+            const data = await response.json();
+            return data?.token ?? null;
+        } catch {
+            return null;
+        }
+    }, []);
+
+    const getVerifiedToken = React.useCallback(async () => {
+        setIsPending(true);
+        setToken(await readSessionToken());
+        setIsPending(false);
+    }, [readSessionToken]);
+
+    const refreshToken = React.useCallback(async () => {
+        setToken(await readSessionToken());
+    }, [readSessionToken]);
 
     React.useEffect(() => {
-        getVerifiedToken();
-    }, []);
+        void getVerifiedToken();
+
+        const handleLegacyAuthChanged = () => {
+            void refreshToken();
+        };
+
+        window.addEventListener("legacy-auth-changed", handleLegacyAuthChanged);
+
+        return () => {
+            window.removeEventListener("legacy-auth-changed", handleLegacyAuthChanged);
+        };
+    }, [getVerifiedToken, refreshToken]);
 
     return { token, isPending, refreshToken };
 }

@@ -10,15 +10,22 @@ export default function ClerkAuthBridge() {
     useEffect(() => {
         if (!isLoaded) return;
 
+        const notifyLegacyAuthChanged = () => {
+            window.dispatchEvent(new Event("legacy-auth-changed"));
+        };
+
         const syncLegacySession = async () => {
             try {
                 if (userId) {
                     if (lastUserId.current === userId) return;
                     lastUserId.current = userId;
-                    await fetch("/api/auth/clerk/bridge", {
+                    const response = await fetch("/api/auth/clerk/bridge", {
                         method: "POST",
                         credentials: "include",
                     });
+                    if (response.ok) {
+                        notifyLegacyAuthChanged();
+                    }
                     return;
                 }
 
@@ -27,6 +34,7 @@ export default function ClerkAuthBridge() {
                     await fetch("/api/auth/logout", {
                         credentials: "include",
                     });
+                    notifyLegacyAuthChanged();
                 }
             } catch (error) {
                 console.error("Failed to sync Clerk session.", error);

@@ -1,16 +1,4 @@
-const verifyTokenFromServer = async (token: string) => {
-    const HOST_URL = process.env.NEXT_PUBLIC_HOST_URL;
-
-    const response = await fetch(`${HOST_URL}/api/auth/verify`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
-    });
-    return response.json();
-};
+import { jwtVerify } from "jose";
 
 export const getJwtSecretKey = () => {
     const key = process.env.JWT_SECRET_KEY;
@@ -18,8 +6,11 @@ export const getJwtSecretKey = () => {
     return new TextEncoder().encode(key);
 };
 
-export const verifyJwtToken = async (token: string) => {
-    const response = await verifyTokenFromServer(token);
-    if (!response) return null;
-    return response;
+export const verifyJwtToken = async (token: string): Promise<any> => {
+    try {
+        const { payload } = await jwtVerify(token, getJwtSecretKey());
+        return payload;
+    } catch {
+        return null;
+    }
 };

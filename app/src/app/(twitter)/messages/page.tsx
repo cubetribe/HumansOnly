@@ -23,7 +23,7 @@ export default function MessagesPage() {
 
     const { token, isPending } = useContext(AuthContext);
 
-    const { isLoading, data, isFetched } = useQuery({
+    const { isLoading, isError, data, isFetched } = useQuery({
         queryKey: ["messages", token && token.username],
         queryFn: () => token && getUserMessages(token.username),
         enabled: !!token,
@@ -37,7 +37,24 @@ export default function MessagesPage() {
         setIsConversationSelected({ selected: isSelected, messages, messagedUsername });
     };
 
-    if (isPending || !token || isLoading) return <CircularLoading />;
+    if (isPending) return <CircularLoading />;
+    if (!token) {
+        return (
+            <main className="messages-page">
+                <h1 className="page-name">Messages</h1>
+                <p className="text-muted">Sign in to view and send messages.</p>
+            </main>
+        );
+    }
+    if (isLoading) return <CircularLoading />;
+    if (isError || !data) {
+        return (
+            <main className="messages-page">
+                <h1 className="page-name">Messages</h1>
+                <p className="text-muted">Could not load conversations right now.</p>
+            </main>
+        );
+    }
 
     const conversations = data.formattedConversations;
 

@@ -13,12 +13,30 @@ import { AuthContext } from "../layout";
 export default function HomePage() {
     const { token, isPending } = useContext(AuthContext);
 
-    const { isLoading, data } = useQuery({
+    const { isLoading, isError, data } = useQuery({
         queryKey: ["tweets", "home"],
         queryFn: () => getRelatedTweets(),
+        enabled: !!token,
     });
 
-    if (isPending || isLoading) return <CircularLoading />;
+    if (isPending) return <CircularLoading />;
+    if (!token) {
+        return (
+            <main>
+                <h1 className="page-name">Home</h1>
+                <p className="text-muted">Sign in to see posts from people you follow.</p>
+            </main>
+        );
+    }
+    if (isLoading) return <CircularLoading />;
+    if (isError || !data) {
+        return (
+            <main>
+                <h1 className="page-name">Home</h1>
+                <p className="text-muted">Could not load your home feed right now.</p>
+            </main>
+        );
+    }
 
     return (
         <main>

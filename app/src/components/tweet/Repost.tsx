@@ -48,9 +48,9 @@ export default function Repost({ tweetId, tweetAuthor }: TweetOptionsProps) {
 
         if (mutation.isLoading) return;
 
-        const tokenOwnerId = JSON.stringify(token?.id);
+        const tokenOwnerId = token?.id || "";
         const repostedBy = data?.tweet?.retweetedBy;
-        const isRepostedBy = repostedBy?.some((user: { id: string }) => JSON.stringify(user.id) === tokenOwnerId);
+        const isRepostedBy = repostedBy?.some((user: { id: string }) => user.id === tokenOwnerId);
 
         if (isReposted !== isRepostedBy) setIsReposted(isRepostedBy);
 
@@ -64,9 +64,9 @@ export default function Repost({ tweetId, tweetAuthor }: TweetOptionsProps) {
 
     useEffect(() => {
         if (!isPending && isFetched) {
-            const tokenOwnerId = JSON.stringify(token?.id);
+            const tokenOwnerId = token?.id;
             const repostedBy = data?.tweet?.retweetedBy;
-            const isRepostedBy = repostedBy?.some((user: { id: string }) => JSON.stringify(user.id) === tokenOwnerId);
+            const isRepostedBy = repostedBy?.some((user: { id: string }) => user.id === tokenOwnerId);
             setIsReposted(isRepostedBy);
         }
     }, [isPending, isFetched, data]);

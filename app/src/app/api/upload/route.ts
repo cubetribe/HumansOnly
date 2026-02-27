@@ -3,6 +3,9 @@ import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
 import sharp from "sharp";
+import { cookies } from "next/headers";
+
+import { verifyJwtToken } from "@/utilities/auth";
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB raw input
@@ -12,9 +15,18 @@ const JPEG_QUALITY = 85;
 
 export async function POST(request: NextRequest) {
     try {
+        const cookieStore = cookies();
+        const token = cookieStore.get("token")?.value;
+        const verifiedToken = token ? await verifyJwtToken(token) : null;
+
+        if (!verifiedToken) {
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+        }
+
         const formData = await request.formData();
         const file = formData.get('file') as File;
-        const type = formData.get('type') as string || 'post'; // post, profile, header
+        const rawType = formData.get('type');
+        const type = typeof rawType === "string" && ["post", "profile", "header"].includes(rawType) ? rawType : "post";
 
         if (!file) {
             return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });
@@ -84,7 +96,7 @@ export async function POST(request: NextRequest) {
 
         const originalSize = file.size;
         const compressedSize = processedBuffer.length;
-        const savings = Math.round((1 - compressedSize / originalSize) * 100);
+        const savings = Math.max(0, Math.round((1 - compressedSize / originalSize) * 100));
 
         return NextResponse.json({
             success: true,

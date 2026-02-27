@@ -15,9 +15,10 @@ export default function NotificationsPage() {
 
     const queryClient = useQueryClient();
 
-    const { isLoading, data, isFetched } = useQuery({
+    const { isLoading, isError, data, isFetched } = useQuery({
         queryKey: ["notifications"],
         queryFn: getNotifications,
+        enabled: !!token,
     });
 
     const mutation = useMutation({
@@ -33,7 +34,11 @@ export default function NotificationsPage() {
     };
 
     useEffect(() => {
-        if (isFetched && data.notifications.filter((notification: NotificationProps) => !notification.isRead).length > 0) {
+        if (
+            isFetched &&
+            data?.notifications &&
+            data.notifications.filter((notification: NotificationProps) => !notification.isRead).length > 0
+        ) {
             const countdownForMarkAsRead = setTimeout(() => {
                 handleNotificationsRead();
             }, 1000);
@@ -42,9 +47,26 @@ export default function NotificationsPage() {
                 clearTimeout(countdownForMarkAsRead);
             };
         }
-    }, []);
+    }, [data?.notifications, isFetched]);
 
-    if (isPending || !token || isLoading) return <CircularLoading />;
+    if (isPending) return <CircularLoading />;
+    if (!token) {
+        return (
+            <main>
+                <h1 className="page-name">Notifications</h1>
+                <p className="text-muted">Sign in to view your notifications.</p>
+            </main>
+        );
+    }
+    if (isLoading) return <CircularLoading />;
+    if (isError || !data) {
+        return (
+            <main>
+                <h1 className="page-name">Notifications</h1>
+                <p className="text-muted">Could not load notifications right now.</p>
+            </main>
+        );
+    }
 
     return (
         <main>

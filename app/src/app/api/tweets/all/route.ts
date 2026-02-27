@@ -140,7 +140,11 @@ export async function GET(request: NextRequest) {
             take: parsedLimit,
         });
 
-        const totalTweets = await prisma.tweet.count();
+        const totalTweets = await prisma.tweet.count({
+            where: {
+                isReply: false,
+            },
+        });
         const lastPage = Math.ceil(totalTweets / parsedLimit);
 
         return NextResponse.json({ success: true, tweets, nextPage, lastPage });

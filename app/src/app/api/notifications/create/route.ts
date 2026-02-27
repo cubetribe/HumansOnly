@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const { recipient, type, secret, notificationContent }: NotificationProps = await request.json();
 
     if (secret !== process.env.CREATION_SECRET_KEY) {
-        return NextResponse.json({ success: false, error: "Invalid secret." });
+        return NextResponse.json({ success: false, error: "Invalid secret." }, { status: 401 });
     }
 
     try {
@@ -24,6 +24,6 @@ export async function POST(request: NextRequest) {
         });
         return NextResponse.json({ success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return NextResponse.json({ success: false, error }, { status: 500 });
     }
 }

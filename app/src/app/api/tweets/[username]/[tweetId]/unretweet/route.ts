@@ -12,6 +12,10 @@ export async function POST(request: NextRequest, { params: { tweetId } }: { para
     if (!tokenOwnerId || typeof tokenOwnerId !== "string") {
         return NextResponse.json({ success: false, message: "Invalid payload." }, { status: 400 });
     }
+    const normalizedTokenOwnerId = tokenOwnerId.trim().replace(/^"+|"+$/g, "");
+    if (!normalizedTokenOwnerId) {
+        return NextResponse.json({ success: false, message: "Invalid payload." }, { status: 400 });
+    }
 
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
@@ -20,7 +24,7 @@ export async function POST(request: NextRequest, { params: { tweetId } }: { para
     if (!verifiedToken)
         return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
 
-    if (verifiedToken.id !== tokenOwnerId)
+    if (verifiedToken.id !== normalizedTokenOwnerId)
         return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
 
     try {
@@ -40,13 +44,13 @@ export async function POST(request: NextRequest, { params: { tweetId } }: { para
             data: {
                 retweetedBy: {
                     disconnect: {
-                        id: tokenOwnerId,
+                        id: normalizedTokenOwnerId,
                     },
                 },
             },
         });
 
-        const retweetId = originalTweet?.retweets.find((retweet: any) => retweet.authorId === tokenOwnerId)?.id;
+        const retweetId = originalTweet?.retweets.find((retweet: any) => retweet.authorId === normalizedTokenOwnerId)?.id;
 
         await prisma.tweet.delete({
             where: {

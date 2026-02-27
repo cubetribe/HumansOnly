@@ -13,6 +13,10 @@ export async function POST(request: NextRequest, { params: { username } }: { par
     if (!tokenOwnerId || typeof tokenOwnerId !== "string") {
         return NextResponse.json({ success: false, message: "Invalid payload." }, { status: 400 });
     }
+    const normalizedTokenOwnerId = tokenOwnerId.trim().replace(/^"+|"+$/g, "");
+    if (!normalizedTokenOwnerId) {
+        return NextResponse.json({ success: false, message: "Invalid payload." }, { status: 400 });
+    }
 
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
@@ -30,7 +34,7 @@ export async function POST(request: NextRequest, { params: { username } }: { par
     if (!verifiedToken)
         return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
 
-    if (verifiedToken.id !== tokenOwnerId)
+    if (verifiedToken.id !== normalizedTokenOwnerId)
         return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
 
     try {
@@ -41,7 +45,7 @@ export async function POST(request: NextRequest, { params: { username } }: { par
             data: {
                 followers: {
                     connect: {
-                        id: tokenOwnerId,
+                        id: normalizedTokenOwnerId,
                     },
                 },
             },

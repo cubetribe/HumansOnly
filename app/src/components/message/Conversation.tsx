@@ -62,8 +62,7 @@ export default function Conversation({ conversation, token, handleConversations 
         e.stopPropagation();
         handlePopoverClose();
         setIsDeleting(true);
-        const jsonId = JSON.stringify(token.id);
-        mutation.mutate(jsonId);
+        mutation.mutate(token.id);
     };
 
     return (

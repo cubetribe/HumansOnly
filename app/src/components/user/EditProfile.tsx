@@ -13,7 +13,6 @@ import { editUser } from "@/utilities/fetch";
 import { getFullURL } from "@/utilities/misc/getFullURL";
 import CustomSnackbar from "../misc/CustomSnackbar";
 import { SnackbarProps } from "@/types/SnackbarProps";
-import { checkBlueFromServer } from "@/utilities/misc/checkBlue";
 
 export default function EditProfile({ profile, refreshToken }: { profile: UserProps; refreshToken: () => void }) {
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -135,16 +134,14 @@ export default function EditProfile({ profile, refreshToken }: { profile: UserPr
         e.preventDefault();
         if (blueInput === "") return;
         setIsBlueLoading(true);
-        const checkResponse = await checkBlueFromServer(blueInput);
-        if (!checkResponse) {
-            setIsBlueLoading(false);
-            return setSnackbar({ message: "Invalid blue code. Please try again.", severity: "error", open: true });
-        }
-        const response = await editUser(JSON.stringify({ isVerifiedHuman: true }), profile.username);
+        const response = await editUser(
+            JSON.stringify({ isVerifiedHuman: true, verificationCode: blueInput }),
+            profile.username
+        );
         if (!response.success) {
             setIsBlueLoading(false);
             return setSnackbar({
-                message: "Something went wrong while getting your blue. Please try again.",
+                message: response.message || "Something went wrong while getting your blue. Please try again.",
                 severity: "error",
                 open: true,
             });

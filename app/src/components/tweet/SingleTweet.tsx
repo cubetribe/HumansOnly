@@ -85,8 +85,7 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
         }
         handleAnchorClose();
         setIsDeleting(true);
-        const jsonId = JSON.stringify(token.id);
-        mutation.mutate(jsonId);
+        mutation.mutate(token.id);
     };
 
     return (

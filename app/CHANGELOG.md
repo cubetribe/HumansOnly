@@ -1,5 +1,15 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - Wave 0 Stabilization (v1.2.2)
+
+-   fixed client action ID transport (`tokenOwnerId`) to use plain UUIDs
+-   added backend normalization for legacy quoted UUID payloads
+-   required authentication for `/api/upload`
+-   fixed `tweets/all` pagination count to exclude replies
+-   stabilized unauthenticated UX on Home/Messages/Notifications pages
+-   moved verified-human code check to server-side validation in profile edit route
+-   redacted sensitive deployment credentials from docs
+
 -   [x] add hash to passwords when creating
 -   [x] add auth
 -   [x] if auth, return to /home | /explore

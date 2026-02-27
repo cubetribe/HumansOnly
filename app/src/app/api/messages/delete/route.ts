@@ -27,6 +27,10 @@ export async function POST(request: NextRequest) {
     if (!tokenOwnerId || typeof tokenOwnerId !== 'string') {
         return NextResponse.json({ success: false, message: "Invalid request" }, { status: 400 });
     }
+    const normalizedTokenOwnerId = tokenOwnerId.trim().replace(/^"+|"+$/g, "");
+    if (!normalizedTokenOwnerId) {
+        return NextResponse.json({ success: false, message: "Invalid request" }, { status: 400 });
+    }
 
     // Validate participants
     if (!Array.isArray(participants) || participants.length !== 2) {
@@ -34,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify token owner matches
-    if (verifiedToken.id !== tokenOwnerId) {
+    if (verifiedToken.id !== normalizedTokenOwnerId) {
         return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
     }
 

@@ -122,14 +122,14 @@ sudo -u postgres psql
 
 ```sql
 CREATE DATABASE humansonly_prod;
-CREATE USER humansonly_user WITH ENCRYPTED PASSWORD 'HumansOnly2024Prod';
+CREATE USER humansonly_user WITH ENCRYPTED PASSWORD '<strong-password>';
 GRANT ALL PRIVILEGES ON DATABASE humansonly_prod TO humansonly_user;
 \q
 ```
 
 #### Test Connection
 ```bash
-PGPASSWORD='HumansOnly2024Prod' psql -h localhost -U humansonly_user -d humansonly_prod -c "SELECT 1"
+PGPASSWORD='<strong-password>' psql -h localhost -U humansonly_user -d humansonly_prod -c "SELECT 1"
 ```
 
 ---
@@ -166,13 +166,13 @@ nano .env
 **Environment Configuration:**
 ```env
 # DATABASE
-DATABASE_URL="postgresql://humansonly_user:HumansOnly2024Prod@localhost:5432/humansonly_prod?schema=public"
-DIRECT_DATABASE_URL="postgresql://humansonly_user:HumansOnly2024Prod@localhost:5432/humansonly_prod?schema=public"
+DATABASE_URL="postgresql://humansonly_user:<strong-password>@localhost:5432/humansonly_prod?schema=public"
+DIRECT_DATABASE_URL="postgresql://humansonly_user:<strong-password>@localhost:5432/humansonly_prod?schema=public"
 
 # AUTHENTICATION
-JWT_SECRET_KEY="e5ec0b9bc32f87c249e0558edae080866901033d338e958f7424ae4b219ec294"
-CREATION_SECRET_KEY="779ef1c1941c2d795ff1b02300725def1d8a7c85c4e13084fb6560fcb89a9744"
-BLUE_SECRET_KEY="humansonly_blue_2024"
+JWT_SECRET_KEY="<generate-with-openssl-rand-hex-32>"
+CREATION_SECRET_KEY="<generate-with-openssl-rand-hex-32>"
+BLUE_SECRET_KEY="<set-a-private-verification-code>"
 
 # APPLICATION
 NEXT_PUBLIC_HOST_URL="https://ho.nm-forum.de"
@@ -630,7 +630,7 @@ systemctl reload nginx
 ### PostgreSQL Access
 ```bash
 # Connect to database
-PGPASSWORD='HumansOnly2024Prod' psql -h localhost -U humansonly_user -d humansonly_prod
+PGPASSWORD='<strong-password>' psql -h localhost -U humansonly_user -d humansonly_prod
 
 # As postgres superuser
 sudo -u postgres psql
@@ -668,7 +668,7 @@ SELECT * FROM "_prisma_migrations" ORDER BY finished_at DESC;
 pg_dump -U humansonly_user -h localhost humansonly_prod > backup_$(date +%F).sql
 
 # With password
-PGPASSWORD='HumansOnly2024Prod' pg_dump -h localhost -U humansonly_user humansonly_prod > backup_$(date +%F).sql
+PGPASSWORD='<strong-password>' pg_dump -h localhost -U humansonly_user humansonly_prod > backup_$(date +%F).sql
 ```
 
 #### Automated Daily Backup Script
@@ -686,7 +686,7 @@ KEEP_DAYS=7
 mkdir -p $BACKUP_DIR
 
 # Create backup
-PGPASSWORD='HumansOnly2024Prod' pg_dump -h localhost -U humansonly_user humansonly_prod > $BACKUP_DIR/humansonly_$DATE.sql
+PGPASSWORD='<strong-password>' pg_dump -h localhost -U humansonly_user humansonly_prod > $BACKUP_DIR/humansonly_$DATE.sql
 
 # Compress
 gzip $BACKUP_DIR/humansonly_$DATE.sql
@@ -715,7 +715,7 @@ crontab -e
 gunzip backup_2025-12-21.sql.gz
 
 # Restore database (WARNING: This will overwrite existing data)
-PGPASSWORD='HumansOnly2024Prod' psql -h localhost -U humansonly_user -d humansonly_prod < backup_2025-12-21.sql
+PGPASSWORD='<strong-password>' psql -h localhost -U humansonly_user -d humansonly_prod < backup_2025-12-21.sql
 ```
 
 ---
@@ -747,7 +747,7 @@ pm2 restart humansonly
 **Database Connection Error:**
 ```bash
 # Test database connection
-PGPASSWORD='HumansOnly2024Prod' psql -h localhost -U humansonly_user -d humansonly_prod -c "SELECT 1"
+PGPASSWORD='<strong-password>' psql -h localhost -U humansonly_user -d humansonly_prod -c "SELECT 1"
 
 # Check .env file
 cat /var/www/humansonly/.env | grep DATABASE_URL
@@ -1030,7 +1030,7 @@ pm2 stop humansonly
 
 # Restore latest backup
 LATEST_BACKUP=$(ls -t /var/backups/humansonly/*.sql.gz | head -1)
-gunzip -c $LATEST_BACKUP | PGPASSWORD='HumansOnly2024Prod' psql -h localhost -U humansonly_user -d humansonly_prod
+gunzip -c $LATEST_BACKUP | PGPASSWORD='<strong-password>' psql -h localhost -U humansonly_user -d humansonly_prod
 
 # Restart application
 pm2 start humansonly

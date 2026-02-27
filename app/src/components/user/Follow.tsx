@@ -30,7 +30,7 @@ export default function Follow({ profile }: { profile: UserProps }) {
                     ...previous,
                     user: {
                         ...previous.user,
-                        followers: [...previous.user.followers, tokenOwnerId],
+                        followers: [...previous.user.followers, { id: tokenOwnerId } as UserProps],
                     },
                 });
             }
@@ -59,7 +59,7 @@ export default function Follow({ profile }: { profile: UserProps }) {
                     user: {
                         ...previous.user,
                         followers: previous.user.followers.filter(
-                            (user: UserProps) => JSON.stringify(user.id) !== tokenOwnerId
+                            (user: UserProps) => user.id !== tokenOwnerId
                         ),
                     },
                 });
@@ -87,11 +87,11 @@ export default function Follow({ profile }: { profile: UserProps }) {
             });
         }
 
-        const tokenOwnerId = JSON.stringify(token.id);
+        const tokenOwnerId = token.id;
         const followers = profile.followers;
-        const isFollowedByTokenOwner = followers?.some((user: { id: string }) => JSON.stringify(user.id) === tokenOwnerId);
+        const isFollowedByTokenOwner = followers?.some((user: { id: string }) => user.id === tokenOwnerId);
 
-        if (!followMutation.isLoading && !followMutation.isLoading) {
+        if (!followMutation.isLoading && !unfollowMutation.isLoading) {
             if (isFollowedByTokenOwner) {
                 unfollowMutation.mutate(tokenOwnerId);
             } else {
@@ -110,14 +110,12 @@ export default function Follow({ profile }: { profile: UserProps }) {
 
     useEffect(() => {
         if (!isPending && token) {
-            const tokenOwnerId = JSON.stringify(token.id);
+            const tokenOwnerId = token.id;
             const followers = profile.followers;
-            const isFollowedByTokenOwner = followers?.some(
-                (user: { id: string }) => JSON.stringify(user.id) === tokenOwnerId
-            );
+            const isFollowedByTokenOwner = followers?.some((user: { id: string }) => user.id === tokenOwnerId);
             setIsFollowed(isFollowedByTokenOwner);
         }
-    }, [isPending]);
+    }, [isPending, profile.followers, token]);
 
     useEffect(() => {
         const timer = setTimeout(() => {

@@ -70,9 +70,7 @@ export default function Like({ tweetId, tweetAuthor }: TweetOptionsProps) {
                     ...previous,
                     tweet: {
                         ...previous.tweet,
-                        likedBy: previous.tweet.likedBy.filter(
-                            (user: UserProps) => JSON.stringify(user.id) !== tokenOwnerId
-                        ),
+                        likedBy: previous.tweet.likedBy.filter((user: UserProps) => user.id !== tokenOwnerId),
                     },
                 });
             }
@@ -99,9 +97,9 @@ export default function Like({ tweetId, tweetAuthor }: TweetOptionsProps) {
 
         if (!data?.tweet) return;
 
-        const tokenOwnerId = JSON.stringify(token.id);
+        const tokenOwnerId = token.id;
         const likedBy = data.tweet.likedBy ?? [];
-        const isLikedByTokenOwner = likedBy.some((user: { id: string }) => JSON.stringify(user.id) === tokenOwnerId);
+        const isLikedByTokenOwner = likedBy.some((user: { id: string }) => user.id === tokenOwnerId);
 
         if (!likeMutation.isLoading && !unlikeMutation.isLoading) {
             if (isLikedByTokenOwner) {
@@ -114,9 +112,9 @@ export default function Like({ tweetId, tweetAuthor }: TweetOptionsProps) {
 
     useEffect(() => {
         if (!isPending && isFetched) {
-            const tokenOwnerId = JSON.stringify(token?.id);
+            const tokenOwnerId = token?.id;
             const likedBy = data?.tweet?.likedBy;
-            const isLikedByTokenOwner = likedBy?.some((user: { id: string }) => JSON.stringify(user.id) === tokenOwnerId);
+            const isLikedByTokenOwner = likedBy?.some((user: { id: string }) => user.id === tokenOwnerId);
             setIsLiked(isLikedByTokenOwner);
         }
     }, [isPending, isFetched, data?.tweet?.likedBy, token?.id]);

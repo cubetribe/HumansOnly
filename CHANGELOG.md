@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.2] - 2026-02-27
+
+### Added
+
+- `Rodemap.md` with the 6-wave execution and validation plan.
+
+### Changed
+
+- Hardened action payload handling for legacy quoted `tokenOwnerId` values across like/repost/follow/delete routes.
+- Home, Messages, and Notifications pages now fail gracefully when users are not signed in instead of hanging in loading states.
+- Profile verification flow now validates the code server-side and supports partial profile updates without clearing media.
+- API CORS now uses a concrete allowed origin (`NEXT_PUBLIC_HOST_URL`) for credentialed requests.
+
+### Fixed
+
+- Restored frontend/backend ID contract for like/repost/follow/delete actions by removing `JSON.stringify` ID transport in client components.
+- Corrected tweet pagination metadata by counting only non-reply posts in `/api/tweets/all`.
+- Restricted `/api/upload` to authenticated users only.
+- Redacted hardcoded production credentials/secrets from deployment documentation.
+
 ## [1.2.1] - 2026-02-27
 
 ### Added

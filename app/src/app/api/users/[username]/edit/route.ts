@@ -8,8 +8,8 @@ import { buildAuthCookie } from "@/utilities/auth/cookies";
 import { UserProps } from "@/types/UserProps";
 
 export async function POST(request: NextRequest, { params: { username } }: { params: { username: string } }) {
-    // Parse request body
-    const { name, description, location, website, photoUrl, headerUrl } = await request.json();
+    const body = await request.json();
+    const { name, description, location, website, photoUrl, headerUrl, isVerifiedHuman, verificationCode } = body;
 
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
@@ -21,19 +21,26 @@ export async function POST(request: NextRequest, { params: { username } }: { par
     if (verifiedToken.username !== username)
         return NextResponse.json({ success: false, message: "You are not authorized to perform this action." });
 
-    // Sanitize photoUrl
-    const sanitizedPhotoUrl = photoUrl && typeof photoUrl === 'string'
-        ? (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('http://') || photoUrl.startsWith('https://'))
-            ? photoUrl
-            : null
-        : null;
+    const hasPhotoUrl = Object.prototype.hasOwnProperty.call(body, "photoUrl");
+    const hasHeaderUrl = Object.prototype.hasOwnProperty.call(body, "headerUrl");
+    const wantsVerifiedHuman = isVerifiedHuman === true;
 
-    // Sanitize headerUrl
-    const sanitizedHeaderUrl = headerUrl && typeof headerUrl === 'string'
-        ? (headerUrl.startsWith('/uploads/') || headerUrl.startsWith('http://') || headerUrl.startsWith('https://'))
-            ? headerUrl
-            : null
-        : null;
+    if (wantsVerifiedHuman) {
+        const providedCode = typeof verificationCode === "string" ? verificationCode : "";
+        if (!process.env.BLUE_SECRET_KEY || providedCode !== process.env.BLUE_SECRET_KEY) {
+            return NextResponse.json({ success: false, message: "Invalid verification code." }, { status: 400 });
+        }
+    }
+
+    const sanitizeImagePath = (value: unknown): string | null => {
+        if (typeof value !== "string" || value.trim() === "") return null;
+        return value.startsWith("/uploads/") || value.startsWith("http://") || value.startsWith("https://")
+            ? value
+            : null;
+    };
+
+    const sanitizedPhotoUrl = hasPhotoUrl ? sanitizeImagePath(photoUrl) : undefined;
+    const sanitizedHeaderUrl = hasHeaderUrl ? sanitizeImagePath(headerUrl) : undefined;
 
     try {
         const user = await prisma.user.update({
@@ -47,6 +54,7 @@ export async function POST(request: NextRequest, { params: { username } }: { par
                 website,
                 photoUrl: sanitizedPhotoUrl,
                 headerUrl: sanitizedHeaderUrl,
+                isVerifiedHuman: wantsVerifiedHuman ? true : undefined,
             },
         });
 

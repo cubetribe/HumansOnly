@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.3] - 2026-02-27
+
+### Fixed
+
+- Added a `bcryptjs` fallback for password hashing/comparison in legacy auth flows to avoid runtime failures when native `bcrypt` is unavailable on the target host.
+
 ## [1.2.2] - 2026-02-27
 
 ### Added

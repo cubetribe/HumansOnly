@@ -1,5 +1,9 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-27 - Hotfix (v1.2.3)
+
+-   added `bcryptjs` fallback for hashing/comparison when native `bcrypt` fails at runtime
+
 ## 2026-02-27 - Wave 0 Stabilization (v1.2.2)
 
 -   fixed client action ID transport (`tokenOwnerId`) to use plain UUIDs

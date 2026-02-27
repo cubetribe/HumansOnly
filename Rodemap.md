@@ -88,7 +88,7 @@ Acceptance:
 - Measurable SLOs and reliable release process
 
 ### Wave 6 - Live Validation and Hardening Loop
-Status: `pending`
+Status: `completed` (v1.8.0, validated live 2026-02-27)
 
 Scope:
 - Full live-domain verification matrix

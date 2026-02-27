@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.0] - 2026-02-27
+
+### Added
+
+- Final live validation matrix script:
+  - `scripts/live-wave6-validation.sh`
+- Wave 6 agent artifacts:
+  - `Agents/RESEARCHER_brief-2026-02-27-wave6-live-hardening.md`
+  - `Agents/ARCHITECT_spec-2026-02-27-wave6-live-hardening.md`
+  - `Agents/BUILDER_wave6-live-hardening-2026-02-27.md`
+  - `Agents/VALIDATOR_wave6-live-hardening-2026-02-27.md`
+
+### Changed
+
+- Rodemap now marks all waves (`0` through `6`) as completed with live validation evidence.
+- Final release readiness includes live authz checks, request-id verification, and response-time spot checks on production domain.
+
 ## [1.7.0] - 2026-02-27
 
 ### Added

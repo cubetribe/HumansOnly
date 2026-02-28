@@ -4,6 +4,9 @@ import { useContext, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { Menu, MenuItem } from "@mui/material";
+import { RxDotsHorizontal } from "react-icons/rx";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VerifiedHumanBadge } from "@/components/icons";
 
 import { TweetProps } from "@/types/TweetProps";
@@ -19,20 +22,76 @@ import { AuthContext } from "@/app/(twitter)/layout";
 import RepostIcon from "../misc/RepostIcon";
 import ProfileCard from "../user/ProfileCard";
 import MentionText from "../misc/MentionText";
+import { createReport, deleteTweet, editTweet } from "@/utilities/fetch";
+import CustomSnackbar from "../misc/CustomSnackbar";
+import { SnackbarProps } from "@/types/SnackbarProps";
+import EditTweetDialog from "../dialog/EditTweetDialog";
 
 export default function Tweet({ tweet }: { tweet: TweetProps }) {
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+    const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | null>(null);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [snackbar, setSnackbar] = useState<SnackbarProps>({ message: "", severity: "success", open: false });
     const [hoveredProfile, setHoveredProfile] = useState("");
 
     const { token } = useContext(AuthContext);
     const router = useRouter();
+    const queryClient = useQueryClient();
 
     let displayedTweet = tweet;
 
     if (tweet.isRetweet) {
         displayedTweet = tweet.retweetOf;
     }
+
+    const isOwner = token?.username === displayedTweet.author.username;
+    const isModerator = token?.role === "moderator" || token?.role === "admin";
+    const canEditPost = Boolean(isOwner && !tweet.isRetweet);
+    const canDeletePost = Boolean((isOwner || isModerator) && !tweet.isRetweet);
+
+    const deleteMutation = useMutation({
+        mutationFn: () => deleteTweet(displayedTweet.id, displayedTweet.author.username),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["tweets"] });
+            setSnackbar({ message: "Post deleted.", severity: "success", open: true });
+        },
+        onError: (error: Error) => {
+            setSnackbar({ message: error.message || "Failed to delete post.", severity: "error", open: true });
+        },
+    });
+
+    const editMutation = useMutation({
+        mutationFn: (nextText: string) =>
+            editTweet(displayedTweet.id, displayedTweet.author.username, {
+                text: nextText,
+            }),
+        onSuccess: async () => {
+            setIsEditOpen(false);
+            await queryClient.invalidateQueries({ queryKey: ["tweets"] });
+            await queryClient.invalidateQueries({ queryKey: ["tweets", displayedTweet.author.username, displayedTweet.id] });
+            setSnackbar({ message: "Post updated.", severity: "success", open: true });
+        },
+        onError: (error: Error) => {
+            setSnackbar({ message: error.message || "Failed to update post.", severity: "error", open: true });
+        },
+    });
+
+    const reportMutation = useMutation({
+        mutationFn: (payload: { reason: string; details?: string }) =>
+            createReport({
+                targetType: "tweet",
+                targetTweetId: displayedTweet.id,
+                reason: payload.reason,
+                details: payload.details,
+            }),
+        onSuccess: () => {
+            setSnackbar({ message: "Report submitted.", severity: "success", open: true });
+        },
+        onError: (error: Error) => {
+            setSnackbar({ message: error.message || "Could not submit report.", severity: "error", open: true });
+        },
+    });
 
     const handleTweetClick = () => {
         router.push(`/${displayedTweet.author.username}/tweets/${displayedTweet.id}`);
@@ -64,6 +123,29 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
     };
     const handlePopoverClose = () => {
         setAnchorEl(null);
+    };
+    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+        event.stopPropagation();
+        setMenuAnchorEl(event.currentTarget);
+    };
+    const handleMenuClose = () => {
+        setMenuAnchorEl(null);
+    };
+    const handleEditPost = () => {
+        handleMenuClose();
+        setIsEditOpen(true);
+    };
+    const handleDeletePost = () => {
+        handleMenuClose();
+        if (!window.confirm("Delete this post permanently?")) return;
+        deleteMutation.mutate();
+    };
+    const handleReportPost = () => {
+        handleMenuClose();
+        const reason = window.prompt("Reason for reporting this post (max 80 chars):", "abuse");
+        if (!reason) return;
+        const details = window.prompt("Optional details (max 500 chars):") || undefined;
+        reportMutation.mutate({ reason: reason.trim(), details: details?.trim() });
     };
 
     return (
@@ -111,8 +193,25 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
                         <span className="text-muted date">
                             <span className="middle-dot">·</span>
                             {formatDate(displayedTweet.createdAt)}
+                            {displayedTweet.editedAt ? " · edited" : ""}
                         </span>
                     </Tooltip>
+                    {token && !tweet.isRetweet && (
+                        <>
+                            <button className="three-dots icon-hoverable" onClick={handleMenuOpen}>
+                                <RxDotsHorizontal />
+                            </button>
+                            <Menu anchorEl={menuAnchorEl} onClose={handleMenuClose} open={Boolean(menuAnchorEl)}>
+                                {canEditPost && <MenuItem onClick={handleEditPost}>Edit post</MenuItem>}
+                                {canDeletePost && (
+                                    <MenuItem className="delete" onClick={handleDeletePost}>
+                                        Delete
+                                    </MenuItem>
+                                )}
+                                {!isOwner && <MenuItem onClick={handleReportPost}>Report post</MenuItem>}
+                            </Menu>
+                        </>
+                    )}
                 </section>
                 <div className="tweet-text">
                     {displayedTweet.isReply && (
@@ -196,6 +295,14 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
             >
                 <ProfileCard username={hoveredProfile} token={token} />
             </Popover>
+            <EditTweetDialog
+                open={isEditOpen}
+                initialText={displayedTweet.text}
+                onClose={() => setIsEditOpen(false)}
+                onSave={(nextText) => editMutation.mutate(nextText)}
+                isSaving={editMutation.isLoading}
+            />
+            {snackbar.open && <CustomSnackbar message={snackbar.message} severity={snackbar.severity} setSnackbar={setSnackbar} />}
         </motion.div>
     );
 }

@@ -23,6 +23,7 @@ model User {
     isVerifiedHuman  Boolean        @default(false)
     isPrivate        Boolean        @default(false)
     messagePrivacy   String         @default("everyone") @db.VarChar(20)
+    role             String         @default("user") @db.VarChar(20)
     createdAt        DateTime       @default(now())
     updatedAt        DateTime       @default(now()) @updatedAt
     createdTweets    Tweet[]        @relation("userTweets")
@@ -47,6 +48,8 @@ model Tweet {
     id          String   @id @default(uuid())
     text        String   @db.VarChar(280)
     createdAt   DateTime @default(now())
+    updatedAt   DateTime @default(now()) @updatedAt
+    editedAt    DateTime?
     author      User     @relation("userTweets", fields: [authorId], references: [id])
     authorId    String
     photoUrl    String?

@@ -16,7 +16,7 @@ import Share from "./Share";
 import Counters from "./Counters";
 import { getFullURL } from "@/utilities/misc/getFullURL";
 import { VerifiedToken } from "@/types/TokenProps";
-import { createReport, deleteTweet } from "@/utilities/fetch";
+import { createReport, deleteTweet, editTweet } from "@/utilities/fetch";
 import PreviewDialog from "../dialog/PreviewDialog";
 import { shimmer } from "@/utilities/misc/shimmer";
 import NewReply from "./NewReply";
@@ -26,19 +26,23 @@ import { SnackbarProps } from "@/types/SnackbarProps";
 import CircularLoading from "../misc/CircularLoading";
 import { sleepFunction } from "@/utilities/misc/sleep";
 import MentionText from "../misc/MentionText";
+import EditTweetDialog from "../dialog/EditTweetDialog";
 
 export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token: VerifiedToken }) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [snackbar, setSnackbar] = useState<SnackbarProps>({ message: "", severity: "success", open: false });
 
     const queryClient = useQueryClient();
     const router = useRouter();
+    const isOwner = token?.username === tweet.author.username;
+    const canDeletePost = Boolean(token && (isOwner || token.role === "moderator" || token.role === "admin"));
 
     const mutation = useMutation({
-        mutationFn: () => deleteTweet(tweet.id, tweet.authorId),
+        mutationFn: () => deleteTweet(tweet.id, tweet.author.username),
         onSuccess: async () => {
             setIsConfirmationOpen(false);
             setIsDeleting(false);
@@ -78,6 +82,30 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
         },
     });
 
+    const editMutation = useMutation({
+        mutationFn: (nextText: string) =>
+            editTweet(tweet.id, tweet.author.username, {
+                text: nextText,
+            }),
+        onSuccess: async () => {
+            setIsEditOpen(false);
+            await queryClient.invalidateQueries({ queryKey: ["tweets"] });
+            await queryClient.invalidateQueries({ queryKey: ["tweets", tweet.author.username, tweet.id] });
+            setSnackbar({
+                message: "Post updated.",
+                severity: "success",
+                open: true,
+            });
+        },
+        onError: (error: Error) => {
+            setSnackbar({
+                message: error.message || "Failed to update post.",
+                severity: "error",
+                open: true,
+            });
+        },
+    });
+
     const handleAnchorClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(e.currentTarget);
     };
@@ -98,6 +126,10 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
         handleAnchorClose();
         setIsConfirmationOpen(true);
     };
+    const handleEditClick = () => {
+        handleAnchorClose();
+        setIsEditOpen(true);
+    };
     const handleReportTweet = () => {
         if (!token) return;
         const reason = window.prompt("Reason for reporting this post (max 80 chars):", "abuse");
@@ -112,6 +144,13 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
             return setSnackbar({
                 message: "You must be logged in to delete posts...",
                 severity: "info",
+                open: true,
+            });
+        }
+        if (!canDeletePost) {
+            return setSnackbar({
+                message: "You are not allowed to delete this post.",
+                severity: "error",
                 open: true,
             });
         }
@@ -152,13 +191,13 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
                                     <RxDotsHorizontal />
                                 </button>
                                 <Menu anchorEl={anchorEl} onClose={handleAnchorClose} open={Boolean(anchorEl)}>
-                                    {token.username === tweet.author.username ? (
+                                    {isOwner && <MenuItem onClick={handleEditClick}>Edit post</MenuItem>}
+                                    {canDeletePost && (
                                         <MenuItem onClick={handleConfirmationClick} className="delete">
                                             Delete
                                         </MenuItem>
-                                    ) : (
-                                        <MenuItem onClick={handleReportTweet}>Report post</MenuItem>
                                     )}
+                                    {!isOwner && <MenuItem onClick={handleReportTweet}>Report post</MenuItem>}
                                 </Menu>
                             </>
                         )}
@@ -193,7 +232,10 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
                             />
                         </>
                     )}
-                    <span className="text-muted date">{formatDateExtended(tweet.createdAt)}</span>
+                    <span className="text-muted date">
+                        {formatDateExtended(tweet.createdAt)}
+                        {tweet.editedAt ? " · edited" : ""}
+                    </span>
                     <Counters tweet={tweet} />
                     <div className="tweet-bottom">
                         <Reply tweet={tweet} />
@@ -207,6 +249,13 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
             </div>
             {token && <NewReply token={token} tweet={tweet} />}
             {tweet.replies.length > 0 && <Replies tweetId={tweet.id} tweetAuthor={tweet.author.username} />}
+            <EditTweetDialog
+                open={isEditOpen}
+                initialText={tweet.text}
+                onClose={() => setIsEditOpen(false)}
+                onSave={(nextText) => editMutation.mutate(nextText)}
+                isSaving={editMutation.isLoading}
+            />
             {snackbar.open && (
                 <CustomSnackbar message={snackbar.message} severity={snackbar.severity} setSnackbar={setSnackbar} />
             )}

@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
-import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { getAuthenticatedUser, isModerator, unauthorizedResponse } from "@/utilities/auth/session";
 
-export async function POST(request: NextRequest, { params: { tweetId } }: { params: { tweetId: string } }) {
+export async function POST(
+    _request: NextRequest,
+    { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
+) {
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -14,10 +17,19 @@ export async function POST(request: NextRequest, { params: { tweetId } }: { para
             },
             select: {
                 authorId: true,
+                author: {
+                    select: {
+                        username: true,
+                    },
+                },
             },
         });
 
-        if (!tweet || tweet.authorId !== authUser.id) {
+        if (!tweet || tweet.author.username !== username) {
+            return NextResponse.json({ success: false, message: "Post not found." }, { status: 404 });
+        }
+
+        if (tweet.authorId !== authUser.id && !isModerator(authUser)) {
             return unauthorizedResponse();
         }
 

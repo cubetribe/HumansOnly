@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
             location: newUser.location,
             website: newUser.website,
             isVerifiedHuman: newUser.isVerifiedHuman,
+            role: newUser.role,
             createdAt: newUser.createdAt,
             photoUrl: newUser.photoUrl,
             headerUrl: newUser.headerUrl,

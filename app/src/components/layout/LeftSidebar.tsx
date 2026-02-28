@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useContext, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar, Menu, MenuItem } from "@mui/material";
-import { FaHome, FaBell, FaEnvelope, FaUser, FaCog, FaHashtag, FaEllipsisH } from "react-icons/fa";
+import { FaHome, FaBell, FaEnvelope, FaUser, FaCog, FaHashtag, FaEllipsisH, FaPlus } from "react-icons/fa";
 import { HumansOnlyLogo, VerifiedHumanBadge } from "@/components/icons";
 import { useClerk } from "@clerk/nextjs";
 
@@ -179,6 +179,38 @@ export default function LeftSidebar() {
                     )}
                 </div>
             </aside>
+            {token && (
+                <nav className="mobile-nav">
+                    <Link href="/home" className={`mobile-nav-link ${pathname.startsWith("/home") ? "active" : ""}`}>
+                        <FaHome />
+                        <span>Home</span>
+                    </Link>
+                    <Link href="/explore" className={`mobile-nav-link ${pathname.startsWith("/explore") ? "active" : ""}`}>
+                        <FaHashtag />
+                        <span>Explore</span>
+                    </Link>
+                    <Link href="/notifications" className={`mobile-nav-link ${pathname.startsWith("/notifications") ? "active" : ""}`}>
+                        <div className="badge-wrapper">
+                            <FaBell />
+                            <UnreadNotificationsBadge />
+                        </div>
+                        <span>Alerts</span>
+                    </Link>
+                    <Link href="/messages" className={`mobile-nav-link ${pathname.startsWith("/messages") ? "active" : ""}`}>
+                        <FaEnvelope />
+                        <span>Messages</span>
+                    </Link>
+                    <Link href={`/${token.username}`} className={`mobile-nav-link ${pathname.startsWith(`/${token.username}`) ? "active" : ""}`}>
+                        <FaUser />
+                        <span>Profile</span>
+                    </Link>
+                </nav>
+            )}
+            {token && (
+                <button className="mobile-post-fab" onClick={handleNewTweetClick} aria-label="Create post">
+                    <FaPlus />
+                </button>
+            )}
             {token && (
                 <>
                     <NewTweetDialog open={isNewTweetOpen} handleNewTweetClose={handleNewTweetClose} token={token} />

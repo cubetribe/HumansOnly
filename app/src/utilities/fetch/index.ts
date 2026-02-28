@@ -1,4 +1,5 @@
 import { NotificationContent, NotificationTypes } from "@/types/NotificationProps";
+import { UserRole } from "@/types/Role";
 
 // Browser calls must stay same-origin so auth/session cookies are sent for the active domain.
 const HOST_URL =
@@ -326,6 +327,24 @@ export const deleteTweet = async (tweetId: string, tweetAuthor: string) => {
     return json;
 };
 
+export const editTweet = async (
+    tweetId: string,
+    tweetAuthor: string,
+    payload: { text: string; photoUrl?: string | null }
+) => {
+    const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/edit`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
 export const createReply = async (reply: string, tweetAuthor: string, tweetId: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/reply`, {
         method: "POST",
@@ -496,6 +515,58 @@ export const updateNotificationPreferences = async (
             "Content-Type": "application/json",
         },
         body: JSON.stringify(preferences),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getAdminUsers = async (query = "", limit = 30) => {
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("q", query.trim());
+    params.set("limit", String(limit));
+
+    const response = await fetch(`${HOST_URL}/api/admin/users?${params.toString()}`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const updateUserRole = async (username: string, role: UserRole) => {
+    const response = await fetch(`${HOST_URL}/api/admin/users/${username}/role`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ role }),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getModerationReports = async (status = "open", limit = 50) => {
+    const response = await fetch(`${HOST_URL}/api/moderation/reports?status=${status}&limit=${limit}`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const updateReportStatus = async (reportId: string, status: "open" | "reviewing" | "resolved" | "rejected") => {
+    const response = await fetch(`${HOST_URL}/api/moderation/reports/${reportId}/status`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");

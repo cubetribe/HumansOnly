@@ -144,6 +144,7 @@ export async function POST(request: NextRequest, { params: { username } }: { par
             location: user.location,
             website: user.website,
             isVerifiedHuman: user.isVerifiedHuman,
+            role: user.role,
             createdAt: user.createdAt,
             photoUrl: user.photoUrl,
             headerUrl: user.headerUrl,

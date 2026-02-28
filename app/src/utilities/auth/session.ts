@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/prisma/client";
 import { verifyJwtToken } from "@/utilities/auth";
 import { hashPassword } from "@/utilities/bcrypt";
+import { UserRole, isUserRole } from "@/types/Role";
 
 type ClerkClaims = {
     username?: unknown;
@@ -24,6 +25,7 @@ const authenticatedUserSelect = {
     location: true,
     website: true,
     isVerifiedHuman: true,
+    role: true,
     createdAt: true,
     photoUrl: true,
     headerUrl: true,
@@ -34,6 +36,13 @@ type AuthenticatedUserRecord = Prisma.UserGetPayload<{ select: typeof authentica
 export type AuthenticatedUser = AuthenticatedUserRecord & {
     authSource: "clerk" | "legacy";
 };
+
+export const isAdmin = (user: Pick<AuthenticatedUser, "role"> | null | undefined) => user?.role === "admin";
+
+export const isModerator = (user: Pick<AuthenticatedUser, "role"> | null | undefined) =>
+    user?.role === "moderator" || user?.role === "admin";
+
+export const normalizeUserRole = (value: unknown): UserRole => (isUserRole(value) ? value : "user");
 
 const sanitizeUsername = (value: string) =>
     value

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.7] - 2026-02-28
+
+### Added
+
+- Role and moderation backend APIs:
+  - `GET /api/admin/users`
+  - `POST /api/admin/users/[username]/role`
+  - `GET /api/moderation/reports`
+  - `POST /api/moderation/reports/[reportId]/status`
+- Post editing backend/frontend flow with `editedAt` support.
+- Mobile bottom navigation + floating post action for authenticated users.
+- Prisma migration:
+  - `app/src/prisma/migrations/20260227235937_add_roles_and_tweet_editing`
+
+### Changed
+
+- Tweet deletion now supports moderator/admin authorization and validates route username against tweet author.
+- Settings page now includes role management (admin) and moderation queue controls (moderator/admin).
+- Clerk bridge JWT payload now includes the user role claim.
+- `scripts/ci-quality.sh` now prepares Prisma env before `npm ci` and prevents `.env` `NODE_ENV` leakage into build.
+
+### Fixed
+
+- Single tweet delete client call now uses author username route parameter (instead of author ID).
+- GitHub quality gate instability caused by Prisma env ordering and `.env` side effects in CI-like runs.
+
 ## [1.8.0] - 2026-02-27
 
 ### Added

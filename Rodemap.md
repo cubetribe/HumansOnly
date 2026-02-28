@@ -1,11 +1,16 @@
 # Humans Only - Rodemap
 
-Last updated: 2026-02-27
+Last updated: 2026-02-28
 Owner: Codex + Dennis
 Execution mode: Parallel workstreams with strict validation gates per wave
 
 ## Goal
 Build Humans Only into a production-grade social network (photo-first, no video for now) with stable auth, secure media, reliable messaging, robust notifications, and deployment/monitoring maturity.
+
+## Current Execution Status
+- Wave plan remains the delivery framework, but production hardening is active again due reported functional gaps.
+- Current stabilization track (v1.8.7): role/moderation controls, post edit/delete reliability, mobile UX consistency, CI gate reliability.
+- Validation gate remains mandatory: lint, build, Prisma validation, and live-domain smoke.
 
 ## Wave Overview
 
@@ -88,7 +93,7 @@ Acceptance:
 - Measurable SLOs and reliable release process
 
 ### Wave 6 - Live Validation and Hardening Loop
-Status: `completed` (v1.8.0, validated live 2026-02-27)
+Status: `reopened` (active hardening follow-up on 2026-02-28)
 
 Scope:
 - Full live-domain verification matrix

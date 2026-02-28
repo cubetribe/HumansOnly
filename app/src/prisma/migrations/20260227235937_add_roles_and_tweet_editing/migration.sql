@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "Tweet" ADD COLUMN     "editedAt" TIMESTAMP(3),
+ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "role" VARCHAR(20) NOT NULL DEFAULT 'user';

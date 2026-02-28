@@ -1,5 +1,15 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-02-28 - Roles, Moderation, Mobile UX + CI Reliability (v1.8.7)
+
+-   added admin/moderation APIs for user role changes and report queue status updates
+-   added post edit API + UI flow with edited marker support (`Tweet.editedAt`)
+-   enabled moderator/admin post deletion from UI and backend auth checks
+-   fixed single-post delete path to use `username` route param instead of user ID
+-   added mobile bottom navigation and floating post action for authenticated users
+-   added migration `20260227235937_add_roles_and_tweet_editing` (`User.role`, `Tweet.updatedAt`, `Tweet.editedAt`)
+-   hardened `scripts/ci-quality.sh` to set Prisma env before `npm ci` and isolate `NODE_ENV` from `.env`
+
 ## 2026-02-27 - CI Gate Env Fallback Fix (v1.8.6)
 
 -   fixed recurring GitHub Quality Gate failures by providing CI-safe fallback `DATABASE_URL`/`DIRECT_DATABASE_URL` when no `.env` exists on runners

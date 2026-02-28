@@ -65,10 +65,12 @@ This isn't a concept. It's not a pitch deck. It's deployed, it's live, and you c
 - User profiles with bios and images
 - Posts with replies and nested conversations
 - Follow system, likes, reposts
+- Post editing and moderated deletion controls
 - Direct messaging
 - Real-time notifications
 - Private profiles + message privacy controls
 - Block, mute, and report flows
+- Role-based moderation (`user`, `moderator`, `admin`) with report queue tooling
 - Global search
 - Dark mode (because we're a resistance, not savages)
 - Fully responsive - works on your phone, your laptop, your smart fridge (untested, but probably)

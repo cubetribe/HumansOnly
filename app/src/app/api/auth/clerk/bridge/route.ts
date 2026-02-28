@@ -23,6 +23,7 @@ export async function POST() {
             location: user.location,
             website: user.website,
             isVerifiedHuman: user.isVerifiedHuman,
+            role: user.role,
             createdAt: user.createdAt,
             photoUrl: user.photoUrl,
             headerUrl: user.headerUrl,

@@ -286,6 +286,13 @@ main {
     }
 }
 
+.edit-tweet-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
 .preview-dialog {
     .btn-close {
         position: absolute;
@@ -422,6 +429,14 @@ main {
             }
         }
     }
+}
+
+.mobile-nav {
+    display: none;
+}
+
+.mobile-post-fab {
+    display: none;
 }
 
 .right-sidebar {
@@ -2116,6 +2131,33 @@ button.icon-hoverable {
         gap: 0.5rem;
         color: inherit;
     }
+
+    .moderation-report-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .moderation-report-row {
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .moderation-report-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        min-width: 0;
+
+        .text-muted {
+            overflow-wrap: anywhere;
+        }
+    }
 }
 
 ::-webkit-scrollbar {
@@ -2494,7 +2536,85 @@ button.icon-hoverable {
     }
 
     .layout {
-        grid-template-columns: auto minmax(360px, 1fr) 0;
+        grid-template-columns: minmax(0, 1fr);
+
+        & > main {
+            padding-bottom: 5.5rem;
+        }
+    }
+
+    .left-sidebar,
+    .right-sidebar {
+        display: none;
+    }
+
+    .mobile-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        border-top: 1px solid var(--border-color);
+        background-color: var(--background-primary);
+    }
+
+    .mobile-nav-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        min-height: 56px;
+        color: var(--ho-muted);
+        font-size: 0.75rem;
+
+        svg {
+            font-size: 1.1rem;
+        }
+
+        &.active {
+            color: var(--ho-black);
+            font-weight: 700;
+        }
+    }
+
+    .mobile-post-fab {
+        display: flex;
+        position: fixed;
+        right: 1rem;
+        bottom: 4.75rem;
+        z-index: 1001;
+        border: none;
+        border-radius: 999px;
+        width: 54px;
+        height: 54px;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--ho-primary);
+        color: var(--const-white);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+
+        svg {
+            font-size: 1.15rem;
+        }
+    }
+
+    .settings-page {
+        .settings-row,
+        .settings-user-row,
+        .moderation-report-row {
+            flex-wrap: wrap;
+        }
+
+        .settings-row .MuiInputBase-root,
+        .settings-user-row .MuiInputBase-root,
+        .moderation-report-row .MuiInputBase-root,
+        .settings-section .MuiTextField-root {
+            width: 100%;
+        }
     }
 
     .tweet .tweet-main .tweet-image img {

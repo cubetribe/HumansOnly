@@ -4,6 +4,8 @@ export type TweetProps = {
     id: string;
     text: string;
     createdAt: Date;
+    updatedAt: Date;
+    editedAt: Date | null;
     author: UserProps;
     authorId: string;
     photoUrl: string;

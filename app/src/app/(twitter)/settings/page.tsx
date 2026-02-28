@@ -3,13 +3,18 @@
 import { useContext, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Avatar, MenuItem, Select, Switch } from "@mui/material";
+import { Avatar, MenuItem, Select, Switch, TextField } from "@mui/material";
 
 import { ThemeContext } from "@/app/providers";
+import { AuthContext } from "@/app/(twitter)/layout";
 import {
+    getAdminUsers,
     getBlockedUsers,
+    getModerationReports,
     getMutedUsers,
     getUserPrivacyPreferences,
+    updateReportStatus,
+    updateUserRole,
     updateUserBlock,
     updateUserMute,
     updateUserPrivacyPreferences,
@@ -19,12 +24,15 @@ import CustomSnackbar from "@/components/misc/CustomSnackbar";
 import { SnackbarProps } from "@/types/SnackbarProps";
 import { UserProps } from "@/types/UserProps";
 import { getFullURL } from "@/utilities/misc/getFullURL";
+import { UserRole } from "@/types/Role";
 
 export default function SettingsPage() {
+    const { token } = useContext(AuthContext);
     const { theme, toggleTheme } = useContext(ThemeContext);
     const queryClient = useQueryClient();
 
     const [snackbar, setSnackbar] = useState<SnackbarProps>({ message: "", severity: "success", open: false });
+    const [adminSearch, setAdminSearch] = useState("");
 
     const { data: preferenceData, isLoading: isPreferenceLoading } = useQuery({
         queryKey: ["settings", "privacy"],
@@ -39,6 +47,21 @@ export default function SettingsPage() {
     const { data: mutedData, isLoading: isMutedLoading } = useQuery({
         queryKey: ["settings", "muted"],
         queryFn: getMutedUsers,
+    });
+
+    const isAdminUser = token?.role === "admin";
+    const canModerate = token?.role === "admin" || token?.role === "moderator";
+
+    const { data: adminUsersData, isLoading: isAdminUsersLoading } = useQuery({
+        queryKey: ["settings", "admin-users", adminSearch],
+        queryFn: () => getAdminUsers(adminSearch, 50),
+        enabled: isAdminUser,
+    });
+
+    const { data: moderationReportsData, isLoading: isReportsLoading } = useQuery({
+        queryKey: ["settings", "moderation-reports"],
+        queryFn: () => getModerationReports("open", 30),
+        enabled: canModerate,
     });
 
     const updatePreferencesMutation = useMutation({
@@ -100,9 +123,50 @@ export default function SettingsPage() {
         },
     });
 
+    const roleMutation = useMutation({
+        mutationFn: ({ username, role }: { username: string; role: UserRole }) => updateUserRole(username, role),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["settings", "admin-users"] });
+            setSnackbar({
+                message: "User role updated.",
+                severity: "success",
+                open: true,
+            });
+        },
+        onError: (error: Error) => {
+            setSnackbar({
+                message: error.message || "Failed to update role.",
+                severity: "error",
+                open: true,
+            });
+        },
+    });
+
+    const reportStatusMutation = useMutation({
+        mutationFn: ({ reportId, status }: { reportId: string; status: "open" | "reviewing" | "resolved" | "rejected" }) =>
+            updateReportStatus(reportId, status),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["settings", "moderation-reports"] });
+            setSnackbar({
+                message: "Report status updated.",
+                severity: "success",
+                open: true,
+            });
+        },
+        onError: (error: Error) => {
+            setSnackbar({
+                message: error.message || "Failed to update report status.",
+                severity: "error",
+                open: true,
+            });
+        },
+    });
+
     const preferences = preferenceData?.preferences || { isPrivate: false, messagePrivacy: "everyone" };
     const blockedUsers = blockedData?.users || [];
     const mutedUsers = mutedData?.users || [];
+    const adminUsers = adminUsersData?.users || [];
+    const moderationReports = moderationReportsData?.reports || [];
 
     const handleTogglePrivate = () => {
         updatePreferencesMutation.mutate({ isPrivate: !preferences.isPrivate });
@@ -212,6 +276,107 @@ export default function SettingsPage() {
                     </div>
                 )}
             </section>
+
+            {canModerate && (
+                <section className="settings-section">
+                    <h2>Moderation Queue</h2>
+                    {isReportsLoading ? (
+                        <CircularLoading />
+                    ) : moderationReports.length === 0 ? (
+                        <p className="text-muted">No open reports.</p>
+                    ) : (
+                        <div className="moderation-report-list">
+                            {moderationReports.map(
+                                (report: {
+                                    id: string;
+                                    reason: string;
+                                    details?: string | null;
+                                    status: "open" | "reviewing" | "resolved" | "rejected";
+                                    targetUser?: { username: string } | null;
+                                    targetTweet?: { id: string; author?: { username: string } | null } | null;
+                                }) => (
+                                    <div className="moderation-report-row" key={report.id}>
+                                        <div className="moderation-report-meta">
+                                            <strong>{report.reason}</strong>
+                                            <span className="text-muted">
+                                                {report.targetUser
+                                                    ? `User: @${report.targetUser.username}`
+                                                    : report.targetTweet
+                                                    ? `Post: ${report.targetTweet.id.slice(0, 8)}… by @${
+                                                          report.targetTweet.author?.username || "unknown"
+                                                      }`
+                                                    : "Unknown target"}
+                                            </span>
+                                            {report.details ? <span className="text-muted">{report.details}</span> : null}
+                                        </div>
+                                        <Select
+                                            size="small"
+                                            value={report.status}
+                                            onChange={(event) =>
+                                                reportStatusMutation.mutate({
+                                                    reportId: report.id,
+                                                    status: event.target.value as "open" | "reviewing" | "resolved" | "rejected",
+                                                })
+                                            }
+                                            disabled={reportStatusMutation.isLoading}
+                                        >
+                                            <MenuItem value="open">Open</MenuItem>
+                                            <MenuItem value="reviewing">Reviewing</MenuItem>
+                                            <MenuItem value="resolved">Resolved</MenuItem>
+                                            <MenuItem value="rejected">Rejected</MenuItem>
+                                        </Select>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
+                </section>
+            )}
+
+            {isAdminUser && (
+                <section className="settings-section">
+                    <h2>Role Management</h2>
+                    <TextField
+                        size="small"
+                        placeholder="Search by username or name"
+                        value={adminSearch}
+                        onChange={(event) => setAdminSearch(event.target.value)}
+                    />
+                    {isAdminUsersLoading ? (
+                        <CircularLoading />
+                    ) : (
+                        <div className="settings-user-list">
+                            {adminUsers.map((user: UserProps & { role: UserRole }) => (
+                                <div className="settings-user-row" key={`admin-user-${user.id}`}>
+                                    <Link href={`/${user.username}`} className="settings-user-link">
+                                        <Avatar
+                                            sx={{ width: 36, height: 36 }}
+                                            alt={user.username}
+                                            src={user.photoUrl ? getFullURL(user.photoUrl) : "/assets/egg.jpg"}
+                                        />
+                                        <span>@{user.username}</span>
+                                    </Link>
+                                    <Select
+                                        size="small"
+                                        value={user.role}
+                                        onChange={(event) =>
+                                            roleMutation.mutate({
+                                                username: user.username,
+                                                role: event.target.value as UserRole,
+                                            })
+                                        }
+                                        disabled={roleMutation.isLoading || user.username === token?.username}
+                                    >
+                                        <MenuItem value="user">User</MenuItem>
+                                        <MenuItem value="moderator">Moderator</MenuItem>
+                                        <MenuItem value="admin">Admin</MenuItem>
+                                    </Select>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </section>
+            )}
 
             {snackbar.open && (
                 <CustomSnackbar message={snackbar.message} severity={snackbar.severity} setSnackbar={setSnackbar} />

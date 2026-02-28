@@ -1,3 +1,5 @@
+import { UserRole } from "./Role";
+
 export type UserProps = {
     id: string;
     name: string | null;
@@ -6,6 +8,7 @@ export type UserProps = {
     location: string | null;
     website: string | null;
     isVerifiedHuman: boolean;
+    role: UserRole;
     isPrivate?: boolean;
     messagePrivacy?: "everyone" | "followers";
     isBlockedByMe?: boolean;

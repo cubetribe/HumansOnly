@@ -1,5 +1,28 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-02 - Sidebar Rework, Legal Hub, Version Sync + Clerk Username Cleanup (v1.8.9)
+
+-   added right-sidebar community board for contributor recruiting and partner ad inventory:
+    -   primary campaign card for developers/moderators/contributors
+    -   two prepared ad placeholder cards
+-   added legal routes:
+    -   `/legal/terms`
+    -   `/legal/privacy`
+    -   `/legal/cookies`
+    -   `/legal/imprint`
+    -   `/legal/accessibility`
+-   switched legal/footer links to Humans Only legal hub and official project GitHub
+-   replaced favicon assets with red fist branding (`src/app/icon.png`, `public/assets/favicon*.png`)
+-   added version automation:
+    -   `scripts/sync-version-file.mjs`
+    -   generated `src/version.ts`
+    -   generated plain `version` file for release visibility
+    -   hooked sync into `predev`, `prebuild`, `prestart`, and `version` script
+-   improved Clerk username handling:
+    -   better username candidates from claims (`username`, `preferred_username`, email, name variants)
+    -   auto-upgrade for legacy auto-generated usernames like `human_xxxxxxxx`
+    -   preserves manually chosen usernames
+
 ## 2026-03-02 - Super Admin RBAC + Full Edit Composer (v1.8.8)
 
 -   added super-admin bootstrap allowlists via env vars:

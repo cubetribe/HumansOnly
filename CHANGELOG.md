@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.9] - 2026-03-02
+
+### Added
+
+- Community/ads module in the right sidebar with:
+  - active contributor call-to-action
+  - two reserved ad placeholders
+- New legal pages:
+  - `/legal/terms`
+  - `/legal/privacy`
+  - `/legal/cookies`
+  - `/legal/imprint`
+  - `/legal/accessibility`
+- Version synchronization automation:
+  - `app/scripts/sync-version-file.mjs`
+  - generated app version exports in `app/src/version.ts`
+  - generated plain version file at `app/version`
+
+### Changed
+
+- Right sidebar now prioritizes project participation and partner ad placement instead of legacy widgets.
+- Legal footer now links to project legal pages and official Humans Only GitHub repository.
+- Release version is now displayed in the footer and auto-synced during `dev/build/start`.
+- Clerk username derivation now prefers readable identity fields (`username`, preferred username, email prefix, name parts).
+
+### Fixed
+
+- Replaced old favicon branding with the red fist across app icon and shared favicon assets.
+- Existing Clerk users with auto-generated cryptic usernames (`human_xxxxxxxx`) are now automatically upgraded to friendly usernames when possible.
+
 ## [1.8.8] - 2026-03-02
 
 ### Added

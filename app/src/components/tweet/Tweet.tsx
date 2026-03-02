@@ -62,10 +62,8 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
     });
 
     const editMutation = useMutation({
-        mutationFn: (nextText: string) =>
-            editTweet(displayedTweet.id, displayedTweet.author.username, {
-                text: nextText,
-            }),
+        mutationFn: (payload: { text: string; photoUrl?: string | null }) =>
+            editTweet(displayedTweet.id, displayedTweet.author.username, payload),
         onSuccess: async () => {
             setIsEditOpen(false);
             await queryClient.invalidateQueries({ queryKey: ["tweets"] });
@@ -297,9 +295,11 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
             </Popover>
             <EditTweetDialog
                 open={isEditOpen}
+                token={displayedTweet.author}
                 initialText={displayedTweet.text}
+                initialPhotoUrl={displayedTweet.photoUrl}
                 onClose={() => setIsEditOpen(false)}
-                onSave={(nextText) => editMutation.mutate(nextText)}
+                onSave={(payload) => editMutation.mutate(payload)}
                 isSaving={editMutation.isLoading}
             />
             {snackbar.open && <CustomSnackbar message={snackbar.message} severity={snackbar.severity} setSnackbar={setSnackbar} />}

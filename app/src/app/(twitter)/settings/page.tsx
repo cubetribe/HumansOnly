@@ -50,6 +50,7 @@ export default function SettingsPage() {
     });
 
     const isAdminUser = token?.role === "admin";
+    const isSuperAdmin = Boolean(token?.isSuperAdmin);
     const canModerate = token?.role === "admin" || token?.role === "moderator";
 
     const { data: adminUsersData, isLoading: isAdminUsersLoading } = useQuery({
@@ -336,6 +337,11 @@ export default function SettingsPage() {
             {isAdminUser && (
                 <section className="settings-section">
                     <h2>Role Management</h2>
+                    <p className="text-muted">
+                        {isSuperAdmin
+                            ? "Super admin mode: you can assign user, moderator, and admin roles."
+                            : "Admin mode: you can manage users and moderators. Only super admins can modify admin roles."}
+                    </p>
                     <TextField
                         size="small"
                         placeholder="Search by username or name"
@@ -346,33 +352,44 @@ export default function SettingsPage() {
                         <CircularLoading />
                     ) : (
                         <div className="settings-user-list">
-                            {adminUsers.map((user: UserProps & { role: UserRole }) => (
-                                <div className="settings-user-row" key={`admin-user-${user.id}`}>
-                                    <Link href={`/${user.username}`} className="settings-user-link">
-                                        <Avatar
-                                            sx={{ width: 36, height: 36 }}
-                                            alt={user.username}
-                                            src={user.photoUrl ? getFullURL(user.photoUrl) : "/assets/egg.jpg"}
-                                        />
-                                        <span>@{user.username}</span>
-                                    </Link>
-                                    <Select
-                                        size="small"
-                                        value={user.role}
-                                        onChange={(event) =>
-                                            roleMutation.mutate({
-                                                username: user.username,
-                                                role: event.target.value as UserRole,
-                                            })
-                                        }
-                                        disabled={roleMutation.isLoading || user.username === token?.username}
-                                    >
-                                        <MenuItem value="user">User</MenuItem>
-                                        <MenuItem value="moderator">Moderator</MenuItem>
-                                        <MenuItem value="admin">Admin</MenuItem>
-                                    </Select>
-                                </div>
-                            ))}
+                            {adminUsers.map((user: UserProps & { role: UserRole; isSuperAdmin?: boolean }) => {
+                                const isCurrentUser = user.username === token?.username;
+                                const isProtectedSuperAdmin = Boolean(user.isSuperAdmin);
+                                const isAdminRoleProtected = !isSuperAdmin && user.role === "admin";
+                                const isRoleSelectDisabled =
+                                    roleMutation.isLoading || isCurrentUser || isProtectedSuperAdmin || isAdminRoleProtected;
+
+                                return (
+                                    <div className="settings-user-row" key={`admin-user-${user.id}`}>
+                                        <Link href={`/${user.username}`} className="settings-user-link">
+                                            <Avatar
+                                                sx={{ width: 36, height: 36 }}
+                                                alt={user.username}
+                                                src={user.photoUrl ? getFullURL(user.photoUrl) : "/assets/egg.jpg"}
+                                            />
+                                            <span>
+                                                @{user.username}
+                                                {user.isSuperAdmin ? " · super admin" : ""}
+                                            </span>
+                                        </Link>
+                                        <Select
+                                            size="small"
+                                            value={user.role}
+                                            onChange={(event) =>
+                                                roleMutation.mutate({
+                                                    username: user.username,
+                                                    role: event.target.value as UserRole,
+                                                })
+                                            }
+                                            disabled={isRoleSelectDisabled}
+                                        >
+                                            <MenuItem value="user">User</MenuItem>
+                                            <MenuItem value="moderator">Moderator</MenuItem>
+                                            {(isSuperAdmin || user.role === "admin") && <MenuItem value="admin">Admin</MenuItem>}
+                                        </Select>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </section>

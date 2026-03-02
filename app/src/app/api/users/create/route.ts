@@ -6,6 +6,7 @@ import { hashPassword } from "@/utilities/bcrypt";
 import { getJwtSecretKey } from "@/utilities/auth";
 import { buildAuthCookie } from "@/utilities/auth/cookies";
 import { createNotification } from "@/utilities/fetch";
+import { isSuperAdminIdentity, resolveEffectiveRole } from "@/utilities/auth/roles";
 
 type CreateUserPayload = {
     username: string;
@@ -79,6 +80,11 @@ export async function POST(request: NextRequest) {
                 password: hashedPassword,
             },
         });
+        const isSuperAdmin = isSuperAdminIdentity({
+            username: newUser.username,
+            clerkId: newUser.clerkId,
+        });
+        const effectiveRole = resolveEffectiveRole(newUser.role, isSuperAdmin);
 
         await createNotification(newUser.username, "welcome", secret);
 
@@ -90,7 +96,8 @@ export async function POST(request: NextRequest) {
             location: newUser.location,
             website: newUser.website,
             isVerifiedHuman: newUser.isVerifiedHuman,
-            role: newUser.role,
+            role: effectiveRole,
+            isSuperAdmin,
             createdAt: newUser.createdAt,
             photoUrl: newUser.photoUrl,
             headerUrl: newUser.headerUrl,

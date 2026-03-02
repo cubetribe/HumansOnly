@@ -83,10 +83,7 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
     });
 
     const editMutation = useMutation({
-        mutationFn: (nextText: string) =>
-            editTweet(tweet.id, tweet.author.username, {
-                text: nextText,
-            }),
+        mutationFn: (payload: { text: string; photoUrl?: string | null }) => editTweet(tweet.id, tweet.author.username, payload),
         onSuccess: async () => {
             setIsEditOpen(false);
             await queryClient.invalidateQueries({ queryKey: ["tweets"] });
@@ -251,9 +248,11 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
             {tweet.replies.length > 0 && <Replies tweetId={tweet.id} tweetAuthor={tweet.author.username} />}
             <EditTweetDialog
                 open={isEditOpen}
+                token={tweet.author}
                 initialText={tweet.text}
+                initialPhotoUrl={tweet.photoUrl}
                 onClose={() => setIsEditOpen(false)}
-                onSave={(nextText) => editMutation.mutate(nextText)}
+                onSave={(payload) => editMutation.mutate(payload)}
                 isSaving={editMutation.isLoading}
             />
             {snackbar.open && (

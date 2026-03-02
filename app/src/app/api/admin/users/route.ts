@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, isAdmin, unauthorizedResponse } from "@/utilities/auth/session";
+import { isSuperAdminIdentity, resolveEffectiveRole } from "@/utilities/auth/roles";
 
 export async function GET(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
@@ -24,10 +25,11 @@ export async function GET(request: NextRequest) {
                   ],
               }
             : undefined,
-        orderBy: [{ role: "desc" }, { createdAt: "desc" }],
+        orderBy: [{ createdAt: "desc" }],
         take: limit,
         select: {
             id: true,
+            clerkId: true,
             username: true,
             name: true,
             role: true,
@@ -37,5 +39,30 @@ export async function GET(request: NextRequest) {
         },
     });
 
-    return NextResponse.json({ success: true, users });
+    const withEffectiveRole = users
+        .map((user) => {
+            const isSuperAdmin = isSuperAdminIdentity({
+                username: user.username,
+                clerkId: user.clerkId,
+            });
+
+            return {
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                role: resolveEffectiveRole(user.role, isSuperAdmin),
+                isSuperAdmin,
+                isVerifiedHuman: user.isVerifiedHuman,
+                createdAt: user.createdAt,
+                photoUrl: user.photoUrl,
+            };
+        })
+        .sort((a, b) => {
+            const roleWeight = { admin: 3, moderator: 2, user: 1 };
+            const weightDelta = roleWeight[b.role] - roleWeight[a.role];
+            if (weightDelta !== 0) return weightDelta;
+            return b.createdAt.getTime() - a.createdAt.getTime();
+        });
+
+    return NextResponse.json({ success: true, users: withEffectiveRole });
 }

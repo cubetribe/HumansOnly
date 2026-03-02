@@ -5,6 +5,7 @@ import { prisma } from "@/prisma/client";
 import { comparePasswords } from "@/utilities/bcrypt";
 import { getJwtSecretKey } from "@/utilities/auth";
 import { buildAuthCookie } from "@/utilities/auth/cookies";
+import { isSuperAdminIdentity, resolveEffectiveRole } from "@/utilities/auth/roles";
 
 const INVALID_CREDENTIALS_MESSAGE = "Username or password is not correct.";
 
@@ -53,6 +54,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, message: INVALID_CREDENTIALS_MESSAGE }, { status: 401 });
         }
 
+        const isSuperAdmin = isSuperAdminIdentity({
+            username: user.username,
+            clerkId: user.clerkId,
+        });
+        const effectiveRole = resolveEffectiveRole(user.role, isSuperAdmin);
+
         const token = await new SignJWT({
             id: user.id,
             username: user.username,
@@ -61,7 +68,8 @@ export async function POST(request: NextRequest) {
             location: user.location,
             website: user.website,
             isVerifiedHuman: user.isVerifiedHuman,
-            role: user.role,
+            role: effectiveRole,
+            isSuperAdmin,
             createdAt: user.createdAt,
             photoUrl: user.photoUrl,
             headerUrl: user.headerUrl,

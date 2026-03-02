@@ -6,6 +6,7 @@ import { getJwtSecretKey } from "@/utilities/auth";
 import { buildAuthCookie } from "@/utilities/auth/cookies";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
+import { isSuperAdminIdentity, resolveEffectiveRole } from "@/utilities/auth/roles";
 
 type ValidationResult = {
     isSet: boolean;
@@ -135,6 +136,11 @@ export async function POST(request: NextRequest, { params: { username } }: { par
             },
             data: updateData,
         });
+        const isSuperAdmin = isSuperAdminIdentity({
+            username: user.username,
+            clerkId: user.clerkId,
+        });
+        const effectiveRole = resolveEffectiveRole(user.role, isSuperAdmin);
 
         const newToken = await new SignJWT({
             id: user.id,
@@ -144,7 +150,8 @@ export async function POST(request: NextRequest, { params: { username } }: { par
             location: user.location,
             website: user.website,
             isVerifiedHuman: user.isVerifiedHuman,
-            role: user.role,
+            role: effectiveRole,
+            isSuperAdmin,
             createdAt: user.createdAt,
             photoUrl: user.photoUrl,
             headerUrl: user.headerUrl,

@@ -9,6 +9,7 @@ export type UserProps = {
     website: string | null;
     isVerifiedHuman: boolean;
     role: UserRole;
+    isSuperAdmin?: boolean;
     isPrivate?: boolean;
     messagePrivacy?: "everyone" | "followers";
     isBlockedByMe?: boolean;

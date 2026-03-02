@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { getJwtSecretKey } from "@/utilities/auth";
 import { buildAuthCookie } from "@/utilities/auth/cookies";
 import { getOrCreateUserByClerkId } from "@/utilities/auth/session";
+import { isSuperAdminIdentity, resolveEffectiveRole } from "@/utilities/auth/roles";
 
 export async function POST() {
     const { userId, sessionClaims } = await auth();
@@ -14,6 +15,11 @@ export async function POST() {
 
     try {
         const user = await getOrCreateUserByClerkId(userId, (sessionClaims || {}) as Record<string, unknown>);
+        const isSuperAdmin = isSuperAdminIdentity({
+            username: user.username,
+            clerkId: user.clerkId,
+        });
+        const effectiveRole = resolveEffectiveRole(user.role, isSuperAdmin);
 
         const token = await new SignJWT({
             id: user.id,
@@ -23,7 +29,8 @@ export async function POST() {
             location: user.location,
             website: user.website,
             isVerifiedHuman: user.isVerifiedHuman,
-            role: user.role,
+            role: effectiveRole,
+            isSuperAdmin,
             createdAt: user.createdAt,
             photoUrl: user.photoUrl,
             headerUrl: user.headerUrl,

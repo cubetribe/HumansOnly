@@ -6,7 +6,8 @@ import { cookies } from "next/headers";
 import { prisma } from "@/prisma/client";
 import { verifyJwtToken } from "@/utilities/auth";
 import { hashPassword } from "@/utilities/bcrypt";
-import { UserRole, isUserRole } from "@/types/Role";
+import { UserRole } from "@/types/Role";
+import { isSuperAdminIdentity, resolveEffectiveRole } from "@/utilities/auth/roles";
 
 type ClerkClaims = {
     username?: unknown;
@@ -33,7 +34,9 @@ const authenticatedUserSelect = {
 
 type AuthenticatedUserRecord = Prisma.UserGetPayload<{ select: typeof authenticatedUserSelect }>;
 
-export type AuthenticatedUser = AuthenticatedUserRecord & {
+export type AuthenticatedUser = Omit<AuthenticatedUserRecord, "role"> & {
+    role: UserRole;
+    isSuperAdmin: boolean;
     authSource: "clerk" | "legacy";
 };
 
@@ -41,8 +44,6 @@ export const isAdmin = (user: Pick<AuthenticatedUser, "role"> | null | undefined
 
 export const isModerator = (user: Pick<AuthenticatedUser, "role"> | null | undefined) =>
     user?.role === "moderator" || user?.role === "admin";
-
-export const normalizeUserRole = (value: unknown): UserRole => (isUserRole(value) ? value : "user");
 
 const sanitizeUsername = (value: string) =>
     value
@@ -130,15 +131,26 @@ const getLegacyCookieUser = async () => {
 };
 
 export const getAuthenticatedUser = async (): Promise<AuthenticatedUser | null> => {
+    const withEffectiveRole = (user: AuthenticatedUserRecord, authSource: "clerk" | "legacy"): AuthenticatedUser => {
+        const isSuperAdmin = isSuperAdminIdentity({
+            username: user.username,
+            clerkId: user.clerkId,
+        });
+
+        return {
+            ...user,
+            role: resolveEffectiveRole(user.role, isSuperAdmin),
+            isSuperAdmin,
+            authSource,
+        };
+    };
+
     try {
         const { userId, sessionClaims } = await auth();
 
         if (userId) {
             const user = await getOrCreateUserByClerkId(userId, (sessionClaims || {}) as ClerkClaims);
-            return {
-                ...user,
-                authSource: "clerk",
-            };
+            return withEffectiveRole(user, "clerk");
         }
     } catch {
         // Gracefully continue with legacy cookie fallback.
@@ -147,10 +159,7 @@ export const getAuthenticatedUser = async (): Promise<AuthenticatedUser | null> 
     const legacyUser = await getLegacyCookieUser();
     if (!legacyUser) return null;
 
-    return {
-        ...legacyUser,
-        authSource: "legacy",
-    };
+    return withEffectiveRole(legacyUser, "legacy");
 };
 
 export const unauthorizedResponse = (message = "You are not authorized to perform this action.") =>

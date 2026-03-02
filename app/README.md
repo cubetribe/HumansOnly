@@ -51,6 +51,7 @@ In an era of AI-generated content flooding the internet, Humans Only provides a 
 ### Core Features
 - User Profiles with customizable bio and images
 - Posts and Replies (character-limited)
+- Composer-grade post editing (text, emoji, image replace/remove)
 - Following/Followers system
 - Likes and Reposts (with undo support)
 - Real-time Notifications
@@ -65,6 +66,7 @@ In an era of AI-generated content flooding the internet, Humans Only provides a 
 
 ### Technical Features
 - Clerk-first session auth with legacy JWT compatibility for migration routes
+- Protected super-admin bootstrap with server-side RBAC enforcement
 - Real-time data fetching with React Query
 - Infinite Scroll pagination
 - Optimistic UI updates
@@ -134,6 +136,8 @@ DIRECT_DATABASE_URL="postgresql://[USER]:[PASSWORD]@localhost:5432/humansonly_de
 JWT_SECRET_KEY="your_jwt_secret_key_here"
 CREATION_SECRET_KEY="your_creation_secret_here"
 BLUE_SECRET_KEY="thanksforcaring"
+SUPER_ADMIN_USERNAMES="your_admin_username,co_admin_username"
+SUPER_ADMIN_CLERK_IDS="user_2abc123,user_2def456"
 
 # APPLICATION
 NEXT_PUBLIC_HOST_URL="http://localhost:3000"
@@ -297,6 +301,8 @@ Full API documentation: `/docs/API_CONSUMERS.md`
 | `JWT_SECRET_KEY` | JWT signing secret | Random 64-char hex string |
 | `CREATION_SECRET_KEY` | Account creation secret | Random 64-char hex string |
 | `BLUE_SECRET_KEY` | Premium verification code | `thanksforcaring` |
+| `SUPER_ADMIN_USERNAMES` | Comma-separated username allowlist for protected super-admin powers | `owner,ops_admin` |
+| `SUPER_ADMIN_CLERK_IDS` | Comma-separated Clerk ID allowlist for super-admin powers | `user_2abc123,user_2def456` |
 | `NEXT_PUBLIC_HOST_URL` | App URL | `https://ho.nm-forum.de` |
 | `NODE_ENV` | Environment | `development` or `production` |
 | `PORT` | Server port | `3000` (dev), `3001` (prod) |
@@ -372,6 +378,14 @@ rm -rf .next
 rm -rf node_modules package-lock.json
 npm install
 ```
+
+### Role Management Not Visible in Settings
+
+- Confirm your account resolves as admin via one of:
+  - database role `admin`
+  - `SUPER_ADMIN_USERNAMES` / `SUPER_ADMIN_CLERK_IDS` allowlist
+- Re-login after changing environment variables so the bridge session refreshes.
+- Super-admin-protected accounts cannot be demoted via UI by design.
 
 ---
 

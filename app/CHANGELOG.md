@@ -1,5 +1,22 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-02 - Super Admin RBAC + Full Edit Composer (v1.8.8)
+
+-   added super-admin bootstrap allowlists via env vars:
+    -   `SUPER_ADMIN_USERNAMES`
+    -   `SUPER_ADMIN_CLERK_IDS`
+-   added centralized effective-role/super-admin resolver in `src/utilities/auth/roles.ts`
+-   enforced server-side admin escalation guards:
+    -   only super admins can assign/remove `admin`
+    -   super-admin identities are protected from role edits
+-   added structured role-change audit logs (`event: role_change`)
+-   upgraded post edit UX from text-only modal to composer-style editor:
+    -   emoji support
+    -   image replace/remove
+    -   upload-before-save integration with existing edit API
+-   updated settings role-management UI for super-admin visibility and protections
+-   synchronized auth/session JWT payloads with `isSuperAdmin` + effective role resolution
+
 ## 2026-02-28 - Roles, Moderation, Mobile UX + CI Reliability (v1.8.7)
 
 -   added admin/moderation APIs for user role changes and report queue status updates

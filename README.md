@@ -65,12 +65,13 @@ This isn't a concept. It's not a pitch deck. It's deployed, it's live, and you c
 - User profiles with bios and images
 - Posts with replies and nested conversations
 - Follow system, likes, reposts
-- Post editing and moderated deletion controls
+- Composer-grade post editing (text, emoji, replace/remove image)
+- Moderated deletion controls
 - Direct messaging
 - Real-time notifications
 - Private profiles + message privacy controls
 - Block, mute, and report flows
-- Role-based moderation (`user`, `moderator`, `admin`) with report queue tooling
+- Role-based moderation (`user`, `moderator`, `admin`) with protected super-admin controls
 - Global search
 - Dark mode (because we're a resistance, not savages)
 - Fully responsive - works on your phone, your laptop, your smart fridge (untested, but probably)
@@ -170,6 +171,21 @@ cd ..
 npm run dev
 # → http://localhost:3000
 ```
+
+### Super Admin Bootstrap (Live/Prod)
+
+Add one or both environment variables on your server to unlock protected super-admin controls in Settings:
+
+```bash
+SUPER_ADMIN_USERNAMES="your_username,co_admin_username"
+SUPER_ADMIN_CLERK_IDS="user_2abc123,user_2def456"
+```
+
+Behavior:
+- super admins can assign all roles (`user`, `moderator`, `admin`)
+- regular admins can manage users/moderators, but cannot assign/demote admins
+- super admin identities are protected from role edits
+- role changes are server-audited via structured logs (`event: role_change`)
 
 ### Checks & Deploy
 

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.8] - 2026-03-02
+
+### Added
+
+- Super-admin bootstrap controls via environment allowlists:
+  - `SUPER_ADMIN_USERNAMES`
+  - `SUPER_ADMIN_CLERK_IDS`
+- Server-side effective-role resolver and super-admin identity utility:
+  - `app/src/utilities/auth/roles.ts`
+- Structured audit log events for role changes (`event: role_change`).
+
+### Changed
+
+- Post editing dialog now uses a composer-style flow:
+  - text + emoji
+  - image replace/remove
+  - upload-before-save path integrated into edit
+- Admin user listing now returns effective roles with super-admin protection metadata.
+- Session/token issuance paths now include effective role resolution and `isSuperAdmin` metadata.
+- Role management UI now enforces super-admin boundaries (admin role assignment/demotion protection).
+
+### Fixed
+
+- Resolved edit-post UX regression where media/attachment changes were not possible in edit mode.
+- Resolved live role-management dead-end by enabling explicit super-admin bootstrapping without schema migration.
+
 ## [1.8.7] - 2026-02-28
 
 ### Added

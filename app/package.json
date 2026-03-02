@@ -19,10 +19,15 @@
     "author": "Fatih Arapoğlu",
     "license": "MIT",
     "scripts": {
+        "sync:version": "node scripts/sync-version-file.mjs",
+        "predev": "npm run sync:version",
         "dev": "next dev",
+        "prebuild": "npm run sync:version",
         "build": "next build",
+        "prestart": "npm run sync:version",
         "start": "next start",
         "lint": "next lint",
+        "version": "npm run sync:version && git add src/version.ts",
         "postinstall": "cd src && npx prisma generate"
     },
     "dependencies": {

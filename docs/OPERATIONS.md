@@ -143,3 +143,20 @@ git pull
   - `authenticity_appeal_submit_rate_limited`
   - `authenticity_decision_rate_limited`
   - `authenticity_appeal_decision_rate_limited`
+
+## 8) Creator Commerce Operations (Wave 8.0 Foundation)
+
+### Admin KPI fields
+- `creatorCommerce.activeCreators`
+- `creatorCommerce.publishedItems`
+- `creatorCommerce.supportTransactions`
+- `creatorCommerce.supportVolumeCents`
+
+### Current payment mode
+- Wave 8.0 stores support intents in `CreatorTip` (`status: recorded`) for auditable tracking.
+- Direct Stripe checkout/payout automation is intentionally deferred to follow-up wave.
+
+### Weekly creator review
+1. Validate creator KPI trend in `GET /api/admin/analytics/kpis?days=7`.
+2. Spot-check newly published creator items for policy/risk issues.
+3. Reconcile recorded support intents with planned payout process until Stripe Connect rollout is active.

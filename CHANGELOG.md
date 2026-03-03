@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.0] - 2026-03-03
+
+### Added
+
+- Wave 8.0 creator commerce foundation artifacts:
+  - `docs/RESEARCH_BRIEF_CREATOR_COMMERCE_2026-03-03.md`
+  - `docs/ARCHITECTURE_SPEC_WAVE8_CREATOR_COMMERCE.md`
+- New creator domain models and migration:
+  - `CreatorProfile`
+  - `CreatorPortfolioItem`
+  - `CreatorTip`
+- New creator APIs:
+  - `GET/POST /api/creator/profile`
+  - `GET/POST /api/creator/items`
+  - `GET /api/creator/[username]`
+  - `POST /api/creator/tips`
+- Artist Studio (Beta) in Settings:
+  - creator profile setup
+  - image/audio item publishing flow
+  - creator media upload integration (`creator_image`, `creator_audio`)
+- Public Artist Showcase module on profile pages with support actions.
+
+### Changed
+
+- Upload pipeline extended for creator media types (`creator_image`, `creator_audio`).
+- Admin analytics now include creator-commerce KPIs (`activeCreators`, `publishedItems`, `supportTransactions`, `supportVolumeCents`).
+- Admin dashboard and Settings analytics cards now surface creator-commerce metrics.
+- Super-admin resolution now always protects and elevates `@human_ikzcsvsb`.
+
 ## [1.17.0] - 2026-03-03
 
 ### Added

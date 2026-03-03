@@ -77,6 +77,9 @@ This isn't a concept. It's not a pitch deck. It's deployed, it's live, and you c
 - Authenticity moderation queue (`allow`, `reject`, `strike`)
 - User-facing authenticity status and appeals flow in Settings
 - Moderator authenticity appeals queue with overturn/uphold decisions
+- Artist Studio (Beta) in Settings (creator profile + portfolio publishing for image/audio)
+- Public Artist Showcase on profile pages with support buttons
+- Creator economy analytics in admin dashboards (active creators, published items, support volume)
 - Trust snapshot API and adaptive risk scoring groundwork
 - Global search
 - Dark mode (because we're a resistance, not savages)
@@ -135,7 +138,9 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
   - moderator SOP ownership + escalation schedule
   - distributed/global rate limiting (current implementation is in-memory per runtime)
   - richer appeal evidence model (attachments + structured claims)
-- ⏳ Wave `8` not started (full C2PA verification + passkey trust signal integration).
+- 🔄 Wave `8` started:
+  - ✅ Wave `8.0` creator commerce foundation delivered (artist studio, showcase, support intents, creator KPIs)
+  - ⏳ pending: Stripe Connect checkout/payout automation + rights-dispute workflow
 - ⏳ Wave `9` not started (compliance labeling, rollout controls, calibration automation).
 
 ### Next Milestones
@@ -144,11 +149,14 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 - Upgrade in-memory abuse controls to shared-store rate limiting
 - Add evidence attachments and richer moderator decision notes
 
-2. **Wave 8.0 - Provenance Upgrade**
+2. **Wave 8.1 - Creator Payments Hardening**
+- Activate Stripe Connect checkout + webhook reconciliation
+- Add connected-account onboarding + payout status lifecycle
+- Add rights/dispute moderation workflow for creator sales
+
+3. **Wave 8.2 - Provenance + Trust Upgrade**
 - Replace heuristic provenance extraction with C2PA-aware verification path
 - Add UI provenance badges (`verified`, `unknown`, `invalid`)
-
-3. **Wave 8.1 - Trust Upgrade**
 - Integrate Clerk passkey enrollment signal into trust engine
 - Reduce challenge friction for higher trust tiers with measurable guardrails
 
@@ -214,6 +222,7 @@ Behavior:
 - regular admins can manage users/moderators, but cannot assign/demote admins
 - super admin identities are protected from role edits
 - role changes are server-audited via structured logs (`event: role_change`)
+- default protected super-admin identity in code: `human_ikzcsvsb`
 
 ### Human Authenticity Layer (Wave 7 Foundation)
 

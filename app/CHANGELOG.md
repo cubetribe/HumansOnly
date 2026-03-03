@@ -1,5 +1,34 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Wave 8.0 Creator Commerce Foundation (v1.18.0)
+
+-   added creator-commerce domain models and migration:
+    -   `CreatorProfile`
+    -   `CreatorPortfolioItem`
+    -   `CreatorTip`
+    -   migration: `20260303173000_add_creator_commerce_foundation`
+-   added creator APIs:
+    -   `GET/POST /api/creator/profile`
+    -   `GET/POST /api/creator/items`
+    -   `GET /api/creator/[username]`
+    -   `POST /api/creator/tips`
+-   added Artist Studio (Beta) in Settings:
+    -   creator profile setup
+    -   image/audio portfolio item publishing
+    -   creator item list in settings
+-   added public `CreatorShowcase` on profile pages:
+    -   published artworks/tracks
+    -   support action buttons
+-   extended upload pipeline with creator media types:
+    -   `creator_image`
+    -   `creator_audio`
+-   extended admin analytics/dashboard with creator-commerce KPIs:
+    -   active creators
+    -   published artist items
+    -   support transaction count + volume
+-   enforced default protected super-admin identity:
+    -   `@human_ikzcsvsb`
+
 ## 2026-03-03 - Wave 7.3 Appeals Hardening (v1.17.0)
 
 -   added Wave 7.3 planning artifacts:

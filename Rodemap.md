@@ -2,7 +2,7 @@
 
 Last updated: 2026-03-03  
 Owner: Codex + Dennis  
-Current app version: `1.17.0`
+Current app version: `1.18.0`
 
 ## Goal
 Build Humans Only into a production-grade, humans-only social network with enforceable authenticity controls, moderator tooling, and reliable production operations.
@@ -71,10 +71,19 @@ Still open in Wave 7:
 - Shared/distributed rate limiting (current approach is in-memory per runtime)
 - Richer appeal evidence model (attachments + structured claims)
 
-### Wave 8 - Provenance + Trust Expansion
-Status: `not started` (partially scaffolded)
+### Wave 8 - Creator Commerce + Provenance + Trust Expansion
+Status: `in_progress`
 
-Planned:
+Delivered in 8.0:
+- Creator commerce foundation:
+  - Artist Studio (creator profile + portfolio publishing)
+  - public Artist Showcase on profile pages
+  - support/tip intent ledger + admin creator commerce KPI visibility
+  - upload support for creator image/audio media types
+
+Planned (next slices):
+- Stripe Connect checkout/payout automation for creator support
+- rights/dispute moderation workflow for creator sales
 - Full C2PA/content-credentials parsing and verification chain
 - Neutral provenance badges in UI (`verified`, `unknown`, `invalid`)
 - Passkey/WebAuthn signal integration into trust scoring (currently placeholder `passkeyEnrolled=false`)

@@ -60,6 +60,14 @@ Feed discovery endpoints:
 - `GET /api/feed/for-you`
 - `POST /api/feed/feedback`
 
+## Wave 8.0 Additions (2026-03-03)
+
+Creator commerce foundation endpoints:
+- `GET/POST /api/creator/profile`
+- `GET/POST /api/creator/items`
+- `GET /api/creator/[username]`
+- `POST /api/creator/tips`
+
 ---
 
 ## Table of Contents
@@ -72,6 +80,7 @@ Feed discovery endpoints:
 - [Feed API](#feed-api)
 - [Search API](#search-api)
 - [Analytics API](#analytics-api)
+- [Creator API](#creator-api)
 - [Human Authenticity API](#human-authenticity-api)
 
 ---
@@ -1251,3 +1260,36 @@ Add row to existing endpoint's consumer table with:
 **Maintainer:** Technical Writer Agent
 **Review Frequency:** After every API change
 **Last Full Audit:** 2025-12-21
+
+---
+
+## Creator API
+
+### GET/POST /api/creator/profile
+
+**Defined in:** `app/src/app/api/creator/profile/route.ts`
+
+**Consumers:**
+- `app/src/app/(twitter)/settings/page.tsx` (Artist Studio profile setup)
+
+### GET/POST /api/creator/items
+
+**Defined in:** `app/src/app/api/creator/items/route.ts`
+
+**Consumers:**
+- `app/src/app/(twitter)/settings/page.tsx` (item creation + own item list)
+
+### GET /api/creator/[username]
+
+**Defined in:** `app/src/app/api/creator/[username]/route.ts`
+
+**Consumers:**
+- `app/src/components/creator/CreatorShowcase.tsx` (public artist showcase on profile)
+
+### POST /api/creator/tips
+
+**Defined in:** `app/src/app/api/creator/tips/route.ts`
+
+**Consumers:**
+- `app/src/components/creator/CreatorShowcase.tsx` (support buttons)
+- `app/src/app/api/admin/analytics/kpis/route.ts` (support volume/transaction metrics)

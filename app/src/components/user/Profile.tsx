@@ -24,6 +24,7 @@ import { SnackbarProps } from "@/types/SnackbarProps";
 import CustomSnackbar from "../misc/CustomSnackbar";
 import NewMessageDialog from "../dialog/NewMessageDialog";
 import { createReport, updateUserBlock, updateUserMute } from "@/utilities/fetch";
+import CreatorShowcase from "@/components/creator/CreatorShowcase";
 
 export default function Profile({ profile }: { profile: UserProps }) {
     const [dialogType, setDialogType] = useState("");
@@ -289,32 +290,35 @@ export default function Profile({ profile }: { profile: UserProps }) {
                 </div>
             </div>
             {canViewContent ? (
-                <nav className="profile-nav">
-                    <Link
-                        className={`profile-nav-link ${pathname === `/${profile.username}` ? "active" : ""}`}
-                        href={`/${profile.username}`}
-                    >
-                        <span>Posts</span>
-                    </Link>
-                    <Link
-                        className={`profile-nav-link ${pathname === `/${profile.username}/replies` ? "active" : ""}`}
-                        href={`/${profile.username}/replies`}
-                    >
-                        <span>Replies</span>
-                    </Link>
-                    <Link
-                        className={`profile-nav-link ${pathname === `/${profile.username}/media` ? "active" : ""}`}
-                        href={`/${profile.username}/media`}
-                    >
-                        <span>Media</span>
-                    </Link>
-                    <Link
-                        className={`profile-nav-link ${pathname === `/${profile.username}/likes` ? "active" : ""}`}
-                        href={`/${profile.username}/likes`}
-                    >
-                        <span>Likes</span>
-                    </Link>
-                </nav>
+                <>
+                    <CreatorShowcase username={profile.username} />
+                    <nav className="profile-nav">
+                        <Link
+                            className={`profile-nav-link ${pathname === `/${profile.username}` ? "active" : ""}`}
+                            href={`/${profile.username}`}
+                        >
+                            <span>Posts</span>
+                        </Link>
+                        <Link
+                            className={`profile-nav-link ${pathname === `/${profile.username}/replies` ? "active" : ""}`}
+                            href={`/${profile.username}/replies`}
+                        >
+                            <span>Replies</span>
+                        </Link>
+                        <Link
+                            className={`profile-nav-link ${pathname === `/${profile.username}/media` ? "active" : ""}`}
+                            href={`/${profile.username}/media`}
+                        >
+                            <span>Media</span>
+                        </Link>
+                        <Link
+                            className={`profile-nav-link ${pathname === `/${profile.username}/likes` ? "active" : ""}`}
+                            href={`/${profile.username}/likes`}
+                        >
+                            <span>Likes</span>
+                        </Link>
+                    </nav>
+                </>
             ) : (
                 <div className="profile-restricted text-muted">
                     {profile.hasBlockedMe

@@ -55,6 +55,8 @@ In an era of AI-generated content flooding the internet, Humans Only provides a 
 - Rules page + versioned policy acceptance
 - Pre-post human challenge verification with Turnstile token capture in create/reply/edit flows
 - Authenticity appeal submission + moderator appeal decisions (Settings)
+- Artist Studio (Beta): creator profile + image/audio portfolio publishing in Settings
+- Public Artist Showcase on profile pages with community support actions
 - Following/Followers system
 - Likes and Reposts (with undo support)
 - Real-time Notifications
@@ -167,6 +169,16 @@ UPLOAD_MAX_FILES_PER_DAY="40"
 UPLOAD_MAX_BYTES_PER_DAY="262144000"
 UPLOAD_MAX_REQUEST_BYTES="54525952"
 UPLOAD_ALLOWED_MEDIA_HOSTS="cdn.example.com"
+```
+
+Creator commerce (foundation) specific env knobs:
+
+```env
+# optional: extend media hosts for creator previews/assets
+UPLOAD_ALLOWED_MEDIA_HOSTS="cdn.example.com"
+
+# payout activation is currently manual/foundation-only in this wave
+# Stripe Connect automation is planned for follow-up wave
 ```
 
 **Note:** For Supabase credentials, create a free project at https://supabase.com

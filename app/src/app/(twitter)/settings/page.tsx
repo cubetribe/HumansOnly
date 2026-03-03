@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Avatar, MenuItem, Select, Switch, TextField } from "@mui/material";
@@ -20,7 +20,11 @@ import {
     getUserPrivacyPreferences,
     decideAuthenticityAppeal,
     decideAuthenticityCheck,
+    createCreatorItem,
+    getMyCreatorItems,
+    getMyCreatorProfile,
     submitAuthenticityAppeal,
+    saveCreatorProfile,
     updateReportStatus,
     updateUserRole,
     updateUserBlock,
@@ -33,6 +37,8 @@ import { SnackbarProps } from "@/types/SnackbarProps";
 import { UserProps } from "@/types/UserProps";
 import { getFullURL } from "@/utilities/misc/getFullURL";
 import { UserRole } from "@/types/Role";
+import { uploadFile } from "@/utilities/storage";
+import { CreatorPortfolioItem, CreatorProfile } from "@/types/Creator";
 
 const MAX_APPEAL_REASON_LENGTH = 500;
 const APPEAL_REASON_TEMPLATES = [
@@ -40,6 +46,30 @@ const APPEAL_REASON_TEMPLATES = [
     { label: "False positive", text: "The decision appears to be a false positive." },
     { label: "Need review", text: "I can provide additional context if needed." },
 ];
+
+const DEFAULT_CREATOR_FORM = {
+    stageName: "",
+    bio: "",
+    primaryDiscipline: "music",
+    genres: "",
+    supportEnabled: false,
+    shopEnabled: false,
+    tipMinCents: 200,
+    currency: "EUR",
+};
+
+const DEFAULT_CREATOR_ITEM = {
+    title: "",
+    description: "",
+    mediaType: "image" as "image" | "audio",
+    mediaUrl: "",
+    previewUrl: "",
+    thumbnailUrl: "",
+    priceCents: "",
+    currency: "EUR",
+    licensingType: "personal" as "personal" | "commercial" | "exclusive",
+    isPublished: true,
+};
 
 export default function SettingsPage() {
     const { token } = useContext(AuthContext);
@@ -49,6 +79,9 @@ export default function SettingsPage() {
     const [snackbar, setSnackbar] = useState<SnackbarProps>({ message: "", severity: "success", open: false });
     const [adminSearch, setAdminSearch] = useState("");
     const [appealDrafts, setAppealDrafts] = useState<Record<string, string>>({});
+    const [creatorForm, setCreatorForm] = useState(DEFAULT_CREATOR_FORM);
+    const [creatorItemDraft, setCreatorItemDraft] = useState(DEFAULT_CREATOR_ITEM);
+    const [creatorMediaFile, setCreatorMediaFile] = useState<File | null>(null);
 
     const { data: preferenceData, isLoading: isPreferenceLoading } = useQuery({
         queryKey: ["settings", "privacy"],
@@ -112,6 +145,34 @@ export default function SettingsPage() {
         queryFn: () => getAuthenticityAppeals("open", 30),
         enabled: canModerate,
     });
+
+    const { data: creatorProfileData, isLoading: isCreatorProfileLoading } = useQuery({
+        queryKey: ["settings", "creator-profile"],
+        queryFn: getMyCreatorProfile,
+        enabled: Boolean(token),
+    });
+
+    const { data: creatorItemsData, isLoading: isCreatorItemsLoading } = useQuery({
+        queryKey: ["settings", "creator-items"],
+        queryFn: getMyCreatorItems,
+        enabled: Boolean(token),
+    });
+
+    useEffect(() => {
+        const profile = creatorProfileData?.profile as CreatorProfile | null | undefined;
+        if (!profile) return;
+
+        setCreatorForm({
+            stageName: profile.stageName || "",
+            bio: profile.bio || "",
+            primaryDiscipline: profile.primaryDiscipline || "music",
+            genres: Array.isArray(profile.genres) ? profile.genres.join(", ") : "",
+            supportEnabled: Boolean(profile.supportEnabled),
+            shopEnabled: Boolean(profile.shopEnabled),
+            tipMinCents: Number.isFinite(profile.tipMinCents) ? profile.tipMinCents : 200,
+            currency: profile.currency || "EUR",
+        });
+    }, [creatorProfileData?.profile]);
 
     const updatePreferencesMutation = useMutation({
         mutationFn: updateUserPrivacyPreferences,
@@ -277,6 +338,62 @@ export default function SettingsPage() {
         },
     });
 
+    const creatorProfileMutation = useMutation({
+        mutationFn: () =>
+            saveCreatorProfile({
+                stageName: creatorForm.stageName || null,
+                bio: creatorForm.bio || null,
+                primaryDiscipline: creatorForm.primaryDiscipline || null,
+                genres: creatorForm.genres
+                    .split(",")
+                    .map((entry) => entry.trim())
+                    .filter(Boolean)
+                    .slice(0, 8),
+                supportEnabled: creatorForm.supportEnabled,
+                shopEnabled: creatorForm.shopEnabled,
+                tipMinCents: Number.isFinite(creatorForm.tipMinCents) ? creatorForm.tipMinCents : 200,
+                currency: creatorForm.currency,
+            }),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["settings", "creator-profile"] });
+            await queryClient.invalidateQueries({ queryKey: ["creator", "public", token?.username] });
+            setSnackbar({
+                message: "Artist profile updated.",
+                severity: "success",
+                open: true,
+            });
+        },
+        onError: (error: Error) => {
+            setSnackbar({
+                message: error.message || "Failed to save artist profile.",
+                severity: "error",
+                open: true,
+            });
+        },
+    });
+
+    const creatorItemMutation = useMutation({
+        mutationFn: (payload: Parameters<typeof createCreatorItem>[0]) => createCreatorItem(payload),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["settings", "creator-items"] });
+            await queryClient.invalidateQueries({ queryKey: ["creator", "public", token?.username] });
+            setCreatorItemDraft(DEFAULT_CREATOR_ITEM);
+            setCreatorMediaFile(null);
+            setSnackbar({
+                message: "Artwork published.",
+                severity: "success",
+                open: true,
+            });
+        },
+        onError: (error: Error) => {
+            setSnackbar({
+                message: error.message || "Failed to create artwork item.",
+                severity: "error",
+                open: true,
+            });
+        },
+    });
+
     const updateAppealDraft = (checkId: string, value: string) => {
         setAppealDrafts((prev) => ({
             ...prev,
@@ -307,6 +424,58 @@ export default function SettingsPage() {
         );
     };
 
+    const uploadCreatorMedia = async () => {
+        if (!creatorMediaFile) {
+            setSnackbar({
+                message: "Please select an image or audio file first.",
+                severity: "info",
+                open: true,
+            });
+            return;
+        }
+
+        try {
+            const uploadType = creatorItemDraft.mediaType === "audio" ? "creator_audio" : "creator_image";
+            const mediaPath = await uploadFile(creatorMediaFile, uploadType);
+            setCreatorItemDraft((prev) => ({
+                ...prev,
+                mediaUrl: mediaPath,
+                previewUrl: prev.mediaType === "audio" ? mediaPath : prev.previewUrl,
+            }));
+            setSnackbar({
+                message: "Media uploaded successfully.",
+                severity: "success",
+                open: true,
+            });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Failed to upload creator media.";
+            setSnackbar({
+                message,
+                severity: "error",
+                open: true,
+            });
+        }
+    };
+
+    const createCreatorPortfolioItem = () => {
+        const priceInput = creatorItemDraft.priceCents.trim();
+        const parsedPrice = priceInput ? Number.parseInt(priceInput, 10) : null;
+        const normalizedPrice = parsedPrice !== null && Number.isFinite(parsedPrice) ? parsedPrice : null;
+
+        creatorItemMutation.mutate({
+            title: creatorItemDraft.title,
+            description: creatorItemDraft.description || undefined,
+            mediaType: creatorItemDraft.mediaType,
+            mediaUrl: creatorItemDraft.mediaUrl,
+            previewUrl: creatorItemDraft.previewUrl || undefined,
+            thumbnailUrl: creatorItemDraft.thumbnailUrl || undefined,
+            priceCents: normalizedPrice,
+            currency: creatorItemDraft.currency,
+            licensingType: creatorItemDraft.licensingType,
+            isPublished: creatorItemDraft.isPublished,
+        });
+    };
+
     const preferences = preferenceData?.preferences || { isPrivate: false, messagePrivacy: "everyone" };
     const blockedUsers = blockedData?.users || [];
     const mutedUsers = mutedData?.users || [];
@@ -322,6 +491,13 @@ export default function SettingsPage() {
         repliesCreated: 0,
         activeUsers: 0,
     };
+    const creatorCommerceSummary = adminAnalyticsData?.creatorCommerce || {
+        activeCreators: 0,
+        publishedItems: 0,
+        supportTransactions: 0,
+        supportVolumeCents: 0,
+    };
+    const creatorItems = (creatorItemsData?.items || []) as CreatorPortfolioItem[];
 
     const handleTogglePrivate = () => {
         updatePreferencesMutation.mutate({ isPrivate: !preferences.isPrivate });
@@ -372,6 +548,298 @@ export default function SettingsPage() {
                         <MenuItem value="followers">Followers only</MenuItem>
                     </Select>
                 </div>
+            </section>
+
+            <section className="settings-section">
+                <h2>Artist Studio (Beta)</h2>
+                <p className="text-muted">
+                    Richte dein Künstlerprofil ein, veröffentliche Bilder oder Musik und aktiviere Support von deiner Community.
+                </p>
+                {isCreatorProfileLoading || isCreatorItemsLoading ? (
+                    <CircularLoading />
+                ) : (
+                    <>
+                        <div className="settings-form-grid">
+                            <TextField
+                                size="small"
+                                label="Stage name"
+                                value={creatorForm.stageName}
+                                onChange={(event) =>
+                                    setCreatorForm((prev) => ({
+                                        ...prev,
+                                        stageName: event.target.value,
+                                    }))
+                                }
+                            />
+                            <TextField
+                                size="small"
+                                label="Primary discipline"
+                                value={creatorForm.primaryDiscipline}
+                                onChange={(event) =>
+                                    setCreatorForm((prev) => ({
+                                        ...prev,
+                                        primaryDiscipline: event.target.value,
+                                    }))
+                                }
+                            />
+                            <TextField
+                                size="small"
+                                label="Genres (comma separated)"
+                                value={creatorForm.genres}
+                                onChange={(event) =>
+                                    setCreatorForm((prev) => ({
+                                        ...prev,
+                                        genres: event.target.value,
+                                    }))
+                                }
+                            />
+                            <TextField
+                                size="small"
+                                label="Bio"
+                                multiline
+                                minRows={2}
+                                value={creatorForm.bio}
+                                onChange={(event) =>
+                                    setCreatorForm((prev) => ({
+                                        ...prev,
+                                        bio: event.target.value,
+                                    }))
+                                }
+                            />
+                            <div className="settings-row">
+                                <span>Support enabled</span>
+                                <Switch
+                                    checked={creatorForm.supportEnabled}
+                                    onChange={(_, checked) =>
+                                        setCreatorForm((prev) => ({
+                                            ...prev,
+                                            supportEnabled: checked,
+                                        }))
+                                    }
+                                />
+                            </div>
+                            <div className="settings-row">
+                                <span>Shop enabled</span>
+                                <Switch
+                                    checked={creatorForm.shopEnabled}
+                                    onChange={(_, checked) =>
+                                        setCreatorForm((prev) => ({
+                                            ...prev,
+                                            shopEnabled: checked,
+                                        }))
+                                    }
+                                />
+                            </div>
+                            <TextField
+                                size="small"
+                                type="number"
+                                label="Minimum support (cents)"
+                                value={creatorForm.tipMinCents}
+                                onChange={(event) =>
+                                    setCreatorForm((prev) => ({
+                                        ...prev,
+                                        tipMinCents: Number.parseInt(event.target.value || "200", 10),
+                                    }))
+                                }
+                            />
+                            <Select
+                                size="small"
+                                value={creatorForm.currency}
+                                onChange={(event) =>
+                                    setCreatorForm((prev) => ({
+                                        ...prev,
+                                        currency: String(event.target.value),
+                                    }))
+                                }
+                            >
+                                <MenuItem value="EUR">EUR</MenuItem>
+                                <MenuItem value="USD">USD</MenuItem>
+                                <MenuItem value="GBP">GBP</MenuItem>
+                            </Select>
+                        </div>
+                        <div className="settings-row">
+                            <button
+                                className="btn btn-white"
+                                disabled={creatorProfileMutation.isLoading}
+                                onClick={() => creatorProfileMutation.mutate()}
+                            >
+                                Save artist profile
+                            </button>
+                        </div>
+
+                        <div className="creator-item-composer">
+                            <h3>Add artwork / track</h3>
+                            <div className="settings-form-grid">
+                                <TextField
+                                    size="small"
+                                    label="Title"
+                                    value={creatorItemDraft.title}
+                                    onChange={(event) =>
+                                        setCreatorItemDraft((prev) => ({
+                                            ...prev,
+                                            title: event.target.value,
+                                        }))
+                                    }
+                                />
+                                <Select
+                                    size="small"
+                                    value={creatorItemDraft.mediaType}
+                                    onChange={(event) =>
+                                        setCreatorItemDraft((prev) => ({
+                                            ...prev,
+                                            mediaType: event.target.value as "image" | "audio",
+                                        }))
+                                    }
+                                >
+                                    <MenuItem value="image">Image</MenuItem>
+                                    <MenuItem value="audio">Audio</MenuItem>
+                                </Select>
+                                <TextField
+                                    size="small"
+                                    label="Description"
+                                    multiline
+                                    minRows={2}
+                                    value={creatorItemDraft.description}
+                                    onChange={(event) =>
+                                        setCreatorItemDraft((prev) => ({
+                                            ...prev,
+                                            description: event.target.value,
+                                        }))
+                                    }
+                                />
+                                <TextField
+                                    size="small"
+                                    label="Media URL (auto-filled after upload)"
+                                    value={creatorItemDraft.mediaUrl}
+                                    onChange={(event) =>
+                                        setCreatorItemDraft((prev) => ({
+                                            ...prev,
+                                            mediaUrl: event.target.value,
+                                        }))
+                                    }
+                                />
+                                <TextField
+                                    size="small"
+                                    label="Preview URL (optional)"
+                                    value={creatorItemDraft.previewUrl}
+                                    onChange={(event) =>
+                                        setCreatorItemDraft((prev) => ({
+                                            ...prev,
+                                            previewUrl: event.target.value,
+                                        }))
+                                    }
+                                />
+                                <TextField
+                                    size="small"
+                                    label="Thumbnail URL (optional)"
+                                    value={creatorItemDraft.thumbnailUrl}
+                                    onChange={(event) =>
+                                        setCreatorItemDraft((prev) => ({
+                                            ...prev,
+                                            thumbnailUrl: event.target.value,
+                                        }))
+                                    }
+                                />
+                                <TextField
+                                    size="small"
+                                    type="number"
+                                    label="Price in cents (optional)"
+                                    value={creatorItemDraft.priceCents}
+                                    onChange={(event) =>
+                                        setCreatorItemDraft((prev) => ({
+                                            ...prev,
+                                            priceCents: event.target.value,
+                                        }))
+                                    }
+                                />
+                                <Select
+                                    size="small"
+                                    value={creatorItemDraft.currency}
+                                    onChange={(event) =>
+                                        setCreatorItemDraft((prev) => ({
+                                            ...prev,
+                                            currency: String(event.target.value),
+                                        }))
+                                    }
+                                >
+                                    <MenuItem value="EUR">EUR</MenuItem>
+                                    <MenuItem value="USD">USD</MenuItem>
+                                    <MenuItem value="GBP">GBP</MenuItem>
+                                </Select>
+                                <Select
+                                    size="small"
+                                    value={creatorItemDraft.licensingType}
+                                    onChange={(event) =>
+                                        setCreatorItemDraft((prev) => ({
+                                            ...prev,
+                                            licensingType: event.target.value as "personal" | "commercial" | "exclusive",
+                                        }))
+                                    }
+                                >
+                                    <MenuItem value="personal">Personal license</MenuItem>
+                                    <MenuItem value="commercial">Commercial license</MenuItem>
+                                    <MenuItem value="exclusive">Exclusive rights</MenuItem>
+                                </Select>
+                                <div className="settings-row">
+                                    <span>Publish immediately</span>
+                                    <Switch
+                                        checked={creatorItemDraft.isPublished}
+                                        onChange={(_, checked) =>
+                                            setCreatorItemDraft((prev) => ({
+                                                ...prev,
+                                                isPublished: checked,
+                                            }))
+                                        }
+                                    />
+                                </div>
+                            </div>
+                            <div className="creator-upload-row">
+                                <input
+                                    type="file"
+                                    accept="image/*,audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,audio/ogg,audio/webm"
+                                    onChange={(event) => setCreatorMediaFile(event.target.files?.[0] || null)}
+                                />
+                                <button className="btn btn-white" onClick={uploadCreatorMedia}>
+                                    Upload media
+                                </button>
+                                {creatorMediaFile ? <span className="text-muted">{creatorMediaFile.name}</span> : null}
+                            </div>
+                            <div className="settings-row">
+                                <button
+                                    className="btn btn-white"
+                                    disabled={creatorItemMutation.isLoading || !creatorItemDraft.title.trim() || !creatorItemDraft.mediaUrl}
+                                    onClick={createCreatorPortfolioItem}
+                                >
+                                    Publish artwork
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="moderation-report-list">
+                            {creatorItems.length === 0 ? (
+                                <p className="text-muted">Noch keine Artist-Items veröffentlicht.</p>
+                            ) : (
+                                creatorItems.map((item) => (
+                                    <div className="moderation-report-row" key={`creator-item-${item.id}`}>
+                                        <div className="moderation-report-meta">
+                                            <strong>{item.title}</strong>
+                                            <span className="text-muted">
+                                                {item.mediaType} · {item.isPublished ? "published" : "draft"} · {item.licensingType}
+                                            </span>
+                                            {typeof item.priceCents === "number" ? (
+                                                <span className="text-muted">
+                                                    {item.priceCents / 100} {item.currency}
+                                                </span>
+                                            ) : (
+                                                <span className="text-muted">No price set</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </>
+                )}
             </section>
 
             <section className="settings-section">
@@ -799,7 +1267,22 @@ export default function SettingsPage() {
                                     <strong>{analyticsActivitySummary.repliesCreated}</strong>
                                     <span className="text-muted">Replies created</span>
                                 </div>
+                                <div className="settings-metric-card">
+                                    <strong>{creatorCommerceSummary.activeCreators}</strong>
+                                    <span className="text-muted">Active creators</span>
+                                </div>
+                                <div className="settings-metric-card">
+                                    <strong>{creatorCommerceSummary.publishedItems}</strong>
+                                    <span className="text-muted">Published artist items</span>
+                                </div>
+                                <div className="settings-metric-card">
+                                    <strong>{creatorCommerceSummary.supportTransactions}</strong>
+                                    <span className="text-muted">Support transactions</span>
+                                </div>
                             </div>
+                            <p className="text-muted">
+                                Support volume: {(creatorCommerceSummary.supportVolumeCents || 0) / 100} EUR (recorded)
+                            </p>
 
                             {analyticsEventCounts.length === 0 ? (
                                 <p className="text-muted">No product events in the selected window.</p>

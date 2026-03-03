@@ -2,7 +2,7 @@
 
 Last updated: 2026-03-03  
 Owner: Codex + Dennis  
-Current app version: `1.18.0`
+Current app version: `1.18.1`
 
 ## Goal
 Build Humans Only into a production-grade, humans-only social network with enforceable authenticity controls, moderator tooling, and reliable production operations.
@@ -80,6 +80,11 @@ Delivered in 8.0:
   - public Artist Showcase on profile pages
   - support/tip intent ledger + admin creator commerce KPI visibility
   - upload support for creator image/audio media types
+
+Delivered in 8.1 hardening slice:
+- Post delete reliability hardening (prevents false 404 on slug mismatch).
+- Structured error responses on core tweet read endpoints.
+- Admin dashboard clarity upgrade (queue severity, KPI status rows, quick actions).
 
 Planned (next slices):
 - Stripe Connect checkout/payout automation for creator support

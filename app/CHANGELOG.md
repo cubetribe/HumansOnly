@@ -1,5 +1,24 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - System Hardening + Admin Dashboard UX (v1.18.1)
+
+-   fixed post deletion hardening:
+    -   `POST /api/tweets/[username]/[tweetId]/delete` no longer returns false `404` on slug mismatch
+    -   ownership/moderator authorization remains enforced by `authorId` + role checks
+    -   improved structured error handling with request-id aware responses
+-   improved delete UX on single post page:
+    -   surfaced delete failures in snackbar instead of silent console-only errors
+-   hardened API error handling for high-traffic tweet read endpoints:
+    -   `GET /api/tweets/all`
+    -   `GET /api/tweets/[username]`
+    -   `GET /api/tweets/[username]/[tweetId]`
+-   upgraded admin dashboard presentation for operational clarity:
+    -   severity pills for moderation/KPI/creator state
+    -   KPI health row list
+    -   quick action links
+-   extended live smoke script with delete-route hardening check:
+    -   `scripts/live-social-smoke.sh`
+
 ## 2026-03-03 - Wave 8.0 Creator Commerce Foundation (v1.18.0)
 
 -   added creator-commerce domain models and migration:

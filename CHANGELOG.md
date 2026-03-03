@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.1] - 2026-03-03
+
+### Fixed
+
+- Hardened post deletion route to avoid false `404` caused by slug mismatch while still enforcing ownership/moderator authorization.
+- Improved delete client error handling with request-id surfaced in error messages for faster support diagnostics.
+- `SingleTweet` delete flow now surfaces API failures to users instead of logging silently.
+
+### Changed
+
+- Core tweet read endpoints now use structured observability error responses:
+  - `GET /api/tweets/all`
+  - `GET /api/tweets/[username]`
+  - `GET /api/tweets/[username]/[tweetId]`
+- Admin dashboard UI upgraded for clearer operations state:
+  - KPI health rows with explicit threshold status
+  - moderation severity pills
+  - quick-action links for common admin workflows
+- Live smoke script now includes a delete-route hardening check (`scripts/live-social-smoke.sh`).
+
 ## [1.18.0] - 2026-03-03
 
 ### Added

@@ -69,11 +69,42 @@ export default function AdminPage() {
         },
         { onTrack: 0, dueSoon: 0, overdue: 0 }
     );
+    const kpiHealthRows = [
+        {
+            label: "Active users",
+            healthy: Boolean(healthFlags?.activeUsersHealthy),
+        },
+        {
+            label: "Posts created",
+            healthy: Boolean(healthFlags?.postsCreatedHealthy),
+        },
+        {
+            label: "Replies created",
+            healthy: Boolean(healthFlags?.repliesCreatedHealthy),
+        },
+    ];
+    const unhealthyKpis = kpiHealthRows.filter((row) => !row.healthy).length;
+    const moderationSeverity =
+        appealSlaSummary.overdue > 0 ? "critical" : appealSlaSummary.dueSoon > 0 || openReports.length > 15 ? "warning" : "healthy";
+    const creatorSeverity = creatorCommerce.activeCreators > 0 ? "healthy" : "warning";
 
     return (
         <main className="admin-page">
-            <h1 className="page-name">Admin Dashboard</h1>
-            <p className="text-muted">Operational snapshot for moderation, trust, and growth signals.</p>
+            <header className="admin-header">
+                <h1 className="page-name">Admin Dashboard</h1>
+                <p className="text-muted">Operational snapshot for moderation, trust, growth and creator monetization.</p>
+                <div className="admin-quick-actions">
+                    <Link href="/settings" className="btn btn-white">
+                        Open Settings Control Center
+                    </Link>
+                    <Link href="/rules" className="btn btn-white">
+                        Review Rules
+                    </Link>
+                    <Link href="/explore" className="btn btn-white">
+                        Open Explore Feed
+                    </Link>
+                </div>
+            </header>
 
             <section className="admin-grid">
                 <article className="admin-card">
@@ -82,25 +113,36 @@ export default function AdminPage() {
                     <p>Posts created: {activitySummary.postsCreated}</p>
                     <p>Replies created: {activitySummary.repliesCreated}</p>
                 </article>
-                <article className="admin-card">
+                <article className={`admin-card admin-card-status ${moderationSeverity}`}>
                     <h2>Moderation Queue</h2>
+                    <span className={`admin-pill ${moderationSeverity}`}>
+                        {moderationSeverity === "critical" ? "Critical queue pressure" : moderationSeverity === "warning" ? "Queue needs attention" : "Queue healthy"}
+                    </span>
                     <p>Open reports: {openReports.length}</p>
                     <p>Open authenticity appeals: {openAppeals.length}</p>
                     <p>Appeals overdue: {appealSlaSummary.overdue}</p>
                     <p>Appeals due soon: {appealSlaSummary.dueSoon}</p>
                     <p>Appeals on track: {appealSlaSummary.onTrack}</p>
-                    <Link href="/settings" className="btn btn-white">
-                        Open Moderation Settings
-                    </Link>
                 </article>
-                <article className="admin-card">
+                <article className={`admin-card admin-card-status ${unhealthyKpis > 0 ? "warning" : "healthy"}`}>
                     <h2>KPI Health</h2>
-                    <p>Active users healthy: {healthFlags?.activeUsersHealthy ? "yes" : "no"}</p>
-                    <p>Posts healthy: {healthFlags?.postsCreatedHealthy ? "yes" : "no"}</p>
-                    <p>Replies healthy: {healthFlags?.repliesCreatedHealthy ? "yes" : "no"}</p>
+                    <span className={`admin-pill ${unhealthyKpis > 0 ? "warning" : "healthy"}`}>
+                        {unhealthyKpis > 0 ? `${unhealthyKpis} KPI(s) below threshold` : "All KPI thresholds healthy"}
+                    </span>
+                    <div className="admin-health-list">
+                        {kpiHealthRows.map((row) => (
+                            <div key={row.label} className="admin-health-row">
+                                <span>{row.label}</span>
+                                <strong className={row.healthy ? "ok" : "danger"}>{row.healthy ? "healthy" : "below"}</strong>
+                            </div>
+                        ))}
+                    </div>
                 </article>
-                <article className="admin-card">
+                <article className={`admin-card admin-card-status ${creatorSeverity}`}>
                     <h2>Creator Commerce</h2>
+                    <span className={`admin-pill ${creatorSeverity}`}>
+                        {creatorSeverity === "healthy" ? "Creator ecosystem active" : "Creator adoption low"}
+                    </span>
                     <p>Active creators: {creatorCommerce.activeCreators}</p>
                     <p>Published artist items: {creatorCommerce.publishedItems}</p>
                     <p>Support transactions: {creatorCommerce.supportTransactions}</p>

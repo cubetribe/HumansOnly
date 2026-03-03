@@ -5,6 +5,7 @@ import { createNotification } from "@/utilities/fetch";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { canUsersInteract } from "@/utilities/social/access";
 import { errorResponse, getRequestId, logApiEvent, successResponse } from "@/utilities/observability";
+import { trackProductEventForUser } from "@/utilities/analytics/server";
 
 export async function POST(request: NextRequest, { params: { username } }: { params: { username: string } }) {
     const requestId = getRequestId(request);
@@ -63,6 +64,17 @@ export async function POST(request: NextRequest, { params: { username } }: { par
         };
 
         await createNotification(username, "follow", secret, notificationContent);
+
+        await trackProductEventForUser({
+            userId: authUser.id,
+            eventName: "user_followed",
+            surface: "profile",
+            sessionId: requestId,
+            payload: {
+                followedUserId: targetUser.id,
+                followedUsername: username,
+            },
+        });
 
         logApiEvent("info", {
             event: "user_followed",

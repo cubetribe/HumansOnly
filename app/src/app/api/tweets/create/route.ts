@@ -4,6 +4,7 @@ import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
 import { runHumanGate } from "@/utilities/human/gate";
+import { trackProductEventForUser } from "@/utilities/analytics/server";
 
 type CreateTweetPayload = {
     text?: unknown;
@@ -15,6 +16,7 @@ type CreateTweetPayload = {
 export async function POST(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse("Unauthorized");
+    const requestId = request.headers.get("x-request-id") || undefined;
 
     let body: CreateTweetPayload;
     try {
@@ -138,6 +140,18 @@ export async function POST(request: NextRequest) {
                 },
             });
         }
+
+        await trackProductEventForUser({
+            userId: authUser.id,
+            eventName: "post_created",
+            surface: "composer",
+            sessionId: requestId,
+            payload: {
+                tweetId: created.id,
+                hasMedia: Boolean(sanitizedPhotoUrl),
+                textLength: normalizedText.length,
+            },
+        });
 
         return NextResponse.json({ success: true });
     } catch (error: unknown) {

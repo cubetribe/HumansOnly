@@ -804,3 +804,14 @@ export const trackProductEvent = async (payload: {
         // Product analytics must never block or break the user journey.
     }
 };
+
+export const getAdminAnalyticsKpis = async (days = 7) => {
+    const response = await fetch(`${HOST_URL}/api/admin/analytics/kpis?days=${days}`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not load admin analytics KPIs.");
+    return json;
+};

@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.12.0] - 2026-03-03
+
+### Added
+
+- Server-side product event tracking for key actions:
+  - `post_created` (`POST /api/tweets/create`)
+  - `post_liked` (`POST /api/tweets/[username]/[tweetId]/like`)
+  - `reply_created` (`POST /api/tweets/[username]/[tweetId]/reply`)
+  - `user_followed` (`POST /api/users/[username]/follow`)
+- New server analytics helper:
+  - `app/src/utilities/analytics/server.ts` (`trackProductEventForUser`)
+- New admin analytics KPI endpoint:
+  - `GET /api/admin/analytics/kpis?days=7`
+  - includes event count aggregates, daily series, and activity summary
+
+### Changed
+
+- Product event catalog expanded in:
+  - `app/src/utilities/analytics/events.ts`
+- Shared fetch layer now includes:
+  - `getAdminAnalyticsKpis(days)`
+- Roadmap and API registry updated to reflect Phase 0.1 rollout.
+
 ## [1.11.0] - 2026-03-03
 
 ### Added

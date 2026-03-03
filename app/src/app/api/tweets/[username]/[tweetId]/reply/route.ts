@@ -6,6 +6,7 @@ import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/ses
 import { canUsersInteract, visibleAuthorWhereForViewer, visibleTweetWhereForViewer } from "@/utilities/social/access";
 import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
 import { runHumanGate } from "@/utilities/human/gate";
+import { trackProductEventForUser } from "@/utilities/analytics/server";
 
 type CreateReplyPayload = {
     text?: unknown;
@@ -108,6 +109,7 @@ export async function POST(
 ) {
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse("Unauthorized");
+    const requestId = request.headers.get("x-request-id") || undefined;
 
     const secret = process.env.CREATION_SECRET_KEY;
 
@@ -299,6 +301,20 @@ export async function POST(
                 },
             });
         }
+
+        await trackProductEventForUser({
+            userId: authUser.id,
+            eventName: "reply_created",
+            surface: "reply_composer",
+            sessionId: requestId,
+            payload: {
+                replyId: created.id,
+                targetTweetId: tweetId,
+                targetAuthorUsername: username,
+                hasMedia: Boolean(sanitizedPhotoUrl),
+                textLength: normalizedText.length,
+            },
+        });
 
         if (username !== authUser.username) {
             const notificationContent = {

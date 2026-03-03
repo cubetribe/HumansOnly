@@ -4,6 +4,7 @@ import { prisma } from "@/prisma/client";
 import { createNotification } from "@/utilities/fetch";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { canUsersInteract } from "@/utilities/social/access";
+import { trackProductEventForUser } from "@/utilities/analytics/server";
 
 export async function POST(
     request: NextRequest,
@@ -11,6 +12,7 @@ export async function POST(
 ) {
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
+    const requestId = request.headers.get("x-request-id") || undefined;
 
     const secret = process.env.CREATION_SECRET_KEY;
 
@@ -79,6 +81,18 @@ export async function POST(
                         id: authUser.id,
                     },
                 },
+            },
+        });
+
+        await trackProductEventForUser({
+            userId: authUser.id,
+            eventName: "post_liked",
+            surface: "timeline",
+            sessionId: requestId,
+            payload: {
+                tweetId,
+                targetAuthorId: targetTweet.authorId,
+                targetAuthorUsername: targetTweet.author.username,
             },
         });
 

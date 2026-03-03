@@ -49,6 +49,11 @@ New human-authenticity endpoints:
 Measurement foundation endpoints:
 - `POST /api/analytics/events`
 
+## Phase 0.1 Additions (2026-03-03)
+
+Measurement expansion endpoints:
+- `GET /api/admin/analytics/kpis`
+
 ---
 
 ## Table of Contents
@@ -888,6 +893,37 @@ Tweet[]
 |------|-------|------------|
 | `app/src/app/(twitter)/home/page.tsx` | Home feed loaded/empty/error measurement | 2026-03-03 |
 | `app/src/utilities/fetch/index.ts` | Shared `trackProductEvent` helper | 2026-03-03 |
+
+### GET /api/admin/analytics/kpis
+
+**Defined in:** `app/src/app/api/admin/analytics/kpis/route.ts`
+
+**Query Parameters:**
+- `days?` - Window size for KPIs (`1..90`, default: `7`)
+
+**Response:**
+```typescript
+{
+  success: true;
+  requestId: string;
+  windowDays: number;
+  from: string;
+  to: string;
+  eventCounts: Array<{ eventName: string; count: number }>;
+  dailyEventSeries: Array<{ day: string; eventName: string; count: number }>;
+  activitySummary: {
+    postsCreated: number;
+    repliesCreated: number;
+    activeUsers: number;
+  };
+}
+```
+
+**Consumers:**
+
+| File | Usage | Last Check |
+|------|-------|------------|
+| `app/src/utilities/fetch/index.ts` | Shared admin KPI fetch helper (`getAdminAnalyticsKpis`) | 2026-03-03 |
 
 ---
 

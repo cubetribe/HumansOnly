@@ -1,5 +1,21 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Phase 0.1 Metrics Expansion + Admin KPI Endpoint (v1.12.0)
+
+-   expanded server-side product event tracking for core actions:
+    -   `post_created` in `POST /api/tweets/create`
+    -   `post_liked` in `POST /api/tweets/[username]/[tweetId]/like`
+    -   `reply_created` in `POST /api/tweets/[username]/[tweetId]/reply`
+    -   `user_followed` in `POST /api/users/[username]/follow`
+-   added shared server analytics writer:
+    -   `src/utilities/analytics/server.ts` (`trackProductEventForUser`)
+-   added admin KPI aggregation endpoint:
+    -   `GET /api/admin/analytics/kpis?days=7`
+    -   returns event counts, daily event series, and activity summary (`postsCreated`, `repliesCreated`, `activeUsers`)
+-   added fetch helper:
+    -   `getAdminAnalyticsKpis(days)`
+-   updated roadmap and API consumer documentation for Phase 0.1
+
 ## 2026-03-03 - Phase 0 Measurement Foundation (v1.11.0)
 
 -   added `ProductEvent` data model + migration (`20260303121500_add_product_events_foundation`)

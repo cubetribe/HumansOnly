@@ -1,6 +1,7 @@
 "use client";
 
-import { FaBullhorn, FaCode, FaShieldAlt } from "react-icons/fa";
+import Link from "next/link";
+import { FaBullhorn, FaCode, FaShieldAlt, FaMusic } from "react-icons/fa";
 
 import { UserProps } from "@/types/UserProps";
 
@@ -48,9 +49,15 @@ export default function CommunityBoard({ token }: CommunityBoardProps) {
                 <p>Premium-Platzierung für Projekte, Events und Initiativen, die zu einer echten Human-Community passen.</p>
             </article>
 
-            <article className="community-card community-card-placeholder">
-                <h3>Hier könnte deine Anzeige stehen</h3>
-                <p>Reserviere diesen Slot für Recruiting, Partnerschaften oder Community-Programme.</p>
+            <article className="community-card community-card-ad">
+                <div className="ad-badge">
+                    <FaMusic /> Creator Ad
+                </div>
+                <h3>Zeig deine Kunst. Lass dich fair bezahlen.</h3>
+                <p>Leg jetzt dein Künstlerprofil an und lass dich von den Nutzern hier für deine Kunst fair bezahlen.</p>
+                <div className="card-actions">
+                    <Link href={token ? "/settings" : "/"}>{token ? "Jetzt Künstlerprofil starten" : "Einloggen und starten"}</Link>
+                </div>
             </article>
         </section>
     );

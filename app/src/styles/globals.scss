@@ -829,6 +829,55 @@ main {
             line-height: 1.35;
         }
     }
+
+    .community-card-ad {
+        background: linear-gradient(145deg, rgba(41, 166, 134, 0.14) 0%, rgba(41, 166, 134, 0.03) 100%);
+
+        .ad-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border-radius: 999px;
+            border: 1px solid rgba(41, 166, 134, 0.35);
+            color: #1d7f66;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.2rem 0.55rem;
+            margin-bottom: 0.65rem;
+        }
+
+        h3 {
+            font-size: 0.94rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
+        }
+
+        p {
+            color: var(--ho-muted);
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        .card-actions {
+            margin-top: 0.75rem;
+
+            a {
+                display: inline-flex;
+                border-radius: 999px;
+                padding: 0.45rem 0.75rem;
+                border: 1px solid #1d7f66;
+                color: #1d7f66;
+                font-weight: 700;
+                font-size: 0.83rem;
+                transition: all 0.2s ease-in-out;
+
+                &:hover {
+                    background-color: #1d7f66;
+                    color: var(--const-white);
+                }
+            }
+        }
+    }
 }
 
 .legal-doc-page {

@@ -2305,6 +2305,16 @@ button.icon-hoverable {
     }
 }
 
+.feed-mode-toggle {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 1rem 1rem;
+
+    .btn {
+        min-width: 7.5rem;
+    }
+}
+
 .settings-page {
     .settings-section {
         padding: 1rem;
@@ -2846,6 +2856,15 @@ button.icon-hoverable {
         .moderation-report-row .MuiInputBase-root,
         .settings-section .MuiTextField-root {
             width: 100%;
+        }
+    }
+
+    .feed-mode-toggle {
+        flex-wrap: wrap;
+
+        .btn {
+            flex: 1;
+            min-width: 0;
         }
     }
 

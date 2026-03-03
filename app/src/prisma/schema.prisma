@@ -49,6 +49,7 @@ model User {
     authenticityAppeals AuthenticityAppeal[] @relation("appealActor")
     reviewedAuthenticityAppeals AuthenticityAppeal[] @relation("appealReviewer")
     productEvents    ProductEvent[]
+    recommendationFeedbacks RecommendationFeedback[]
 }
 
 model Tweet {
@@ -75,6 +76,7 @@ model Tweet {
     authenticityScore   Float?
     authenticityDecision String? @db.VarChar(20)
     authenticityChecks  AuthenticityCheck[]
+    recommendationFeedbacks RecommendationFeedback[]
 }
 
 model Message {
@@ -309,4 +311,19 @@ model ProductEvent {
     @@index([eventName, createdAt])
     @@index([userId, createdAt])
     @@index([surface, createdAt])
+}
+
+model RecommendationFeedback {
+    id           String   @id @default(uuid())
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId       String
+    tweet        Tweet    @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+    tweetId      String
+    feedbackType String   @db.VarChar(20)
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    @@unique([userId, tweetId, feedbackType])
+    @@index([userId, feedbackType, createdAt])
+    @@index([tweetId, feedbackType])
 }

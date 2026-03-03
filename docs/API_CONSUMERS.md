@@ -54,6 +54,12 @@ Measurement foundation endpoints:
 Measurement expansion endpoints:
 - `GET /api/admin/analytics/kpis`
 
+## Phase 1 Additions (2026-03-03)
+
+Feed discovery endpoints:
+- `GET /api/feed/for-you`
+- `POST /api/feed/feedback`
+
 ---
 
 ## Table of Contents
@@ -63,6 +69,7 @@ Measurement expansion endpoints:
 - [Tweet API](#tweet-api)
 - [Notification API](#notification-api)
 - [Message API](#message-api)
+- [Feed API](#feed-api)
 - [Search API](#search-api)
 - [Analytics API](#analytics-api)
 - [Human Authenticity API](#human-authenticity-api)
@@ -829,6 +836,62 @@ Tweet[]
 | File | Usage | Last Check |
 |------|-------|------------|
 | TBD | Delete message button | 2025-12-21 |
+
+---
+
+## Feed API
+
+### GET /api/feed/for-you
+
+**Defined in:** `app/src/app/api/feed/for-you/route.ts`
+
+**Query Parameters:**
+- `page?` - Page number (default `1`)
+- `limit?` - Page size (default `20`, max `50`)
+
+**Response:**
+```typescript
+{
+  success: true;
+  source: "for_you";
+  tweets: Tweet[];
+  nextPage: number;
+  lastPage: number;
+}
+```
+
+**Consumers:**
+
+| File | Usage | Last Check |
+|------|-------|------------|
+| `app/src/app/(twitter)/home/page.tsx` | Home feed mode toggle (`Following` / `For You`) | 2026-03-03 |
+| `app/src/utilities/fetch/index.ts` | `getForYouFeed` helper | 2026-03-03 |
+
+### POST /api/feed/feedback
+
+**Defined in:** `app/src/app/api/feed/feedback/route.ts`
+
+**Request Body:**
+```typescript
+{
+  tweetId: string;
+  feedbackType: "not_interested";
+}
+```
+
+**Response:**
+```typescript
+{
+  success: true;
+}
+```
+
+**Consumers:**
+
+| File | Usage | Last Check |
+|------|-------|------------|
+| `app/src/components/tweet/Tweet.tsx` | "Not interested" action in post menu | 2026-03-03 |
+| `app/src/utilities/fetch/index.ts` | `submitFeedFeedback` helper | 2026-03-03 |
 
 ---
 

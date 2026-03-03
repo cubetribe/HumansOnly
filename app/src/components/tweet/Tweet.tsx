@@ -22,7 +22,7 @@ import { AuthContext } from "@/app/(twitter)/layout";
 import RepostIcon from "../misc/RepostIcon";
 import ProfileCard from "../user/ProfileCard";
 import MentionText from "../misc/MentionText";
-import { createReport, deleteTweet, editTweet, prepareHumanContext } from "@/utilities/fetch";
+import { createReport, deleteTweet, editTweet, prepareHumanContext, submitFeedFeedback } from "@/utilities/fetch";
 import CustomSnackbar from "../misc/CustomSnackbar";
 import { SnackbarProps } from "@/types/SnackbarProps";
 import EditTweetDialog from "../dialog/EditTweetDialog";
@@ -105,6 +105,17 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
         },
     });
 
+    const feedbackMutation = useMutation({
+        mutationFn: () => submitFeedFeedback({ tweetId: displayedTweet.id, feedbackType: "not_interested" }),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["tweets", "home"] });
+            setSnackbar({ message: "We'll show less like this in For You.", severity: "success", open: true });
+        },
+        onError: (error: Error) => {
+            setSnackbar({ message: error.message || "Could not save feed feedback.", severity: "error", open: true });
+        },
+    });
+
     const handleTweetClick = () => {
         router.push(`/${displayedTweet.author.username}/tweets/${displayedTweet.id}`);
     };
@@ -158,6 +169,10 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
         if (!reason) return;
         const details = window.prompt("Optional details (max 500 chars):") || undefined;
         reportMutation.mutate({ reason: reason.trim(), details: details?.trim() });
+    };
+    const handleNotInterested = () => {
+        handleMenuClose();
+        feedbackMutation.mutate();
     };
 
     return (
@@ -221,6 +236,7 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
                                     </MenuItem>
                                 )}
                                 {!isOwner && <MenuItem onClick={handleReportPost}>Report post</MenuItem>}
+                                {!isOwner && <MenuItem onClick={handleNotInterested}>Not interested</MenuItem>}
                             </Menu>
                         </>
                     )}

@@ -125,6 +125,7 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 - ✅ Phase `0.1` measurement expansion delivered (server-side events for create/like/reply/follow + admin KPI endpoint).
 - ✅ Phase `0.2` delivered (admin analytics snapshot in Settings).
 - ✅ Phase `0.3` delivered (message/notification/profile events + KPI health flags).
+- ✅ Phase `1` delivered (For You feed API, feedback endpoint, and Home mode toggle).
 - 🔄 Wave `7` still open:
   - appeal SLA + workflow automation
   - stronger anti-abuse/rate limits for challenge and appeal endpoints
@@ -133,10 +134,10 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 - ⏳ Wave `9` not started (compliance labeling, rollout controls, calibration automation).
 
 ### Next Milestones
-1. **Phase 0.3 - Product Metrics Hardening**
-- Add event coverage for notifications/messages/profile edit flows
-- Add daily KPI alert thresholds and anomaly flags
-- Document weekly KPI review ritual in operations playbook
+1. **Phase 2.0 - Creation Delight**
+- Add resilient local drafts for post/reply composers
+- Improve composer UX with clearer media/action states
+- Prepare video-beta gating path (feature-flagged rollout)
 
 2. **Wave 7.3 - Appeals Hardening**
 - Finalize moderator SOP + response SLA

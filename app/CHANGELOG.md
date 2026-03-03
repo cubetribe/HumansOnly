@@ -1,5 +1,17 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Phase 1 Feed Discovery V1 (v1.15.0)
+
+-   added For You feed API:
+    -   `GET /api/feed/for-you` (ranking heuristic with recency + engagement + follow boost)
+-   added recommendation feedback API:
+    -   `POST /api/feed/feedback` (`not_interested`)
+-   added `RecommendationFeedback` data model + migration (`20260303142000_add_recommendation_feedback`)
+-   added home feed mode toggle:
+    -   `Following` / `For You`
+-   added tweet menu action:
+    -   `Not interested` (stores feedback and refreshes home feed)
+
 ## 2026-03-03 - Phase 0.3 Metrics Hardening (v1.14.0)
 
 -   expanded product event coverage for additional core behaviors:

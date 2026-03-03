@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.15.0] - 2026-03-03
+
+### Added
+
+- Feed discovery APIs:
+  - `GET /api/feed/for-you`
+  - `POST /api/feed/feedback`
+- Recommendation feedback storage:
+  - `RecommendationFeedback` model + migration `20260303142000_add_recommendation_feedback`
+- Home feed mode toggle:
+  - `Following` / `For You`
+- Tweet menu recommendation action:
+  - `Not interested`
+
+### Changed
+
+- Product event catalog now includes:
+  - `feed_not_interested`
+- Home feed analytics payload now includes selected feed mode.
+
 ## [1.14.0] - 2026-03-03
 
 ### Added

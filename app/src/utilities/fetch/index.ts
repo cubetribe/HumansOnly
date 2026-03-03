@@ -32,6 +32,18 @@ export const getRelatedTweets = async () => {
     return json;
 };
 
+export const getForYouFeed = async (page = "1", limit = "20") => {
+    const response = await fetch(`${HOST_URL}/api/feed/for-you?page=${page}&limit=${limit}`, {
+        credentials: "include",
+        next: {
+            revalidate: 0,
+        },
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
 export const getUserTweets = async (username: string) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${username}`, {
         credentials: "include",
@@ -803,6 +815,21 @@ export const trackProductEvent = async (payload: {
     } catch {
         // Product analytics must never block or break the user journey.
     }
+};
+
+export const submitFeedFeedback = async (payload: { tweetId: string; feedbackType: "not_interested" }) => {
+    const response = await fetch(`${HOST_URL}/api/feed/feedback`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not submit feed feedback.");
+    return json;
 };
 
 export const getAdminAnalyticsKpis = async (days = 7) => {

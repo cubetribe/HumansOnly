@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     const fromDate = new Date(toDate.getTime() - windowDays * 24 * 60 * 60 * 1000);
 
     try {
-        const [eventCounts, dailyEventSeries, activitySummary] = await Promise.all([
+        const [eventCounts, dailyEventSeries, activitySummary, creatorProfilesCount, publishedCreatorItemsCount, creatorTipsAggregate] = await Promise.all([
             prisma.$queryRaw<EventCountRow[]>`
                 SELECT "eventName", COUNT(*)::bigint AS count
                 FROM "ProductEvent"
@@ -76,6 +76,29 @@ export async function GET(request: NextRequest) {
                     ) AS "activeUsers"
                 FROM "Tweet"
             `,
+            prisma.creatorProfile.count({
+                where: {
+                    OR: [{ supportEnabled: true }, { shopEnabled: true }],
+                },
+            }),
+            prisma.creatorPortfolioItem.count({
+                where: {
+                    isPublished: true,
+                },
+            }),
+            prisma.creatorTip.aggregate({
+                where: {
+                    status: {
+                        in: ["pending", "recorded", "succeeded"],
+                    },
+                },
+                _count: {
+                    _all: true,
+                },
+                _sum: {
+                    amountCents: true,
+                },
+            }),
         ]);
 
         const normalizedEventCounts = eventCounts.map((row) => ({
@@ -117,6 +140,12 @@ export async function GET(request: NextRequest) {
                     toNumber(summary.postsCreated) >= readThreshold("KPI_MIN_POSTS_CREATED_7D", 20),
                 repliesCreatedHealthy:
                     toNumber(summary.repliesCreated) >= readThreshold("KPI_MIN_REPLIES_CREATED_7D", 10),
+            },
+            creatorCommerce: {
+                activeCreators: creatorProfilesCount,
+                publishedItems: publishedCreatorItemsCount,
+                supportTransactions: creatorTipsAggregate._count._all || 0,
+                supportVolumeCents: creatorTipsAggregate._sum.amountCents || 0,
             },
         });
     } catch (error: unknown) {

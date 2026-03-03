@@ -1,5 +1,6 @@
 import { NotificationContent, NotificationTypes } from "@/types/NotificationProps";
 import { UserRole } from "@/types/Role";
+import { CreatorPortfolioItem, CreatorProfile } from "@/types/Creator";
 import type { ProductEventName } from "@/utilities/analytics/events";
 
 // Browser calls must stay same-origin so auth/session cookies are sent for the active domain.
@@ -779,6 +780,134 @@ export const getMyTrust = async () => {
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getMyCreatorProfile = async (): Promise<{ success: boolean; profile: CreatorProfile | null }> => {
+    const response = await fetch(`${HOST_URL}/api/creator/profile`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not load creator profile.");
+    return json;
+};
+
+export const saveCreatorProfile = async (
+    payload: Partial<{
+        stageName: string | null;
+        bio: string | null;
+        primaryDiscipline: string | null;
+        genres: string[];
+        supportEnabled: boolean;
+        shopEnabled: boolean;
+        tipMinCents: number;
+        currency: string;
+        payoutProvider: "none" | "manual" | "stripe";
+        payoutStatus: "not_connected" | "pending" | "active" | "restricted";
+        payoutAccountId: string | null;
+    }>
+): Promise<{ success: boolean; profile: CreatorProfile }> => {
+    const response = await fetch(`${HOST_URL}/api/creator/profile`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not save creator profile.");
+    return json;
+};
+
+export const getMyCreatorItems = async (): Promise<{
+    success: boolean;
+    profile: CreatorProfile | null;
+    items: CreatorPortfolioItem[];
+}> => {
+    const response = await fetch(`${HOST_URL}/api/creator/items`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not load creator items.");
+    return json;
+};
+
+export const createCreatorItem = async (
+    payload: Partial<{
+        title: string;
+        description: string;
+        mediaType: "image" | "audio";
+        mediaUrl: string;
+        previewUrl: string | null;
+        thumbnailUrl: string | null;
+        priceCents: number | null;
+        currency: string;
+        licensingType: "personal" | "commercial" | "exclusive";
+        isPublished: boolean;
+    }>
+): Promise<{ success: boolean; item: CreatorPortfolioItem }> => {
+    const response = await fetch(`${HOST_URL}/api/creator/items`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not create creator item.");
+    return json;
+};
+
+export const getCreatorProfile = async (
+    username: string,
+    limit = 12
+): Promise<{
+    success: boolean;
+    creator: {
+        user: {
+            id: string;
+            username: string;
+            name: string | null;
+            photoUrl: string | null;
+            isVerifiedHuman: boolean;
+        };
+        profile: CreatorProfile & { items: CreatorPortfolioItem[] };
+        stats: {
+            supportCount: number;
+            supportVolumeCents: number;
+        };
+    } | null;
+}> => {
+    const response = await fetch(`${HOST_URL}/api/creator/${username}?limit=${limit}`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not load creator profile.");
+    return json;
+};
+
+export const createCreatorTip = async (payload: {
+    creatorUsername: string;
+    amountCents: number;
+    currency?: string;
+    itemId?: string;
+    message?: string;
+}) => {
+    const response = await fetch(`${HOST_URL}/api/creator/tips`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not create creator tip.");
     return json;
 };
 

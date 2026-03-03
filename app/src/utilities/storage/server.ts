@@ -4,7 +4,7 @@ import { join } from "path";
 import { existsSync } from "fs";
 import { randomBytes } from "crypto";
 
-export type ServerUploadType = "post" | "profile" | "header";
+export type ServerUploadType = "post" | "profile" | "header" | "creator_image" | "creator_audio";
 
 type StoreMediaPayload = {
     buffer: Buffer;

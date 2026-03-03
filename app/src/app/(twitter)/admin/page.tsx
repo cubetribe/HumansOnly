@@ -51,6 +51,12 @@ export default function AdminPage() {
 
     const activitySummary = analyticsData?.activitySummary || { activeUsers: 0, postsCreated: 0, repliesCreated: 0 };
     const healthFlags = analyticsData?.healthFlags;
+    const creatorCommerce = analyticsData?.creatorCommerce || {
+        activeCreators: 0,
+        publishedItems: 0,
+        supportTransactions: 0,
+        supportVolumeCents: 0,
+    };
     const users = usersData?.users || [];
     const openReports = reportsData?.reports || [];
     const openAppeals = (appealsData?.appeals || []) as Array<{ id: string; slaState?: "on_track" | "due_soon" | "overdue" }>;
@@ -92,6 +98,13 @@ export default function AdminPage() {
                     <p>Active users healthy: {healthFlags?.activeUsersHealthy ? "yes" : "no"}</p>
                     <p>Posts healthy: {healthFlags?.postsCreatedHealthy ? "yes" : "no"}</p>
                     <p>Replies healthy: {healthFlags?.repliesCreatedHealthy ? "yes" : "no"}</p>
+                </article>
+                <article className="admin-card">
+                    <h2>Creator Commerce</h2>
+                    <p>Active creators: {creatorCommerce.activeCreators}</p>
+                    <p>Published artist items: {creatorCommerce.publishedItems}</p>
+                    <p>Support transactions: {creatorCommerce.supportTransactions}</p>
+                    <p>Support volume: {(creatorCommerce.supportVolumeCents || 0) / 100} EUR</p>
                 </article>
             </section>
 

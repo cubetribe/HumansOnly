@@ -2,6 +2,8 @@ import sharp from "sharp";
 
 import type { ServerUploadType } from "@/utilities/storage/server";
 
+type ImageUploadType = Extract<ServerUploadType, "post" | "profile" | "header" | "creator_image">;
+
 const MAX_INPUT_PIXELS = 40_000_000;
 const WEBP_SCALE_STEPS = [1, 0.92, 0.84, 0.76, 0.68, 0.6, 0.52, 0.44];
 const WEBP_QUALITY_STEPS = [84, 76, 68, 60, 52, 44, 36, 28, 22];
@@ -23,7 +25,7 @@ type CompressionProfile = {
     minEdge: number;
 };
 
-const UPLOAD_COMPRESSION_PROFILES: Record<ServerUploadType, CompressionProfile> = {
+const UPLOAD_COMPRESSION_PROFILES: Record<ImageUploadType, CompressionProfile> = {
     profile: {
         maxWidth: 400,
         maxHeight: 400,
@@ -43,6 +45,13 @@ const UPLOAD_COMPRESSION_PROFILES: Record<ServerUploadType, CompressionProfile> 
         maxHeight: 1080,
         targetBytes: 900 * 1024,
         hardMaxBytes: 1500 * 1024,
+        minEdge: 320,
+    },
+    creator_image: {
+        maxWidth: 2400,
+        maxHeight: 2400,
+        targetBytes: 1200 * 1024,
+        hardMaxBytes: 2000 * 1024,
         minEdge: 320,
     },
 };
@@ -157,7 +166,7 @@ export const optimizeUploadImage = async ({
     uploadType,
 }: {
     inputBuffer: Buffer;
-    uploadType: ServerUploadType;
+    uploadType: ImageUploadType;
 }): Promise<OptimizedUploadImage> => {
     const profile = UPLOAD_COMPRESSION_PROFILES[uploadType];
 

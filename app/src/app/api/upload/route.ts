@@ -8,7 +8,11 @@ import { InvalidUploadImageError, optimizeUploadImage } from "@/utilities/media/
 import { runHumanGate } from "@/utilities/human/gate";
 import { extractProvenanceSignals } from "@/utilities/media/provenance";
 
-const ALLOWED_DECLARED_TYPES = new Set([
+const IMAGE_UPLOAD_TYPES = new Set<ServerUploadType>(["post", "profile", "header", "creator_image"]);
+const AUDIO_UPLOAD_TYPES = new Set<ServerUploadType>(["creator_audio"]);
+const ALLOWED_UPLOAD_TYPES: ServerUploadType[] = ["post", "profile", "header", "creator_image", "creator_audio"];
+
+const ALLOWED_IMAGE_DECLARED_TYPES = new Set([
     "image/jpeg",
     "image/png",
     "image/gif",
@@ -17,10 +21,34 @@ const ALLOWED_DECLARED_TYPES = new Set([
     "image/heic",
     "image/heif",
 ]);
-const ALLOWED_DETECTED_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/heif"]);
-const ALLOWED_UPLOAD_TYPES: ServerUploadType[] = ["post", "profile", "header"];
-const MAX_SIZE = 50 * 1024 * 1024; // 50MB raw input
-const MAX_REQUEST_SIZE = Number.parseInt(process.env.UPLOAD_MAX_REQUEST_BYTES || `${MAX_SIZE + 2 * 1024 * 1024}`, 10);
+
+const ALLOWED_AUDIO_DECLARED_TYPES = new Set([
+    "audio/mpeg",
+    "audio/mp3",
+    "audio/wav",
+    "audio/x-wav",
+    "audio/mp4",
+    "audio/x-m4a",
+    "audio/webm",
+    "audio/ogg",
+]);
+
+const ALLOWED_IMAGE_DETECTED_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/heif"]);
+
+const AUDIO_MIME_EXTENSION: Record<string, string> = {
+    "audio/mpeg": "mp3",
+    "audio/mp3": "mp3",
+    "audio/wav": "wav",
+    "audio/x-wav": "wav",
+    "audio/mp4": "m4a",
+    "audio/x-m4a": "m4a",
+    "audio/webm": "webm",
+    "audio/ogg": "ogg",
+};
+
+const MAX_IMAGE_SIZE = 50 * 1024 * 1024;
+const MAX_AUDIO_SIZE = 30 * 1024 * 1024;
+const MAX_REQUEST_SIZE = Number.parseInt(process.env.UPLOAD_MAX_REQUEST_BYTES || `${MAX_IMAGE_SIZE + 2 * 1024 * 1024}`, 10);
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 const DAILY_UPLOAD_LIMIT = Number.parseInt(process.env.UPLOAD_MAX_FILES_PER_DAY || "40", 10);
@@ -31,6 +59,12 @@ const mimeTypeMatches = (declaredMimeType: string, detectedMimeType: string) => 
     if (declaredMimeType === detectedMimeType) return true;
     if (declaredMimeType === "image/heic" && detectedMimeType === "image/heif") return true;
     return false;
+};
+
+const extensionFromName = (filename: string) => {
+    const candidate = filename.split(".").pop()?.toLowerCase() || "";
+    if (!candidate) return null;
+    return candidate.replace(/[^a-z0-9]/g, "") || null;
 };
 
 export async function POST(request: NextRequest) {
@@ -67,13 +101,21 @@ export async function POST(request: NextRequest) {
         if (!(formFile instanceof File)) {
             return NextResponse.json({ success: false, error: "No file provided" }, { status: 400 });
         }
-        const file = formFile;
 
+        const file = formFile;
         const rawType = formData.get("type");
         if (rawType !== null && (typeof rawType !== "string" || !ALLOWED_UPLOAD_TYPES.includes(rawType as ServerUploadType))) {
             return NextResponse.json({ success: false, error: "Invalid upload type." }, { status: 400 });
         }
+
         const type = (typeof rawType === "string" ? rawType : "post") as ServerUploadType;
+        const isImageUpload = IMAGE_UPLOAD_TYPES.has(type);
+        const isAudioUpload = AUDIO_UPLOAD_TYPES.has(type);
+
+        if (!isImageUpload && !isAudioUpload) {
+            return NextResponse.json({ success: false, error: "Unsupported upload type." }, { status: 400 });
+        }
+
         const challengeSessionId =
             typeof formData.get("challengeSessionId") === "string"
                 ? String(formData.get("challengeSessionId")).trim()
@@ -85,18 +127,35 @@ export async function POST(request: NextRequest) {
         }
 
         const declaredMimeType = (file.type || "").toLowerCase();
-        if (declaredMimeType && !ALLOWED_DECLARED_TYPES.has(declaredMimeType)) {
-            return NextResponse.json({
-                success: false,
-                error: `Invalid file type. Allowed: ${Array.from(ALLOWED_DECLARED_TYPES).join(", ")}`,
-            }, { status: 400 });
+        if (isImageUpload && declaredMimeType && !ALLOWED_IMAGE_DECLARED_TYPES.has(declaredMimeType)) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `Invalid image type. Allowed: ${Array.from(ALLOWED_IMAGE_DECLARED_TYPES).join(", ")}`,
+                },
+                { status: 400 }
+            );
         }
 
-        if (file.size > MAX_SIZE) {
-            return NextResponse.json({
-                success: false,
-                error: `File too large. Maximum ${MAX_SIZE / 1024 / 1024}MB allowed`,
-            }, { status: 400 });
+        if (isAudioUpload && declaredMimeType && !ALLOWED_AUDIO_DECLARED_TYPES.has(declaredMimeType)) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `Invalid audio type. Allowed: ${Array.from(ALLOWED_AUDIO_DECLARED_TYPES).join(", ")}`,
+                },
+                { status: 400 }
+            );
+        }
+
+        const uploadSizeLimit = isAudioUpload ? MAX_AUDIO_SIZE : MAX_IMAGE_SIZE;
+        if (file.size > uploadSizeLimit) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `File too large. Maximum ${Math.round(uploadSizeLimit / 1024 / 1024)}MB allowed`,
+                },
+                { status: 400 }
+            );
         }
 
         let uploadGate: Awaited<ReturnType<typeof runHumanGate>> | null = null;
@@ -146,6 +205,7 @@ export async function POST(request: NextRequest) {
                     { status: 202 }
                 );
             }
+
             if (uploadGate.decision === "block") {
                 return NextResponse.json(
                     {
@@ -179,10 +239,13 @@ export async function POST(request: NextRequest) {
 
         const uploadsInWindow = usage._count._all ?? 0;
         if (uploadsInWindow >= DAILY_UPLOAD_LIMIT) {
-            return NextResponse.json({
-                success: false,
-                error: "Daily upload limit reached. Please try again later.",
-            }, { status: 429 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Daily upload limit reached. Please try again later.",
+                },
+                { status: 429 }
+            );
         }
 
         const bytes = await file.arrayBuffer();
@@ -217,10 +280,7 @@ export async function POST(request: NextRequest) {
                 path: duplicate.url,
                 originalSize: duplicate.originalSize,
                 compressedSize: duplicate.compressedSize,
-                savings: `${Math.max(
-                    0,
-                    Math.round((1 - duplicate.compressedSize / Math.max(1, duplicate.originalSize)) * 100)
-                )}%`,
+                savings: `${Math.max(0, Math.round((1 - duplicate.compressedSize / Math.max(1, duplicate.originalSize)) * 100))}%`,
                 assetId: duplicate.id,
                 provider: duplicate.provider,
                 moderationStatus: duplicate.moderationStatus,
@@ -228,11 +288,66 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        const uploadedBytesInWindow = usage._sum.compressedSize ?? 0;
+
+        if (isAudioUpload) {
+            const extension = AUDIO_MIME_EXTENSION[declaredMimeType] || extensionFromName(file.name) || "bin";
+            const mimeType = declaredMimeType || "audio/mpeg";
+            const compressedSize = file.size;
+
+            if (uploadedBytesInWindow + compressedSize > DAILY_BYTE_LIMIT) {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "Daily upload bandwidth limit reached. Please try again later.",
+                    },
+                    { status: 429 }
+                );
+            }
+
+            const stored = await storeMediaBuffer({
+                buffer,
+                extension,
+                mimeType,
+                uploadType: type,
+                userId: authUser.id,
+            });
+
+            const asset = await prisma.mediaAsset.create({
+                data: {
+                    ownerId: authUser.id,
+                    provider: stored.provider,
+                    storageKey: stored.storageKey,
+                    url: stored.publicUrl,
+                    uploadType: type,
+                    mimeType,
+                    originalSize: file.size,
+                    compressedSize,
+                    checksum,
+                    authenticityDecision: null,
+                    provenanceStatus: "unknown",
+                },
+            });
+
+            return NextResponse.json({
+                success: true,
+                path: stored.publicUrl,
+                originalSize: file.size,
+                compressedSize,
+                savings: "0%",
+                assetId: asset.id,
+                provider: asset.provider,
+                moderationStatus: asset.moderationStatus,
+                outputFormat: mimeType,
+                reused: false,
+            });
+        }
+
         let optimized: Awaited<ReturnType<typeof optimizeUploadImage>>;
         try {
             optimized = await optimizeUploadImage({
                 inputBuffer: buffer,
-                uploadType: type,
+                uploadType: type as "post" | "profile" | "header" | "creator_image",
             });
         } catch (error) {
             if (error instanceof InvalidUploadImageError) {
@@ -248,7 +363,7 @@ export async function POST(request: NextRequest) {
             throw error;
         }
 
-        if (!ALLOWED_DETECTED_TYPES.has(optimized.inputMimeType)) {
+        if (!ALLOWED_IMAGE_DETECTED_TYPES.has(optimized.inputMimeType)) {
             return NextResponse.json(
                 {
                     success: false,
@@ -257,6 +372,7 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
+
         if (!mimeTypeMatches(declaredMimeType, optimized.inputMimeType)) {
             return NextResponse.json(
                 {
@@ -266,6 +382,7 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
+
         if (optimized.outputBytes > optimized.hardMaxBytes) {
             return NextResponse.json(
                 {
@@ -278,12 +395,14 @@ export async function POST(request: NextRequest) {
 
         const originalSize = file.size;
         const compressedSize = optimized.outputBytes;
-        const uploadedBytesInWindow = usage._sum.compressedSize ?? 0;
         if (uploadedBytesInWindow + compressedSize > DAILY_BYTE_LIMIT) {
-            return NextResponse.json({
-                success: false,
-                error: "Daily upload bandwidth limit reached. Please try again later.",
-            }, { status: 429 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Daily upload bandwidth limit reached. Please try again later.",
+                },
+                { status: 429 }
+            );
         }
 
         const stored = await storeMediaBuffer({
@@ -293,6 +412,7 @@ export async function POST(request: NextRequest) {
             uploadType: type,
             userId: authUser.id,
         });
+
         const provenance = extractProvenanceSignals({
             buffer: optimized.buffer,
             filename: file.name,
@@ -354,9 +474,12 @@ export async function POST(request: NextRequest) {
         });
     } catch (error) {
         console.error("Upload error:", error);
-        return NextResponse.json({
-            success: false,
-            error: "Upload failed. Please try again.",
-        }, { status: 500 });
+        return NextResponse.json(
+            {
+                success: false,
+                error: "Upload failed. Please try again.",
+            },
+            { status: 500 }
+        );
     }
 }

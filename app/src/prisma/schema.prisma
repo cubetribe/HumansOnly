@@ -50,6 +50,9 @@ model User {
     reviewedAuthenticityAppeals AuthenticityAppeal[] @relation("appealReviewer")
     productEvents    ProductEvent[]
     recommendationFeedbacks RecommendationFeedback[]
+    creatorProfile   CreatorProfile?
+    creatorPortfolioItems CreatorPortfolioItem[] @relation("creatorItemOwner")
+    sentCreatorTips  CreatorTip[] @relation("creatorTipSender")
 }
 
 model Tweet {
@@ -326,4 +329,76 @@ model RecommendationFeedback {
     @@unique([userId, tweetId, feedbackType])
     @@index([userId, feedbackType, createdAt])
     @@index([tweetId, feedbackType])
+}
+
+model CreatorProfile {
+    id                String                @id @default(uuid())
+    user              User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId            String                @unique
+    stageName         String?               @db.VarChar(60)
+    bio               String?               @db.VarChar(500)
+    primaryDiscipline String?               @db.VarChar(30)
+    genres            Json?
+    supportEnabled    Boolean               @default(false)
+    shopEnabled       Boolean               @default(false)
+    tipMinCents       Int                   @default(200)
+    currency          String                @default("EUR") @db.VarChar(8)
+    payoutProvider    String                @default("none") @db.VarChar(20)
+    payoutStatus      String                @default("not_connected") @db.VarChar(20)
+    payoutAccountId   String?               @db.VarChar(120)
+    createdAt         DateTime              @default(now())
+    updatedAt         DateTime              @updatedAt
+    items             CreatorPortfolioItem[]
+    tipsReceived      CreatorTip[]          @relation("creatorTipsReceived")
+
+    @@index([supportEnabled, createdAt])
+    @@index([shopEnabled, createdAt])
+}
+
+model CreatorPortfolioItem {
+    id               String         @id @default(uuid())
+    creatorProfile   CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+    creatorProfileId String
+    owner            User           @relation("creatorItemOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+    ownerId          String
+    title            String         @db.VarChar(120)
+    description      String?        @db.VarChar(500)
+    mediaType        String         @db.VarChar(20)
+    mediaUrl         String
+    previewUrl       String?
+    thumbnailUrl     String?
+    priceCents       Int?
+    currency         String         @default("EUR") @db.VarChar(8)
+    licensingType    String         @default("personal") @db.VarChar(20)
+    isPublished      Boolean        @default(false)
+    publishedAt      DateTime?
+    createdAt        DateTime       @default(now())
+    updatedAt        DateTime       @updatedAt
+    tips             CreatorTip[]
+
+    @@index([creatorProfileId, isPublished, createdAt])
+    @@index([ownerId, createdAt])
+}
+
+model CreatorTip {
+    id               String               @id @default(uuid())
+    creatorProfile   CreatorProfile       @relation("creatorTipsReceived", fields: [creatorProfileId], references: [id], onDelete: Cascade)
+    creatorProfileId String
+    sender           User?                @relation("creatorTipSender", fields: [senderId], references: [id], onDelete: SetNull)
+    senderId         String?
+    item             CreatorPortfolioItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+    itemId           String?
+    amountCents      Int
+    currency         String               @default("EUR") @db.VarChar(8)
+    status           String               @default("pending") @db.VarChar(20)
+    provider         String               @default("manual") @db.VarChar(20)
+    providerReference String?             @db.VarChar(160)
+    message          String?              @db.VarChar(160)
+    completedAt      DateTime?
+    createdAt        DateTime             @default(now())
+    updatedAt        DateTime             @updatedAt
+
+    @@index([creatorProfileId, createdAt])
+    @@index([senderId, createdAt])
+    @@index([status, createdAt])
 }

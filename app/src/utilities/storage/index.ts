@@ -1,4 +1,4 @@
-export type UploadType = 'post' | 'profile' | 'header';
+export type UploadType = 'post' | 'profile' | 'header' | 'creator_image' | 'creator_audio';
 
 export const uploadFile = async (
     file: File,

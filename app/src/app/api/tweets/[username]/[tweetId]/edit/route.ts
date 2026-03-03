@@ -3,10 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
+import { runHumanGate } from "@/utilities/human/gate";
 
 type EditTweetPayload = {
     text?: unknown;
     photoUrl?: unknown;
+    challengeSessionId?: unknown;
+    ruleVersion?: unknown;
 };
 
 export async function POST(
@@ -44,6 +47,9 @@ export async function POST(
         }
     }
 
+    const challengeSessionId = typeof body.challengeSessionId === "string" ? body.challengeSessionId.trim() : null;
+    const ruleVersion = typeof body.ruleVersion === "string" ? body.ruleVersion.trim() : null;
+
     const target = await prisma.tweet.findUnique({
         where: { id: tweetId },
         select: {
@@ -51,6 +57,7 @@ export async function POST(
             authorId: true,
             author: { select: { username: true } },
             isRetweet: true,
+            photoUrl: true,
         },
     });
 
@@ -64,11 +71,62 @@ export async function POST(
         return unauthorizedResponse();
     }
 
+    const gate = await runHumanGate({
+        authUser,
+        action: "post_edit",
+        text,
+        hasMedia: hasPhotoUrl ? Boolean(nextPhotoUrl) : Boolean(target.photoUrl),
+        challengeSessionId,
+        ruleVersion,
+        tweetId,
+        metadata: {
+            route: "/api/tweets/[username]/[tweetId]/edit",
+            targetTweetId: tweetId,
+        },
+    });
+
+    if (!gate.ok) {
+        const statusByCode = {
+            rules_not_accepted: 409,
+            challenge_required: 403,
+            challenge_invalid: 403,
+            challenge_misconfigured: 500,
+        } as const;
+
+        const status = gate.code ? statusByCode[gate.code] : 400;
+        return NextResponse.json(
+            {
+                success: false,
+                code: gate.code,
+                message: gate.message,
+                policyVersion: gate.policyVersion,
+            },
+            { status }
+        );
+    }
+
+    if (gate.decision !== "allow") {
+        return NextResponse.json(
+            {
+                success: true,
+                pendingReview: true,
+                message: "Post edit submitted for authenticity review before publication.",
+                checkId: gate.authenticityCheckId,
+                riskScore: gate.risk.score,
+                suggestedDecision: gate.suggestedDecision,
+            },
+            { status: 202 }
+        );
+    }
+
     const updated = await prisma.tweet.update({
         where: { id: tweetId },
         data: {
             text,
             editedAt: new Date(),
+            authenticityScore: gate.risk.score,
+            authenticityDecision: gate.suggestedDecision,
+            visibilityStatus: "public",
             ...(hasPhotoUrl ? { photoUrl: nextPhotoUrl ?? null } : {}),
         },
         include: {

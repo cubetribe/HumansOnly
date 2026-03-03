@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser } from "@/utilities/auth/session";
-import { visibleAuthorWhereForViewer } from "@/utilities/social/access";
+import { visibleAuthorWhereForViewer, visibleTweetWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(
     request: NextRequest,
     { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
 ) {
     const authUser = await getAuthenticatedUser();
-    const visibleAuthorWhere = visibleAuthorWhereForViewer(authUser?.id ?? null);
+    const viewerId = authUser?.id ?? null;
+    const visibleAuthorWhere = visibleAuthorWhereForViewer(viewerId);
+    const visibleTweetWhere = visibleTweetWhereForViewer(viewerId);
 
     try {
         const tweet = await prisma.tweet.findFirst({
@@ -19,14 +21,20 @@ export async function GET(
                     username,
                     ...visibleAuthorWhere,
                 },
-                OR: [
+                AND: [
+                    visibleTweetWhere,
                     {
-                        isRetweet: false,
-                    },
-                    {
-                        retweetOf: {
-                            author: visibleAuthorWhere,
-                        },
+                        OR: [
+                            {
+                                isRetweet: false,
+                            },
+                            {
+                                retweetOf: {
+                                    author: visibleAuthorWhere,
+                                    visibilityStatus: "public",
+                                },
+                            },
+                        ],
                     },
                 ],
             },

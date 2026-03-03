@@ -67,11 +67,15 @@ This isn't a concept. It's not a pitch deck. It's deployed, it's live, and you c
 - Follow system, likes, reposts
 - Composer-grade post editing (text, emoji, replace/remove image)
 - Moderated deletion controls
+- Rules page + versioned policy acceptance flow
+- Pre-post human challenge verification pipeline with Turnstile token capture in create/reply/edit flows
 - Direct messaging
 - Real-time notifications
 - Private profiles + message privacy controls
 - Block, mute, and report flows
 - Role-based moderation (`user`, `moderator`, `admin`) with protected super-admin controls
+- Authenticity moderation queue (`allow`, `reject`, `strike`)
+- Trust snapshot API and adaptive risk scoring groundwork
 - Global search
 - Dark mode (because we're a resistance, not savages)
 - Fully responsive - works on your phone, your laptop, your smart fridge (untested, but probably)
@@ -114,6 +118,7 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 
 ### v1.2 - The Detection Layer
 - **AI content detection integration** - the AI builds the wall, remember?
+- **Human authenticity foundation (Wave 7)** - policy, challenge, trust/risk pipeline
 - Content moderation tools
 - Enhanced notification system
 - Performance optimization
@@ -187,6 +192,20 @@ Behavior:
 - super admin identities are protected from role edits
 - role changes are server-audited via structured logs (`event: role_change`)
 
+### Human Authenticity Layer (Wave 7 Foundation)
+
+```bash
+HUMAN_ENFORCEMENT_MODE="adaptive"      # off | adaptive
+HUMAN_CHALLENGE_PROVIDER="turnstile"
+TURNSTILE_SECRET_KEY="your_secret"
+NEXT_PUBLIC_TURNSTILE_SITE_KEY="your_site_key"
+HUMAN_CHALLENGE_TTL_SECONDS="300"
+HUMAN_REVIEW_THRESHOLD="0.72"
+HUMAN_BLOCK_THRESHOLD="0.90"
+HUMAN_RULES_VERSION="2026-03-02.1"
+HUMAN_DRY_RUN="true"                    # start in dry-run for safe rollout
+```
+
 ### Checks & Deploy
 
 ```bash
@@ -238,7 +257,9 @@ HumansOnly/
 
 ### API
 
-45 endpoints across 9 categories:
+Human-authenticity foundation endpoints are now included (`/api/rules/*`, `/api/human/challenge/verify`, `/api/me/trust`, `/api/moderation/authenticity*`).
+
+Core platform surface remains organized across the existing categories:
 
 | Category | Routes | Scope |
 |----------|--------|-------|

@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.1] - 2026-03-03
+
+### Added
+
+- Reusable Turnstile client component for human challenge token collection:
+  - `app/src/components/human/TurnstileChallenge.tsx`
+
+### Changed
+
+- Composer create/reply flows now submit an explicit Turnstile token when preparing human context.
+- Post edit flows (timeline + single post page) now include `post_edit` challenge token handling end-to-end.
+- Edit dialog now refreshes challenge state after each submit attempt to prevent stale/replayed token usage.
+
+## [1.9.0] - 2026-03-02
+
+### Added
+
+- Wave 7 foundation for human-authenticity enforcement:
+  - `PolicyDocument`, `PolicyAcceptance`, `HumanChallengeSession`, `AuthenticityCheck` Prisma models
+  - `Tweet.visibilityStatus`, `Tweet.authenticityScore`, `Tweet.authenticityDecision`
+  - `MediaAsset` provenance/authenticity metadata fields
+- New human-layer APIs:
+  - `GET /api/rules/current`
+  - `POST /api/rules/accept`
+  - `POST /api/human/challenge/verify`
+  - `GET /api/me/trust`
+  - `GET /api/moderation/authenticity`
+  - `POST /api/moderation/authenticity/[id]/decision`
+- New app route:
+  - `/rules` page with live policy version and acceptance flow
+- New human-layer utilities:
+  - `src/utilities/human/*` (policy, challenge, trust, risk, gate)
+  - `src/utilities/media/provenance.ts` (initial provenance/synthetic signal extraction)
+
+### Changed
+
+- Public post creation/edit/reply now run through policy + challenge + authenticity gate pipeline.
+- Upload pipeline now persists provenance and synthetic risk metadata on `MediaAsset`.
+- Moderator settings now include an authenticity queue with allow/reject/strike actions.
+- Sidebar navigation now links to Rules for direct policy access.
+- Feed visibility filters now respect `Tweet.visibilityStatus` for public vs blocked content access.
+
+### Fixed
+
+- Hardened interaction endpoints (`like`, `retweet`, `reply`) against non-public target posts.
+- Terms now explicitly prohibit publishing synthetic/AI-generated content as human-created content.
+
 ## [1.8.9] - 2026-03-02
 
 ### Added

@@ -12,6 +12,7 @@ import ProgressCircle from "../misc/ProgressCircle";
 import { uploadFile } from "@/utilities/storage";
 import { getFullURL } from "@/utilities/misc/getFullURL";
 import { UserProps } from "@/types/UserProps";
+import TurnstileChallenge from "../human/TurnstileChallenge";
 
 type EditTweetDialogProps = {
     open: boolean;
@@ -19,7 +20,7 @@ type EditTweetDialogProps = {
     initialText: string;
     initialPhotoUrl?: string | null;
     onClose: () => void;
-    onSave: (payload: { text: string; photoUrl?: string | null }) => void;
+    onSave: (payload: { text: string; photoUrl?: string | null; challengeToken?: string }) => void;
     isSaving?: boolean;
 };
 
@@ -43,6 +44,8 @@ export default function EditTweetDialog({
     const [uploaderKey, setUploaderKey] = useState(0);
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [challengeToken, setChallengeToken] = useState<string | null>(null);
+    const [challengeNonce, setChallengeNonce] = useState(0);
 
     useEffect(() => {
         if (open) {
@@ -54,6 +57,8 @@ export default function EditTweetDialog({
             setRemoveExistingPhoto(false);
             setUploaderKey((current) => current + 1);
             setError(null);
+            setChallengeToken(null);
+            setChallengeNonce((current) => current + 1);
         }
     }, [open, initialText, initialPhotoUrl]);
 
@@ -86,8 +91,9 @@ export default function EditTweetDialog({
     const handleSubmit = async () => {
         if (!isValid || isBusy) return;
 
-        const payload: { text: string; photoUrl?: string | null } = {
+        const payload: { text: string; photoUrl?: string | null; challengeToken?: string } = {
             text: normalized,
+            challengeToken: challengeToken || undefined,
         };
 
         try {
@@ -101,6 +107,8 @@ export default function EditTweetDialog({
             }
 
             onSave(payload);
+            setChallengeToken(null);
+            setChallengeNonce((current) => current + 1);
         } catch (uploadError) {
             const uploadMessage = uploadError instanceof Error ? uploadError.message : "Image upload failed.";
             setError(uploadMessage);
@@ -200,6 +208,12 @@ export default function EditTweetDialog({
                         )}
 
                         {showDropzone && <Uploader key={uploaderKey} handlePhotoChange={handlePhotoChange} />}
+
+                        <TurnstileChallenge
+                            action="post_edit"
+                            nonce={challengeNonce}
+                            onTokenChange={setChallengeToken}
+                        />
 
                         {error && <p className="text-muted">{error}</p>}
                     </div>

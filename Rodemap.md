@@ -1,6 +1,6 @@
 # Humans Only - Rodemap
 
-Last updated: 2026-02-28
+Last updated: 2026-03-02
 Owner: Codex + Dennis
 Execution mode: Parallel workstreams with strict validation gates per wave
 
@@ -9,7 +9,7 @@ Build Humans Only into a production-grade social network (photo-first, no video 
 
 ## Current Execution Status
 - Wave plan remains the delivery framework, but production hardening is active again due reported functional gaps.
-- Current stabilization track (v1.8.7): role/moderation controls, post edit/delete reliability, mobile UX consistency, CI gate reliability.
+- Current stabilization track (v1.9.0): Wave 7 authenticity foundation (rules, challenge sessions, trust/risk scaffolding, moderation queue).
 - Validation gate remains mandatory: lint, build, Prisma validation, and live-domain smoke.
 
 ## Wave Overview
@@ -103,6 +103,20 @@ Scope:
 
 Acceptance:
 - Production pass report with zero blocker defects
+
+### Wave 7 - Human Authenticity Foundation
+Status: `in_progress` (v1.9.0 foundation shipped on 2026-03-02)
+
+Scope:
+- Add policy/rules versioning + acceptance persistence
+- Add server-side human challenge session verification
+- Add trust/risk scaffolding and authenticity moderation queue
+- Add initial provenance metadata persistence for uploaded media
+
+Acceptance:
+- Public post create/edit/reply flows are wired through policy + challenge gate contracts
+- Moderator authenticity queue is operational
+- Wave 7 APIs are build-validated and deploy-ready
 
 ## Parallel Workstreams
 - Track A: Auth/API contracts

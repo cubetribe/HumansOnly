@@ -91,14 +91,83 @@ export const getUserTweet = async (tweetId: string, tweetAuthor: string) => {
     return json;
 };
 
-export const createTweet = async (tweet: string) => {
+export type HumanAction = "post_create" | "post_edit" | "reply_create" | "upload_post";
+
+export const getCurrentRules = async () => {
+    const response = await fetch(`${HOST_URL}/api/rules/current`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not load rules.");
+    return json;
+};
+
+export const acceptRules = async (payload: { version: string; checksum: string }) => {
+    const response = await fetch(`${HOST_URL}/api/rules/accept`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not accept rules.");
+    return json;
+};
+
+export const verifyHumanChallenge = async (payload: { action: HumanAction; token?: string; ruleVersion?: string }) => {
+    const response = await fetch(`${HOST_URL}/api/human/challenge/verify`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Human challenge failed.");
+    return json;
+};
+
+export const prepareHumanContext = async ({
+    action,
+    challengeToken,
+}: {
+    action: HumanAction;
+    challengeToken?: string;
+}) => {
+    const rules = await getCurrentRules();
+    if (!rules.accepted) {
+        await acceptRules({ version: rules.version, checksum: rules.checksum });
+    }
+
+    const challenge = await verifyHumanChallenge({
+        action,
+        token: challengeToken,
+        ruleVersion: rules.version,
+    });
+
+    return {
+        ruleVersion: rules.version as string,
+        challengeSessionId: challenge.challengeSessionId as string,
+    };
+};
+
+export const createTweet = async (tweet: {
+    text: string;
+    photoUrl?: string;
+    challengeSessionId?: string;
+    ruleVersion?: string;
+}) => {
     const response = await fetch(`${HOST_URL}/api/tweets/create`, {
         method: "POST",
         credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
-        body: tweet,
+        body: JSON.stringify(tweet),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
@@ -330,7 +399,7 @@ export const deleteTweet = async (tweetId: string, tweetAuthor: string) => {
 export const editTweet = async (
     tweetId: string,
     tweetAuthor: string,
-    payload: { text: string; photoUrl?: string | null }
+    payload: { text: string; photoUrl?: string | null; challengeSessionId?: string; ruleVersion?: string }
 ) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/edit`, {
         method: "POST",
@@ -345,14 +414,23 @@ export const editTweet = async (
     return json;
 };
 
-export const createReply = async (reply: string, tweetAuthor: string, tweetId: string) => {
+export const createReply = async (
+    reply: {
+        text: string;
+        photoUrl?: string;
+        challengeSessionId?: string;
+        ruleVersion?: string;
+    },
+    tweetAuthor: string,
+    tweetId: string
+) => {
     const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/reply`, {
         method: "POST",
         credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
-        body: reply,
+        body: JSON.stringify(reply),
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
@@ -567,6 +645,49 @@ export const updateReportStatus = async (reportId: string, status: "open" | "rev
             "Content-Type": "application/json",
         },
         body: JSON.stringify({ status }),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getAuthenticityChecks = async (status = "open", limit = 50, cursor?: string) => {
+    const params = new URLSearchParams();
+    params.set("status", status);
+    params.set("limit", String(limit));
+    if (cursor) params.set("cursor", cursor);
+
+    const response = await fetch(`${HOST_URL}/api/moderation/authenticity?${params.toString()}`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const decideAuthenticityCheck = async (
+    checkId: string,
+    decision: "allow" | "reject" | "strike",
+    note?: string
+) => {
+    const response = await fetch(`${HOST_URL}/api/moderation/authenticity/${checkId}/decision`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ decision, note }),
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getMyTrust = async () => {
+    const response = await fetch(`${HOST_URL}/api/me/trust`, {
+        credentials: "include",
+        cache: "no-store",
     });
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");

@@ -8,18 +8,22 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 
 import CircularLoading from "../misc/CircularLoading";
-import { createTweet } from "@/utilities/fetch";
+import { createTweet, prepareHumanContext } from "@/utilities/fetch";
 import { NewTweetProps } from "@/types/TweetProps";
 import Uploader from "../misc/Uploader";
 import { getFullURL } from "@/utilities/misc/getFullURL";
 import { uploadFile } from "@/utilities/storage";
 import ProgressCircle from "../misc/ProgressCircle";
+import TurnstileChallenge from "../human/TurnstileChallenge";
 
 export default function NewTweet({ token, handleSubmit }: NewTweetProps) {
     const [showPicker, setShowPicker] = useState(false);
     const [showDropzone, setShowDropzone] = useState(false);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [count, setCount] = useState(0);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [challengeToken, setChallengeToken] = useState<string | null>(null);
+    const [challengeNonce, setChallengeNonce] = useState(0);
 
     const queryClient = useQueryClient();
 
@@ -49,17 +53,47 @@ export default function NewTweet({ token, handleSubmit }: NewTweetProps) {
         },
         validationSchema: validationSchema,
         onSubmit: async (values, { resetForm }) => {
-            if (photoFile) {
-                const path: string | void = await uploadFile(photoFile);
-                if (!path) throw new Error("Error uploading image.");
-                values.photoUrl = path;
-                setPhotoFile(null);
+            try {
+                setSubmitError(null);
+                const humanContext = await prepareHumanContext({
+                    action: "post_create",
+                    challengeToken: challengeToken || undefined,
+                });
+
+                if (photoFile) {
+                    const path: string | void = await uploadFile(photoFile);
+                    if (!path) throw new Error("Error uploading image.");
+                    values.photoUrl = path;
+                    setPhotoFile(null);
+                }
+
+                const result = await mutation.mutateAsync({
+                    text: values.text.trim(),
+                    photoUrl: values.photoUrl || undefined,
+                    challengeSessionId: humanContext.challengeSessionId,
+                    ruleVersion: humanContext.ruleVersion,
+                });
+
+                if (result.pendingReview) {
+                    setSubmitError(result.message || "Post queued for authenticity review.");
+                    resetForm();
+                    setCount(0);
+                    setShowDropzone(false);
+                    if (handleSubmit) handleSubmit();
+                    return;
+                }
+
+                resetForm();
+                setCount(0);
+                setShowDropzone(false);
+                if (handleSubmit) handleSubmit();
+            } catch (error) {
+                const message = error instanceof Error ? error.message : "Could not publish post.";
+                setSubmitError(message);
+            } finally {
+                setChallengeToken(null);
+                setChallengeNonce((current) => current + 1);
             }
-            mutation.mutate(JSON.stringify(values));
-            resetForm();
-            setCount(0);
-            setShowDropzone(false);
-            if (handleSubmit) handleSubmit();
         },
     });
 
@@ -134,6 +168,12 @@ export default function NewTweet({ token, handleSubmit }: NewTweetProps) {
                     </div>
                 )}
                 {showDropzone && <Uploader handlePhotoChange={handlePhotoChange} />}
+                <TurnstileChallenge
+                    action="post_create"
+                    nonce={challengeNonce}
+                    onTokenChange={setChallengeToken}
+                />
+                {submitError && <p className="text-muted">{submitError}</p>}
             </form>
         </div>
     );

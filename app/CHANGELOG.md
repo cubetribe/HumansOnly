@@ -1,5 +1,37 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Turnstile Client Enforcement for Post Actions (v1.9.1)
+
+-   added reusable client Turnstile widget component (`src/components/human/TurnstileChallenge.tsx`)
+-   wired Turnstile token flow into:
+    -   create post composer
+    -   reply composer
+    -   edit post dialog
+-   aligned edit mutations on timeline + single-post view to always request `post_edit` human context with challenge token
+-   improved challenge UX with token refresh after each submit attempt to avoid stale/replayed tokens
+
+## 2026-03-02 - Human Authenticity Layer Foundation (v1.9.0)
+
+-   added Wave 7 authenticity data model foundation:
+    -   `PolicyDocument`
+    -   `PolicyAcceptance`
+    -   `HumanChallengeSession`
+    -   `AuthenticityCheck`
+    -   new tweet/media authenticity fields (`visibilityStatus`, risk/decision metadata, provenance metadata)
+-   added new APIs:
+    -   `GET /api/rules/current`
+    -   `POST /api/rules/accept`
+    -   `POST /api/human/challenge/verify`
+    -   `GET /api/me/trust`
+    -   `GET /api/moderation/authenticity`
+    -   `POST /api/moderation/authenticity/[id]/decision`
+-   wired create/edit/reply flows into a shared human gate pipeline (rules acceptance + challenge + trust/risk scoring)
+-   added first `/rules` page and linked it in sidebar/profile menu
+-   added authenticity moderation queue controls in Settings
+-   added feed visibility filtering for blocked/non-public authenticity states
+-   added upload provenance signal extraction + persistence (`provenanceStatus`, `syntheticRiskScore`)
+-   updated terms to explicitly prohibit AI-generated content being posted as human-created
+
 ## 2026-03-02 - Sidebar Rework, Legal Hub, Version Sync + Clerk Username Cleanup (v1.8.9)
 
 -   added right-sidebar community board for contributor recruiting and partner ad inventory:

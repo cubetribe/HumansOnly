@@ -102,3 +102,22 @@ export const visibleAuthorWhereForViewer = (viewerId: string | null) => {
         ],
     };
 };
+
+export const visibleTweetWhereForViewer = (viewerId: string | null) => {
+    if (!viewerId) {
+        return {
+            visibilityStatus: "public",
+        };
+    }
+
+    return {
+        OR: [
+            {
+                visibilityStatus: "public",
+            },
+            {
+                authorId: viewerId,
+            },
+        ],
+    };
+};

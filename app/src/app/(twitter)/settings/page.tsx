@@ -10,9 +10,11 @@ import { AuthContext } from "@/app/(twitter)/layout";
 import {
     getAdminUsers,
     getBlockedUsers,
+    getAuthenticityChecks,
     getModerationReports,
     getMutedUsers,
     getUserPrivacyPreferences,
+    decideAuthenticityCheck,
     updateReportStatus,
     updateUserRole,
     updateUserBlock,
@@ -62,6 +64,12 @@ export default function SettingsPage() {
     const { data: moderationReportsData, isLoading: isReportsLoading } = useQuery({
         queryKey: ["settings", "moderation-reports"],
         queryFn: () => getModerationReports("open", 30),
+        enabled: canModerate,
+    });
+
+    const { data: authenticityChecksData, isLoading: isAuthenticityChecksLoading } = useQuery({
+        queryKey: ["settings", "authenticity-checks"],
+        queryFn: () => getAuthenticityChecks("open", 30),
         enabled: canModerate,
     });
 
@@ -163,11 +171,33 @@ export default function SettingsPage() {
         },
     });
 
+    const authenticityDecisionMutation = useMutation({
+        mutationFn: ({ checkId, decision }: { checkId: string; decision: "allow" | "reject" | "strike" }) =>
+            decideAuthenticityCheck(checkId, decision),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["settings", "authenticity-checks"] });
+            await queryClient.invalidateQueries({ queryKey: ["tweets"] });
+            setSnackbar({
+                message: "Authenticity decision saved.",
+                severity: "success",
+                open: true,
+            });
+        },
+        onError: (error: Error) => {
+            setSnackbar({
+                message: error.message || "Failed to save authenticity decision.",
+                severity: "error",
+                open: true,
+            });
+        },
+    });
+
     const preferences = preferenceData?.preferences || { isPrivate: false, messagePrivacy: "everyone" };
     const blockedUsers = blockedData?.users || [];
     const mutedUsers = mutedData?.users || [];
     const adminUsers = adminUsersData?.users || [];
     const moderationReports = moderationReportsData?.reports || [];
+    const authenticityChecks = authenticityChecksData?.checks || [];
 
     const handleTogglePrivate = () => {
         updatePreferencesMutation.mutate({ isPrivate: !preferences.isPrivate });
@@ -325,6 +355,67 @@ export default function SettingsPage() {
                                             <MenuItem value="reviewing">Reviewing</MenuItem>
                                             <MenuItem value="resolved">Resolved</MenuItem>
                                             <MenuItem value="rejected">Rejected</MenuItem>
+                                        </Select>
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
+                </section>
+            )}
+
+            {canModerate && (
+                <section className="settings-section">
+                    <h2>Authenticity Queue</h2>
+                    {isAuthenticityChecksLoading ? (
+                        <CircularLoading />
+                    ) : authenticityChecks.length === 0 ? (
+                        <p className="text-muted">No open authenticity checks.</p>
+                    ) : (
+                        <div className="moderation-report-list">
+                            {authenticityChecks.map(
+                                (check: {
+                                    id: string;
+                                    action: string;
+                                    decision: string;
+                                    score?: number | null;
+                                    trustedTier?: string | null;
+                                    actor: { username: string };
+                                    contentText?: string | null;
+                                }) => (
+                                    <div className="moderation-report-row" key={`auth-check-${check.id}`}>
+                                        <div className="moderation-report-meta">
+                                            <strong>
+                                                {check.action} · @{check.actor.username}
+                                            </strong>
+                                            <span className="text-muted">
+                                                Risk score: {typeof check.score === "number" ? check.score.toFixed(3) : "n/a"} ·
+                                                Tier: {check.trustedTier || "unknown"}
+                                            </span>
+                                            {check.contentText ? (
+                                                <span className="text-muted">{check.contentText}</span>
+                                            ) : (
+                                                <span className="text-muted">No text snapshot available.</span>
+                                            )}
+                                        </div>
+                                        <Select
+                                            size="small"
+                                            value=""
+                                            displayEmpty
+                                            onChange={(event) =>
+                                                authenticityDecisionMutation.mutate({
+                                                    checkId: check.id,
+                                                    decision: event.target.value as "allow" | "reject" | "strike",
+                                                })
+                                            }
+                                            disabled={authenticityDecisionMutation.isLoading}
+                                        >
+                                            <MenuItem value="" disabled>
+                                                Decide…
+                                            </MenuItem>
+                                            <MenuItem value="allow">Allow</MenuItem>
+                                            <MenuItem value="reject">Reject</MenuItem>
+                                            <MenuItem value="strike">Strike</MenuItem>
                                         </Select>
                                     </div>
                                 )

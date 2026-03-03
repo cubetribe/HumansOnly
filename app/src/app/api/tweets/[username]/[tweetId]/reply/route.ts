@@ -3,18 +3,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/client";
 import { createNotification } from "@/utilities/fetch";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
-import { canUsersInteract, visibleAuthorWhereForViewer } from "@/utilities/social/access";
+import { canUsersInteract, visibleAuthorWhereForViewer, visibleTweetWhereForViewer } from "@/utilities/social/access";
 import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
+import { runHumanGate } from "@/utilities/human/gate";
+
+type CreateReplyPayload = {
+    text?: unknown;
+    photoUrl?: unknown;
+    challengeSessionId?: unknown;
+    ruleVersion?: unknown;
+};
 
 export async function GET(request: NextRequest, { params: { tweetId } }: { params: { tweetId: string } }) {
     const authUser = await getAuthenticatedUser();
-    const visibleAuthorWhere = visibleAuthorWhereForViewer(authUser?.id ?? null);
+    const viewerId = authUser?.id ?? null;
+    const visibleAuthorWhere = visibleAuthorWhereForViewer(viewerId);
+    const visibleTweetWhere = visibleTweetWhereForViewer(viewerId);
 
     try {
         const parentTweet = await prisma.tweet.findFirst({
             where: {
                 id: tweetId,
                 author: visibleAuthorWhere,
+                AND: [visibleTweetWhere],
             },
             select: {
                 id: true,
@@ -30,6 +41,7 @@ export async function GET(request: NextRequest, { params: { tweetId } }: { param
                 isReply: true,
                 repliedToId: tweetId,
                 author: visibleAuthorWhere,
+                AND: [visibleTweetWhere],
             },
             include: {
                 author: {
@@ -106,8 +118,14 @@ export async function POST(
         });
     }
 
-    // Parse request body
-    const { text, photoUrl } = await request.json();
+    let body: CreateReplyPayload;
+    try {
+        body = (await request.json()) as CreateReplyPayload;
+    } catch {
+        return NextResponse.json({ success: false, message: "Invalid JSON payload." }, { status: 400 });
+    }
+
+    const { text, photoUrl } = body;
     const normalizedText = typeof text === "string" ? text.trim() : "";
 
     // Validate input
@@ -142,6 +160,7 @@ export async function POST(
             select: {
                 id: true,
                 authorId: true,
+                visibilityStatus: true,
                 author: {
                     select: {
                         id: true,
@@ -163,6 +182,9 @@ export async function POST(
         if (!targetTweet || targetTweet.author.username !== username) {
             return NextResponse.json({ success: false, message: "Target post not found." }, { status: 404 });
         }
+        if (targetTweet.visibilityStatus !== "public" && targetTweet.authorId !== authUser.id) {
+            return NextResponse.json({ success: false, message: "This post is not publicly available." }, { status: 403 });
+        }
 
         const relation = await canUsersInteract(authUser.id, targetTweet.authorId);
         if (relation.blocked) {
@@ -183,11 +205,64 @@ export async function POST(
             );
         }
 
-        await prisma.tweet.create({
+        const challengeSessionId = typeof body.challengeSessionId === "string" ? body.challengeSessionId.trim() : null;
+        const ruleVersion = typeof body.ruleVersion === "string" ? body.ruleVersion.trim() : null;
+
+        const gate = await runHumanGate({
+            authUser,
+            action: "reply_create",
+            text: normalizedText,
+            hasMedia: Boolean(sanitizedPhotoUrl),
+            challengeSessionId,
+            ruleVersion,
+            metadata: {
+                route: "/api/tweets/[username]/[tweetId]/reply",
+                targetTweetId: tweetId,
+            },
+        });
+
+        if (!gate.ok) {
+            const statusByCode = {
+                rules_not_accepted: 409,
+                challenge_required: 403,
+                challenge_invalid: 403,
+                challenge_misconfigured: 500,
+            } as const;
+
+            const status = gate.code ? statusByCode[gate.code] : 400;
+            return NextResponse.json(
+                {
+                    success: false,
+                    code: gate.code,
+                    message: gate.message,
+                    policyVersion: gate.policyVersion,
+                },
+                { status }
+            );
+        }
+
+        if (gate.decision !== "allow") {
+            return NextResponse.json(
+                {
+                    success: true,
+                    pendingReview: true,
+                    message: "Reply submitted for authenticity review before publication.",
+                    checkId: gate.authenticityCheckId,
+                    riskScore: gate.risk.score,
+                    suggestedDecision: gate.suggestedDecision,
+                },
+                { status: 202 }
+            );
+        }
+
+        const created = await prisma.tweet.create({
             data: {
                 isReply: true,
                 text: normalizedText,
                 photoUrl: sanitizedPhotoUrl,
+                visibilityStatus: "public",
+                authenticityScore: gate.risk.score,
+                authenticityDecision: gate.suggestedDecision,
                 author: {
                     connect: {
                         id: authUser.id,
@@ -200,6 +275,17 @@ export async function POST(
                 },
             },
         });
+
+        if (gate.authenticityCheckId) {
+            await prisma.authenticityCheck.update({
+                where: {
+                    id: gate.authenticityCheckId,
+                },
+                data: {
+                    tweetId: created.id,
+                },
+            });
+        }
 
         if (username !== authUser.username) {
             const notificationContent = {

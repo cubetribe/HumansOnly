@@ -335,6 +335,22 @@ main {
     }
 }
 
+.human-challenge {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .human-challenge-widget {
+        min-height: 70px;
+    }
+
+    .text-muted {
+        margin: 0;
+        font-size: 0.85rem;
+    }
+}
+
 .preview-dialog {
     .btn-close {
         position: absolute;
@@ -843,6 +859,14 @@ main {
     p {
         color: var(--ho-muted);
         line-height: 1.45;
+    }
+
+    ul {
+        margin-left: 1.2rem;
+        color: var(--ho-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
     }
 
     a {

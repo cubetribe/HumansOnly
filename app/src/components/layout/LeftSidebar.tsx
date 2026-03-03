@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useContext, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar, Menu, MenuItem } from "@mui/material";
-import { FaHome, FaBell, FaEnvelope, FaUser, FaCog, FaHashtag, FaEllipsisH, FaPlus } from "react-icons/fa";
+import { FaHome, FaBell, FaEnvelope, FaUser, FaCog, FaHashtag, FaEllipsisH, FaPlus, FaGavel } from "react-icons/fa";
 import { HumansOnlyLogo, VerifiedHumanBadge } from "@/components/icons";
 import { useClerk } from "@clerk/nextjs";
 
@@ -75,6 +75,13 @@ export default function LeftSidebar() {
                                 <Link href="/explore">
                                     <div className={`nav-link ${pathname.startsWith("/explore") ? "active" : ""}`}>
                                         <FaHashtag /> <span className="nav-title">Explore</span>
+                                    </div>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/rules">
+                                    <div className={`nav-link ${pathname.startsWith("/rules") ? "active" : ""}`}>
+                                        <FaGavel /> <span className="nav-title">Rules</span>
                                     </div>
                                 </Link>
                             </li>
@@ -172,6 +179,9 @@ export default function LeftSidebar() {
                                 </MenuItem>
                                 <MenuItem onClick={handleAnchorClose}>
                                     <Link href="/settings">Settings</Link>
+                                </MenuItem>
+                                <MenuItem onClick={handleAnchorClose}>
+                                    <Link href="/rules">Rules</Link>
                                 </MenuItem>
                                 <MenuItem onClick={handleLogOutClick}>Log Out</MenuItem>
                             </Menu>

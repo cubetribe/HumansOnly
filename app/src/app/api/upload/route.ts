@@ -5,6 +5,8 @@ import { getAuthenticatedUser } from "@/utilities/auth/session";
 import { prisma } from "@/prisma/client";
 import { storeMediaBuffer, type ServerUploadType } from "@/utilities/storage/server";
 import { InvalidUploadImageError, optimizeUploadImage } from "@/utilities/media/optimizeUploadImage";
+import { runHumanGate } from "@/utilities/human/gate";
+import { extractProvenanceSignals } from "@/utilities/media/provenance";
 
 const ALLOWED_DECLARED_TYPES = new Set([
     "image/jpeg",
@@ -72,6 +74,11 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: "Invalid upload type." }, { status: 400 });
         }
         const type = (typeof rawType === "string" ? rawType : "post") as ServerUploadType;
+        const challengeSessionId =
+            typeof formData.get("challengeSessionId") === "string"
+                ? String(formData.get("challengeSessionId")).trim()
+                : null;
+        const ruleVersion = typeof formData.get("ruleVersion") === "string" ? String(formData.get("ruleVersion")).trim() : null;
 
         if (file.size <= 0) {
             return NextResponse.json({ success: false, error: "File is empty." }, { status: 400 });
@@ -90,6 +97,55 @@ export async function POST(request: NextRequest) {
                 success: false,
                 error: `File too large. Maximum ${MAX_SIZE / 1024 / 1024}MB allowed`,
             }, { status: 400 });
+        }
+
+        let uploadGate: Awaited<ReturnType<typeof runHumanGate>> | null = null;
+        if (type === "post" && challengeSessionId) {
+            uploadGate = await runHumanGate({
+                authUser,
+                action: "upload_post",
+                hasMedia: true,
+                challengeSessionId,
+                ruleVersion,
+                metadata: {
+                    route: "/api/upload",
+                    uploadType: type,
+                },
+            });
+
+            if (!uploadGate.ok) {
+                const statusByCode = {
+                    rules_not_accepted: 409,
+                    challenge_required: 403,
+                    challenge_invalid: 403,
+                    challenge_misconfigured: 500,
+                } as const;
+
+                const status = uploadGate.code ? statusByCode[uploadGate.code] : 400;
+                return NextResponse.json(
+                    {
+                        success: false,
+                        code: uploadGate.code,
+                        error: uploadGate.message || "Upload blocked by human verification policy.",
+                        policyVersion: uploadGate.policyVersion,
+                    },
+                    { status }
+                );
+            }
+
+            if (uploadGate.decision !== "allow") {
+                return NextResponse.json(
+                    {
+                        success: true,
+                        pendingReview: true,
+                        message: "Upload submitted for authenticity review before publication.",
+                        checkId: uploadGate.authenticityCheckId,
+                        riskScore: uploadGate.risk.score,
+                        suggestedDecision: uploadGate.suggestedDecision,
+                    },
+                    { status: 202 }
+                );
+            }
         }
 
         const since = new Date(Date.now() - ONE_DAY_MS);
@@ -132,6 +188,17 @@ export async function POST(request: NextRequest) {
         });
 
         if (duplicate) {
+            if (uploadGate?.ok && uploadGate.authenticityCheckId) {
+                await prisma.authenticityCheck.update({
+                    where: {
+                        id: uploadGate.authenticityCheckId,
+                    },
+                    data: {
+                        mediaAssetId: duplicate.id,
+                    },
+                });
+            }
+
             return NextResponse.json({
                 success: true,
                 path: duplicate.url,
@@ -213,6 +280,10 @@ export async function POST(request: NextRequest) {
             uploadType: type,
             userId: authUser.id,
         });
+        const provenance = extractProvenanceSignals({
+            buffer: optimized.buffer,
+            filename: file.name,
+        });
 
         const asset = await prisma.mediaAsset.create({
             data: {
@@ -227,8 +298,24 @@ export async function POST(request: NextRequest) {
                 checksum,
                 width: optimized.width,
                 height: optimized.height,
+                provenanceStatus: provenance.provenanceStatus,
+                provenanceSigner: provenance.provenanceSigner,
+                provenanceDataJson: provenance.data,
+                syntheticRiskScore: provenance.syntheticRiskScore,
+                authenticityDecision: uploadGate?.ok ? uploadGate.suggestedDecision : null,
             },
         });
+
+        if (uploadGate?.ok && uploadGate.authenticityCheckId) {
+            await prisma.authenticityCheck.update({
+                where: {
+                    id: uploadGate.authenticityCheckId,
+                },
+                data: {
+                    mediaAssetId: asset.id,
+                },
+            });
+        }
 
         const savings = Math.max(0, Math.round((1 - compressedSize / originalSize) * 100));
 
@@ -241,6 +328,8 @@ export async function POST(request: NextRequest) {
             assetId: asset.id,
             provider: asset.provider,
             moderationStatus: asset.moderationStatus,
+            provenanceStatus: asset.provenanceStatus,
+            syntheticRiskScore: asset.syntheticRiskScore,
             outputFormat: optimized.mimeType,
             outputWidth: optimized.width,
             outputHeight: optimized.height,

@@ -22,7 +22,7 @@ import { AuthContext } from "@/app/(twitter)/layout";
 import RepostIcon from "../misc/RepostIcon";
 import ProfileCard from "../user/ProfileCard";
 import MentionText from "../misc/MentionText";
-import { createReport, deleteTweet, editTweet } from "@/utilities/fetch";
+import { createReport, deleteTweet, editTweet, prepareHumanContext } from "@/utilities/fetch";
 import CustomSnackbar from "../misc/CustomSnackbar";
 import { SnackbarProps } from "@/types/SnackbarProps";
 import EditTweetDialog from "../dialog/EditTweetDialog";
@@ -62,13 +62,27 @@ export default function Tweet({ tweet }: { tweet: TweetProps }) {
     });
 
     const editMutation = useMutation({
-        mutationFn: (payload: { text: string; photoUrl?: string | null }) =>
-            editTweet(displayedTweet.id, displayedTweet.author.username, payload),
-        onSuccess: async () => {
+        mutationFn: async (payload: { text: string; photoUrl?: string | null; challengeToken?: string }) => {
+            const { challengeToken, ...editPayload } = payload;
+            const humanContext = await prepareHumanContext({
+                action: "post_edit",
+                challengeToken: challengeToken || undefined,
+            });
+            return editTweet(displayedTweet.id, displayedTweet.author.username, {
+                ...editPayload,
+                challengeSessionId: humanContext.challengeSessionId,
+                ruleVersion: humanContext.ruleVersion,
+            });
+        },
+        onSuccess: async (result) => {
             setIsEditOpen(false);
             await queryClient.invalidateQueries({ queryKey: ["tweets"] });
             await queryClient.invalidateQueries({ queryKey: ["tweets", displayedTweet.author.username, displayedTweet.id] });
-            setSnackbar({ message: "Post updated.", severity: "success", open: true });
+            setSnackbar({
+                message: result?.pendingReview ? "Post edit queued for authenticity review." : "Post updated.",
+                severity: "success",
+                open: true,
+            });
         },
         onError: (error: Error) => {
             setSnackbar({ message: error.message || "Failed to update post.", severity: "error", open: true });

@@ -16,7 +16,7 @@ import Share from "./Share";
 import Counters from "./Counters";
 import { getFullURL } from "@/utilities/misc/getFullURL";
 import { VerifiedToken } from "@/types/TokenProps";
-import { createReport, deleteTweet, editTweet } from "@/utilities/fetch";
+import { createReport, deleteTweet, editTweet, prepareHumanContext } from "@/utilities/fetch";
 import PreviewDialog from "../dialog/PreviewDialog";
 import { shimmer } from "@/utilities/misc/shimmer";
 import NewReply from "./NewReply";
@@ -83,13 +83,25 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
     });
 
     const editMutation = useMutation({
-        mutationFn: (payload: { text: string; photoUrl?: string | null }) => editTweet(tweet.id, tweet.author.username, payload),
-        onSuccess: async () => {
+        mutationFn: async (payload: { text: string; photoUrl?: string | null; challengeToken?: string }) => {
+            const { challengeToken, ...editPayload } = payload;
+            const humanContext = await prepareHumanContext({
+                action: "post_edit",
+                challengeToken: challengeToken || undefined,
+            });
+
+            return editTweet(tweet.id, tweet.author.username, {
+                ...editPayload,
+                challengeSessionId: humanContext.challengeSessionId,
+                ruleVersion: humanContext.ruleVersion,
+            });
+        },
+        onSuccess: async (result) => {
             setIsEditOpen(false);
             await queryClient.invalidateQueries({ queryKey: ["tweets"] });
             await queryClient.invalidateQueries({ queryKey: ["tweets", tweet.author.username, tweet.id] });
             setSnackbar({
-                message: "Post updated.",
+                message: result?.pendingReview ? "Post edit queued for authenticity review." : "Post updated.",
                 severity: "success",
                 open: true,
             });

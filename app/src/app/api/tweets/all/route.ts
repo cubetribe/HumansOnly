@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser } from "@/utilities/auth/session";
-import { visibleAuthorWhereForViewer } from "@/utilities/social/access";
+import { visibleAuthorWhereForViewer, visibleTweetWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest) {
     let page = request.nextUrl.searchParams.get("page");
@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
     const viewerId = authUser?.id ?? null;
     const visibleAuthorWhere = visibleAuthorWhereForViewer(viewerId);
+    const visibleTweetWhere = visibleTweetWhereForViewer(viewerId);
 
     if (!page) {
         page = "1";
@@ -17,24 +18,32 @@ export async function GET(request: NextRequest) {
 
     const parsedPage = Number(page);
     const parsedLimit = Number(limit);
-    let nextPage = parsedPage + 1;
+    const nextPage = parsedPage + 1;
 
     try {
-        const tweets = await prisma.tweet.findMany({
-            where: {
-                isReply: false,
-                author: visibleAuthorWhere,
-                OR: [
-                    {
-                        isRetweet: false,
-                    },
-                    {
-                        retweetOf: {
-                            author: visibleAuthorWhere,
+        const baseWhere = {
+            isReply: false,
+            author: visibleAuthorWhere,
+            AND: [
+                visibleTweetWhere,
+                {
+                    OR: [
+                        {
+                            isRetweet: false,
                         },
-                    },
-                ],
-            },
+                        {
+                            retweetOf: {
+                                author: visibleAuthorWhere,
+                                visibilityStatus: "public",
+                            },
+                        },
+                    ],
+                },
+            ],
+        };
+
+        const tweets = await prisma.tweet.findMany({
+            where: baseWhere,
             include: {
                 author: {
                     select: {
@@ -156,22 +165,7 @@ export async function GET(request: NextRequest) {
             take: parsedLimit,
         });
 
-        const totalTweets = await prisma.tweet.count({
-            where: {
-                isReply: false,
-                author: visibleAuthorWhere,
-                OR: [
-                    {
-                        isRetweet: false,
-                    },
-                    {
-                        retweetOf: {
-                            author: visibleAuthorWhere,
-                        },
-                    },
-                ],
-            },
-        });
+        const totalTweets = await prisma.tweet.count({ where: baseWhere });
         const lastPage = Math.ceil(totalTweets / parsedLimit);
 
         return NextResponse.json({ success: true, tweets, nextPage, lastPage });

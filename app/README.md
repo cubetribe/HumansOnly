@@ -52,6 +52,8 @@ In an era of AI-generated content flooding the internet, Humans Only provides a 
 - User Profiles with customizable bio and images
 - Posts and Replies (character-limited)
 - Composer-grade post editing (text, emoji, image replace/remove)
+- Rules page + versioned policy acceptance
+- Pre-post human challenge verification with Turnstile token capture in create/reply/edit flows
 - Following/Followers system
 - Likes and Reposts (with undo support)
 - Real-time Notifications
@@ -67,6 +69,7 @@ In an era of AI-generated content flooding the internet, Humans Only provides a 
 ### Technical Features
 - Clerk-first session auth with legacy JWT compatibility for migration routes
 - Protected super-admin bootstrap with server-side RBAC enforcement
+- Wave 7 human-authenticity data model + moderation queue foundation
 - Real-time data fetching with React Query
 - Infinite Scroll pagination
 - Optimistic UI updates
@@ -138,6 +141,15 @@ CREATION_SECRET_KEY="your_creation_secret_here"
 BLUE_SECRET_KEY="thanksforcaring"
 SUPER_ADMIN_USERNAMES="your_admin_username,co_admin_username"
 SUPER_ADMIN_CLERK_IDS="user_2abc123,user_2def456"
+HUMAN_ENFORCEMENT_MODE="adaptive"
+HUMAN_CHALLENGE_PROVIDER="turnstile"
+TURNSTILE_SECRET_KEY="your_turnstile_secret"
+NEXT_PUBLIC_TURNSTILE_SITE_KEY="your_turnstile_site_key"
+HUMAN_CHALLENGE_TTL_SECONDS="300"
+HUMAN_REVIEW_THRESHOLD="0.72"
+HUMAN_BLOCK_THRESHOLD="0.90"
+HUMAN_RULES_VERSION="2026-03-02.1"
+HUMAN_DRY_RUN="true"
 
 # APPLICATION
 NEXT_PUBLIC_HOST_URL="http://localhost:3000"

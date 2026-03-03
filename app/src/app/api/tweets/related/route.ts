@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
-import { visibleAuthorWhereForViewer } from "@/utilities/social/access";
+import { visibleAuthorWhereForViewer, visibleTweetWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
     const visibleAuthorWhere = visibleAuthorWhereForViewer(authUser.id);
+    const visibleTweetWhere = visibleTweetWhereForViewer(authUser.id);
 
     try {
         const tweets = await prisma.tweet.findMany({
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest) {
                 isReply: false,
                 author: visibleAuthorWhere,
                 AND: [
+                    visibleTweetWhere,
                     {
                         OR: [
                             {
@@ -39,6 +41,7 @@ export async function GET(request: NextRequest) {
                             {
                                 retweetOf: {
                                     author: visibleAuthorWhere,
+                                    visibilityStatus: "public",
                                 },
                             },
                         ],

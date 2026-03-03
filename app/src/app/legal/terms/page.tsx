@@ -32,7 +32,8 @@ export default function TermsPage() {
                 <h2>4. Prohibited Behavior</h2>
                 <p>
                     Abuse, harassment, fraud, impersonation, illegal activity, and deliberate circumvention of security or
-                    moderation systems are prohibited.
+                    moderation systems are prohibited. Publishing fully AI-generated text or synthetic media as human-created
+                    content is prohibited.
                 </p>
             </section>
 

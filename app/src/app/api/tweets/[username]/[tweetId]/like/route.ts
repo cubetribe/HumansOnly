@@ -29,6 +29,7 @@ export async function POST(
             select: {
                 id: true,
                 authorId: true,
+                visibilityStatus: true,
                 author: {
                     select: {
                         username: true,
@@ -48,6 +49,9 @@ export async function POST(
 
         if (!targetTweet || targetTweet.author.username !== username) {
             return NextResponse.json({ success: false, message: "Target post not found." }, { status: 404 });
+        }
+        if (targetTweet.visibilityStatus !== "public" && targetTweet.authorId !== authUser.id) {
+            return NextResponse.json({ success: false, message: "This post is not publicly available." }, { status: 403 });
         }
 
         const relation = await canUsersInteract(authUser.id, targetTweet.authorId);

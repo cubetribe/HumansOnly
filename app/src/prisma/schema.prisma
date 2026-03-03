@@ -42,6 +42,10 @@ model User {
     mutesReceived    Mute[]         @relation("mutesReceived")
     submittedReports Report[]       @relation("reportsSubmitted")
     reportsAgainstUser Report[]     @relation("reportsAgainstUser")
+    policyAcceptances PolicyAcceptance[]
+    challengeSessions HumanChallengeSession[]
+    authenticityChecks AuthenticityCheck[] @relation("authenticityActor")
+    reviewedAuthenticityChecks AuthenticityCheck[] @relation("authenticityReviewer")
 }
 
 model Tweet {
@@ -64,6 +68,10 @@ model Tweet {
     repliedTo   Tweet?   @relation("tweetReplies", fields: [repliedToId], references: [id], onDelete: Cascade)
     repliedToId String?
     reports     Report[] @relation("reportsAgainstTweet")
+    visibilityStatus    String  @default("public") @db.VarChar(20)
+    authenticityScore   Float?
+    authenticityDecision String? @db.VarChar(20)
+    authenticityChecks  AuthenticityCheck[]
 }
 
 model Message {
@@ -104,11 +112,106 @@ model MediaAsset {
     height           Int?
     moderationStatus String   @default("pending") @db.VarChar(20)
     moderationReason String?  @db.VarChar(160)
+    provenanceStatus String   @default("unknown") @db.VarChar(20)
+    provenanceSigner String?  @db.VarChar(160)
+    provenanceDataJson Json?
+    syntheticRiskScore Float?
+    authenticityDecision String? @db.VarChar(20)
     createdAt        DateTime @default(now())
     updatedAt        DateTime @updatedAt
+    authenticityChecks AuthenticityCheck[]
 
     @@index([ownerId, createdAt])
     @@index([checksum])
+}
+
+model PolicyDocument {
+    id          String   @id @default(uuid())
+    version     String   @unique @db.VarChar(40)
+    locale      String   @default("en-US") @db.VarChar(12)
+    title       String   @db.VarChar(160)
+    sections    Json
+    checksum    String   @db.VarChar(64)
+    effectiveAt DateTime @default(now())
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+    acceptances PolicyAcceptance[]
+}
+
+model PolicyAcceptance {
+    id               String         @id @default(uuid())
+    user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId           String
+    policyDocument   PolicyDocument @relation(fields: [policyDocumentId], references: [id], onDelete: Cascade)
+    policyDocumentId String
+    version          String         @db.VarChar(40)
+    checksum         String         @db.VarChar(64)
+    acceptedAt       DateTime       @default(now())
+    ipHash           String?        @db.VarChar(64)
+    userAgentHash    String?        @db.VarChar(64)
+    createdAt        DateTime       @default(now())
+    updatedAt        DateTime       @updatedAt
+
+    @@unique([userId, policyDocumentId])
+    @@index([userId, acceptedAt])
+}
+
+model HumanChallengeSession {
+    id             String   @id @default(uuid())
+    user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId         String
+    action         String   @db.VarChar(40)
+    provider       String   @db.VarChar(20)
+    tokenHash      String   @db.VarChar(64)
+    status         String   @default("verified") @db.VarChar(20)
+    challengeScore Float?
+    hostname       String?  @db.VarChar(160)
+    ruleVersion    String?  @db.VarChar(40)
+    errorCode      String?  @db.VarChar(120)
+    responseJson   Json?
+    verifiedAt     DateTime?
+    expiresAt      DateTime
+    usedAt         DateTime?
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+    authenticityChecks AuthenticityCheck[]
+
+    @@index([userId, action, status, expiresAt])
+    @@index([tokenHash])
+}
+
+model AuthenticityCheck {
+    id                 String                @id @default(uuid())
+    actor              User                  @relation("authenticityActor", fields: [actorId], references: [id], onDelete: Cascade)
+    actorId            String
+    reviewer           User?                 @relation("authenticityReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+    reviewerId         String?
+    tweet              Tweet?                @relation(fields: [tweetId], references: [id], onDelete: SetNull)
+    tweetId            String?
+    mediaAsset         MediaAsset?           @relation(fields: [mediaAssetId], references: [id], onDelete: SetNull)
+    mediaAssetId       String?
+    challengeSession   HumanChallengeSession? @relation(fields: [challengeSessionId], references: [id], onDelete: SetNull)
+    challengeSessionId String?
+    action             String                @db.VarChar(40)
+    subjectType        String                @db.VarChar(20)
+    status             String                @default("open") @db.VarChar(20)
+    decision           String                @default("allow") @db.VarChar(20)
+    score              Float?
+    challengeScore     Float?
+    trustedTier        String?               @db.VarChar(20)
+    ruleVersion        String?               @db.VarChar(40)
+    modelVersion       String?               @db.VarChar(40)
+    reasons            Json?
+    contentText        String?               @db.VarChar(280)
+    metadata           Json?
+    reviewerNote       String?               @db.VarChar(500)
+    reviewedAt         DateTime?
+    createdAt          DateTime              @default(now())
+    updatedAt          DateTime              @updatedAt
+
+    @@index([status, createdAt])
+    @@index([actorId, createdAt])
+    @@index([decision, score])
 }
 
 model NotificationPreference {

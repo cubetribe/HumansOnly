@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.16.1] - 2026-03-03
+
+### Fixed
+
+- `scripts/human-layer-smoke.sh` now uses Bash 3.2-compatible parsing helpers instead of `local -n` namerefs.
+- Live validation gate is now portable on macOS default Bash and Linux runners with unchanged smoke assertions.
+
 ## [1.16.0] - 2026-03-03
 
 ### Added

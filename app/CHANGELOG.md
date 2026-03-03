@@ -1,5 +1,13 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Human Layer Smoke Portability Hotfix (v1.16.1)
+
+-   fixed `scripts/human-layer-smoke.sh` for macOS Bash 3.2 compatibility:
+    -   replaced nameref-based status/body splitting (`local -n`) with portable helper functions
+-   revalidated live smoke coverage against production:
+    -   `scripts/live-social-smoke.sh https://humans-only.de`
+    -   `scripts/human-layer-smoke.sh https://humans-only.de`
+
 ## 2026-03-03 - Phases 2-5 Delivery Slice (v1.16.0)
 
 -   Phase 2 (Creation Delight):

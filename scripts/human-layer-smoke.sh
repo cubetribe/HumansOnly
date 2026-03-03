@@ -31,12 +31,14 @@ request_with_status() {
         "${url}"
 }
 
-split_status_and_body() {
+extract_status() {
     local response="$1"
-    local -n out_status="$2"
-    local -n out_body="$3"
-    out_status="${response##*$'\n'}"
-    out_body="${response%$'\n'*}"
+    printf '%s' "${response##*$'\n'}"
+}
+
+extract_body() {
+    local response="$1"
+    printf '%s' "${response%$'\n'*}"
 }
 
 echo "[1/10] Create and login smoke user (${USERNAME})"
@@ -71,7 +73,8 @@ fi
 
 echo "[3/10] Rules endpoint: reject bad checksum"
 accept_bad_raw="$(request_with_status POST "${BASE_URL}/api/rules/accept" "{\"version\":\"${version}\",\"checksum\":\"deadbeef\"}")"
-split_status_and_body "${accept_bad_raw}" accept_bad_status accept_bad_body
+accept_bad_status="$(extract_status "${accept_bad_raw}")"
+accept_bad_body="$(extract_body "${accept_bad_raw}")"
 if [[ "${accept_bad_status}" != "409" || "${accept_bad_body}" != *'"success":false'* ]]; then
     echo "Expected 409 on bad rules checksum, got ${accept_bad_status}: ${accept_bad_body}" >&2
     exit 1
@@ -79,7 +82,8 @@ fi
 
 echo "[4/10] Rules endpoint: accept current policy"
 accept_good_raw="$(request_with_status POST "${BASE_URL}/api/rules/accept" "{\"version\":\"${version}\",\"checksum\":\"${checksum}\"}")"
-split_status_and_body "${accept_good_raw}" accept_good_status accept_good_body
+accept_good_status="$(extract_status "${accept_good_raw}")"
+accept_good_body="$(extract_body "${accept_good_raw}")"
 if [[ "${accept_good_status}" != "200" || "${accept_good_body}" != *'"success":true'* || "${accept_good_body}" != *'"accepted":true'* ]]; then
     echo "Rules accept failed: HTTP ${accept_good_status}: ${accept_good_body}" >&2
     exit 1
@@ -93,21 +97,24 @@ fi
 
 echo "[5/10] Trust + self-authenticity endpoints"
 trust_raw="$(request_with_status GET "${BASE_URL}/api/me/trust")"
-split_status_and_body "${trust_raw}" trust_status trust_body
+trust_status="$(extract_status "${trust_raw}")"
+trust_body="$(extract_body "${trust_raw}")"
 if [[ "${trust_status}" != "200" || "${trust_body}" != *'"success":true'* || "${trust_body}" != *'"tier":"'* ]]; then
     echo "Trust endpoint failed: HTTP ${trust_status}: ${trust_body}" >&2
     exit 1
 fi
 
 moderation_raw="$(request_with_status GET "${BASE_URL}/api/moderation/authenticity?status=open&limit=1")"
-split_status_and_body "${moderation_raw}" moderation_status moderation_body
+moderation_status="$(extract_status "${moderation_raw}")"
+moderation_body="$(extract_body "${moderation_raw}")"
 if [[ "${moderation_status}" != "403" || "${moderation_body}" != *'"success":false'* ]]; then
     echo "Expected moderator guard on authenticity queue, got ${moderation_status}: ${moderation_body}" >&2
     exit 1
 fi
 
 my_authenticity_raw="$(request_with_status GET "${BASE_URL}/api/me/authenticity?status=all&limit=5")"
-split_status_and_body "${my_authenticity_raw}" my_authenticity_status my_authenticity_body
+my_authenticity_status="$(extract_status "${my_authenticity_raw}")"
+my_authenticity_body="$(extract_body "${my_authenticity_raw}")"
 if [[ "${my_authenticity_status}" != "200" || "${my_authenticity_body}" != *'"success":true'* || "${my_authenticity_body}" != *'"checks":'* ]]; then
     echo "My authenticity endpoint failed: HTTP ${my_authenticity_status}: ${my_authenticity_body}" >&2
     exit 1
@@ -115,21 +122,24 @@ fi
 
 echo "[6/10] Appeals endpoint basic validation + moderation guards"
 my_appeals_raw="$(request_with_status GET "${BASE_URL}/api/authenticity/appeals")"
-split_status_and_body "${my_appeals_raw}" my_appeals_status my_appeals_body
+my_appeals_status="$(extract_status "${my_appeals_raw}")"
+my_appeals_body="$(extract_body "${my_appeals_raw}")"
 if [[ "${my_appeals_status}" != "200" || "${my_appeals_body}" != *'"success":true'* || "${my_appeals_body}" != *'"appeals":'* ]]; then
     echo "My appeals endpoint failed: HTTP ${my_appeals_status}: ${my_appeals_body}" >&2
     exit 1
 fi
 
 submit_appeal_bad_raw="$(request_with_status POST "${BASE_URL}/api/authenticity/appeals" '{"reason":"test"}')"
-split_status_and_body "${submit_appeal_bad_raw}" submit_appeal_bad_status submit_appeal_bad_body
+submit_appeal_bad_status="$(extract_status "${submit_appeal_bad_raw}")"
+submit_appeal_bad_body="$(extract_body "${submit_appeal_bad_raw}")"
 if [[ "${submit_appeal_bad_status}" != "400" || "${submit_appeal_bad_body}" != *'"success":false'* ]]; then
     echo "Expected 400 on missing checkId for appeal, got ${submit_appeal_bad_status}: ${submit_appeal_bad_body}" >&2
     exit 1
 fi
 
 moderation_appeals_raw="$(request_with_status GET "${BASE_URL}/api/moderation/authenticity/appeals?status=open&limit=1")"
-split_status_and_body "${moderation_appeals_raw}" moderation_appeals_status moderation_appeals_body
+moderation_appeals_status="$(extract_status "${moderation_appeals_raw}")"
+moderation_appeals_body="$(extract_body "${moderation_appeals_raw}")"
 if [[ "${moderation_appeals_status}" != "403" || "${moderation_appeals_body}" != *'"success":false'* ]]; then
     echo "Expected moderator guard on appeals queue, got ${moderation_appeals_status}: ${moderation_appeals_body}" >&2
     exit 1
@@ -137,7 +147,8 @@ fi
 
 echo "[7/10] Challenge endpoint input validation"
 challenge_invalid_raw="$(request_with_status POST "${BASE_URL}/api/human/challenge/verify" '{"action":"invalid_action"}')"
-split_status_and_body "${challenge_invalid_raw}" challenge_invalid_status challenge_invalid_body
+challenge_invalid_status="$(extract_status "${challenge_invalid_raw}")"
+challenge_invalid_body="$(extract_body "${challenge_invalid_raw}")"
 if [[ "${challenge_invalid_status}" != "400" || "${challenge_invalid_body}" != *'"success":false'* ]]; then
     echo "Expected invalid action rejection, got ${challenge_invalid_status}: ${challenge_invalid_body}" >&2
     exit 1
@@ -145,7 +156,8 @@ fi
 
 echo "[8/10] Challenge + post gating behavior (adaptive to dry-run/strict)"
 challenge_probe_raw="$(request_with_status POST "${BASE_URL}/api/human/challenge/verify" "{\"action\":\"post_create\",\"ruleVersion\":\"${version}\"}")"
-split_status_and_body "${challenge_probe_raw}" challenge_probe_status challenge_probe_body
+challenge_probe_status="$(extract_status "${challenge_probe_raw}")"
+challenge_probe_body="$(extract_body "${challenge_probe_raw}")"
 
 tweet_text="human-layer-smoke-$(date +%s)"
 
@@ -157,14 +169,16 @@ if [[ "${challenge_probe_status}" == "200" && "${challenge_probe_body}" == *'"su
     fi
 
     create_once_raw="$(request_with_status POST "${BASE_URL}/api/tweets/create" "{\"text\":\"${tweet_text}\",\"challengeSessionId\":\"${challenge_session_id}\",\"ruleVersion\":\"${version}\"}")"
-    split_status_and_body "${create_once_raw}" create_once_status create_once_body
+    create_once_status="$(extract_status "${create_once_raw}")"
+    create_once_body="$(extract_body "${create_once_raw}")"
     if [[ "${create_once_status}" != "200" && "${create_once_status}" != "202" ]]; then
         echo "Post create with challenge session failed: HTTP ${create_once_status}: ${create_once_body}" >&2
         exit 1
     fi
 
     create_replay_raw="$(request_with_status POST "${BASE_URL}/api/tweets/create" "{\"text\":\"${tweet_text}-replay\",\"challengeSessionId\":\"${challenge_session_id}\",\"ruleVersion\":\"${version}\"}")"
-    split_status_and_body "${create_replay_raw}" create_replay_status create_replay_body
+    create_replay_status="$(extract_status "${create_replay_raw}")"
+    create_replay_body="$(extract_body "${create_replay_raw}")"
 
     if [[ "${create_replay_status}" == "403" && "${create_replay_body}" == *'"code":"challenge_invalid"'* ]]; then
         echo "Detected strict replay protection."
@@ -176,7 +190,8 @@ if [[ "${challenge_probe_status}" == "200" && "${challenge_probe_body}" == *'"su
     fi
 elif [[ "${challenge_probe_status}" == "403" && "${challenge_probe_body}" == *'"code":"challenge_required"'* ]]; then
     create_without_session_raw="$(request_with_status POST "${BASE_URL}/api/tweets/create" "{\"text\":\"${tweet_text}\"}")"
-    split_status_and_body "${create_without_session_raw}" create_without_session_status create_without_session_body
+    create_without_session_status="$(extract_status "${create_without_session_raw}")"
+    create_without_session_body="$(extract_body "${create_without_session_raw}")"
     if [[ "${create_without_session_status}" != "403" || "${create_without_session_body}" != *'"code":"challenge_required"'* ]]; then
         echo "Strict mode expected challenge_required on post create, got ${create_without_session_status}: ${create_without_session_body}" >&2
         exit 1

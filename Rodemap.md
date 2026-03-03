@@ -2,7 +2,7 @@
 
 Last updated: 2026-03-03  
 Owner: Codex + Dennis  
-Current app version: `1.16.0`
+Current app version: `1.16.1`
 
 ## Goal
 Build Humans Only into a production-grade, humans-only social network with enforceable authenticity controls, moderator tooling, and reliable production operations.

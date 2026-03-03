@@ -1,5 +1,21 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Authenticity Appeals Foundation + Docs Sync (v1.10.0)
+
+-   added `AuthenticityAppeal` data model + migration
+-   added new APIs:
+    -   `GET /api/me/authenticity`
+    -   `GET /api/authenticity/appeals`
+    -   `POST /api/authenticity/appeals`
+    -   `GET /api/moderation/authenticity/appeals`
+    -   `POST /api/moderation/authenticity/appeals/[id]/decision`
+-   extended settings page:
+    -   user-side authenticity status and appeal submission
+    -   user-side appeal status list
+    -   moderator-side appeal queue decisions
+-   extended `scripts/human-layer-smoke.sh` to cover appeals endpoint validation and moderation access guards
+-   documented remaining open work in root/app README and `Rodemap.md`
+
 ## 2026-03-03 - Adaptive Trusted Fallback + Block Responses (v1.9.3)
 
 -   updated human gate logic to support trusted fail-open fallback:

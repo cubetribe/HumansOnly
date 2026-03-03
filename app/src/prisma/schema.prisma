@@ -46,6 +46,8 @@ model User {
     challengeSessions HumanChallengeSession[]
     authenticityChecks AuthenticityCheck[] @relation("authenticityActor")
     reviewedAuthenticityChecks AuthenticityCheck[] @relation("authenticityReviewer")
+    authenticityAppeals AuthenticityAppeal[] @relation("appealActor")
+    reviewedAuthenticityAppeals AuthenticityAppeal[] @relation("appealReviewer")
 }
 
 model Tweet {
@@ -208,10 +210,32 @@ model AuthenticityCheck {
     reviewedAt         DateTime?
     createdAt          DateTime              @default(now())
     updatedAt          DateTime              @updatedAt
+    appeals            AuthenticityAppeal[]
 
     @@index([status, createdAt])
     @@index([actorId, createdAt])
     @@index([decision, score])
+}
+
+model AuthenticityAppeal {
+    id           String            @id @default(uuid())
+    check         AuthenticityCheck @relation(fields: [checkId], references: [id], onDelete: Cascade)
+    checkId       String
+    actor         User              @relation("appealActor", fields: [actorId], references: [id], onDelete: Cascade)
+    actorId       String
+    status        String            @default("open") @db.VarChar(20)
+    reason        String?           @db.VarChar(500)
+    decision      String?           @db.VarChar(20)
+    reviewer      User?             @relation("appealReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+    reviewerId    String?
+    reviewerNote  String?           @db.VarChar(500)
+    reviewedAt    DateTime?
+    createdAt     DateTime          @default(now())
+    updatedAt     DateTime          @updatedAt
+
+    @@unique([checkId, actorId])
+    @@index([status, createdAt])
+    @@index([actorId, createdAt])
 }
 
 model NotificationPreference {

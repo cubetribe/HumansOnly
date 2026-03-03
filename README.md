@@ -75,6 +75,8 @@ This isn't a concept. It's not a pitch deck. It's deployed, it's live, and you c
 - Block, mute, and report flows
 - Role-based moderation (`user`, `moderator`, `admin`) with protected super-admin controls
 - Authenticity moderation queue (`allow`, `reject`, `strike`)
+- User-facing authenticity status and appeals flow in Settings
+- Moderator authenticity appeals queue with overturn/uphold decisions
 - Trust snapshot API and adaptive risk scoring groundwork
 - Global search
 - Dark mode (because we're a resistance, not savages)
@@ -116,22 +118,33 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 
 ## Roadmap
 
-### v1.2 - The Detection Layer
-- **AI content detection integration** - the AI builds the wall, remember?
-- **Human authenticity foundation (Wave 7)** - policy, challenge, trust/risk pipeline
-- Content moderation tools
-- Enhanced notification system
-- Performance optimization
-- Security hardening (CSP, HSTS, rate limiting)
-- Automated backups
+### Current Delivery Status (2026-03-03)
+- ✅ Waves `0-6` delivered (stabilization, auth, media hardening, messaging, operations, live validation).
+- ✅ Wave `7` significantly advanced (rules, challenge, trust/risk gate, moderation queue, adaptive fallback, appeals backbone).
+- 🔄 Wave `7` still open:
+  - appeal SLA + workflow automation
+  - stronger anti-abuse/rate limits for challenge and appeal endpoints
+  - better user-facing appeal UX (currently functional but basic)
+- ⏳ Wave `8` not started (full C2PA verification + passkey trust signal integration).
+- ⏳ Wave `9` not started (compliance labeling, rollout controls, calibration automation).
 
-### v2.0 - The Full Vision
-- Advanced AI detection models
-- Human verification process
-- Creator monetization (tips, subscriptions)
-- Multi-language support
-- Video support
-- Analytics dashboard
+### Next Milestones
+1. **Wave 7.3 - Appeals Hardening**
+- Finalize moderator SOP + response SLA
+- Add rate limiting and anomaly flags on appeal/challenge endpoints
+- Ship API docs for new appeals routes
+
+2. **Wave 8.0 - Provenance Upgrade**
+- Replace heuristic provenance extraction with C2PA-aware verification path
+- Add UI provenance badges (`verified`, `unknown`, `invalid`)
+
+3. **Wave 8.1 - Trust Upgrade**
+- Integrate Clerk passkey enrollment signal into trust engine
+- Reduce challenge friction for higher trust tiers with measurable guardrails
+
+4. **Wave 9.0 - Compliance and Scale**
+- Add transparency/labeling flows (EU AI Act timeline alignment)
+- Introduce controlled rollout strategy (`10% -> 50% -> 100%`) with rollback criteria
 
 Something on this list keeping you up at night? [That's your invitation.](#join-the-resistance)
 
@@ -260,7 +273,7 @@ HumansOnly/
 
 ### API
 
-Human-authenticity foundation endpoints are now included (`/api/rules/*`, `/api/human/challenge/verify`, `/api/me/trust`, `/api/moderation/authenticity*`).
+Human-authenticity foundation endpoints are now included (`/api/rules/*`, `/api/human/challenge/verify`, `/api/me/trust`, `/api/me/authenticity`, `/api/authenticity/appeals`, `/api/moderation/authenticity*`).
 
 Core platform surface remains organized across the existing categories:
 

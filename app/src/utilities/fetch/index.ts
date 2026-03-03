@@ -666,6 +666,20 @@ export const getAuthenticityChecks = async (status = "open", limit = 50, cursor?
     return json;
 };
 
+export const getMyAuthenticityChecks = async (status = "all", limit = 30) => {
+    const params = new URLSearchParams();
+    params.set("status", status);
+    params.set("limit", String(limit));
+
+    const response = await fetch(`${HOST_URL}/api/me/authenticity?${params.toString()}`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
 export const decideAuthenticityCheck = async (
     checkId: string,
     decision: "allow" | "reject" | "strike",
@@ -679,6 +693,67 @@ export const decideAuthenticityCheck = async (
         },
         body: JSON.stringify({ decision, note }),
     });
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const submitAuthenticityAppeal = async (checkId: string, reason?: string) => {
+    const response = await fetch(`${HOST_URL}/api/authenticity/appeals`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ checkId, reason }),
+    });
+
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getMyAuthenticityAppeals = async () => {
+    const response = await fetch(`${HOST_URL}/api/authenticity/appeals`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const getAuthenticityAppeals = async (status = "open", limit = 50, cursor?: string) => {
+    const params = new URLSearchParams();
+    params.set("status", status);
+    params.set("limit", String(limit));
+    if (cursor) params.set("cursor", cursor);
+
+    const response = await fetch(`${HOST_URL}/api/moderation/authenticity/appeals?${params.toString()}`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+    return json;
+};
+
+export const decideAuthenticityAppeal = async (
+    appealId: string,
+    decision: "uphold" | "overturn_allow",
+    note?: string
+) => {
+    const response = await fetch(`${HOST_URL}/api/moderation/authenticity/appeals/${appealId}/decision`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ decision, note }),
+    });
+
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
     return json;

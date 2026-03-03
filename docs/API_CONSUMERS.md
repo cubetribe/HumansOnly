@@ -1,6 +1,6 @@
 # API Consumer Registry - Humans Only
 
-**Last Updated:** 2026-02-27
+**Last Updated:** 2026-03-03
 **Project:** Humans Only Anti-AI Social Platform
 **Purpose:** Track all API endpoints and their consumers for safe refactoring
 
@@ -29,6 +29,21 @@ New account control endpoints:
 - `POST /api/reports`
 - `GET /api/health`
 
+## Wave 7 Additions (2026-03-03)
+
+New human-authenticity endpoints:
+- `GET /api/rules/current`
+- `POST /api/rules/accept`
+- `POST /api/human/challenge/verify`
+- `GET /api/me/trust`
+- `GET /api/me/authenticity`
+- `GET /api/authenticity/appeals`
+- `POST /api/authenticity/appeals`
+- `GET /api/moderation/authenticity`
+- `POST /api/moderation/authenticity/[id]/decision`
+- `GET /api/moderation/authenticity/appeals`
+- `POST /api/moderation/authenticity/appeals/[id]/decision`
+
 ---
 
 ## Table of Contents
@@ -39,6 +54,7 @@ New account control endpoints:
 - [Notification API](#notification-api)
 - [Message API](#message-api)
 - [Search API](#search-api)
+- [Human Authenticity API](#human-authenticity-api)
 
 ---
 
@@ -828,6 +844,58 @@ Tweet[]
 | File | Usage | Last Check |
 |------|-------|------------|
 | TBD | Search page | 2025-12-21 |
+
+---
+
+## Human Authenticity API
+
+### Rules and Challenge
+
+- `GET /api/rules/current`
+  - **Defined in:** `app/src/app/api/rules/current/route.ts`
+  - **Consumers:** `app/src/utilities/fetch/index.ts` -> `prepareHumanContext`, rules page
+- `POST /api/rules/accept`
+  - **Defined in:** `app/src/app/api/rules/accept/route.ts`
+  - **Consumers:** `app/src/utilities/fetch/index.ts` -> `prepareHumanContext`
+- `POST /api/human/challenge/verify`
+  - **Defined in:** `app/src/app/api/human/challenge/verify/route.ts`
+  - **Consumers:** `app/src/utilities/fetch/index.ts`, `TurnstileChallenge` flow in composer/reply/edit components
+
+### User Trust and Authenticity Status
+
+- `GET /api/me/trust`
+  - **Defined in:** `app/src/app/api/me/trust/route.ts`
+  - **Consumers:** settings fetch layer (`getMyTrust`)
+- `GET /api/me/authenticity`
+  - **Defined in:** `app/src/app/api/me/authenticity/route.ts`
+  - **Consumers:** settings page (`My Authenticity Status`)
+
+### User Appeals
+
+- `GET /api/authenticity/appeals`
+  - **Defined in:** `app/src/app/api/authenticity/appeals/route.ts`
+  - **Consumers:** settings page (`My Appeals`)
+- `POST /api/authenticity/appeals`
+  - **Defined in:** `app/src/app/api/authenticity/appeals/route.ts`
+  - **Consumers:** settings page appeal submission action
+
+### Moderator Authenticity Queue
+
+- `GET /api/moderation/authenticity`
+  - **Defined in:** `app/src/app/api/moderation/authenticity/route.ts`
+  - **Consumers:** settings page (`Authenticity Queue`)
+- `POST /api/moderation/authenticity/[id]/decision`
+  - **Defined in:** `app/src/app/api/moderation/authenticity/[id]/decision/route.ts`
+  - **Consumers:** settings page moderation decision action
+
+### Moderator Appeals Queue
+
+- `GET /api/moderation/authenticity/appeals`
+  - **Defined in:** `app/src/app/api/moderation/authenticity/appeals/route.ts`
+  - **Consumers:** settings page (`Authenticity Appeals Queue`)
+- `POST /api/moderation/authenticity/appeals/[id]/decision`
+  - **Defined in:** `app/src/app/api/moderation/authenticity/appeals/[id]/decision/route.ts`
+  - **Consumers:** settings page moderator appeal decision action
 
 ---
 

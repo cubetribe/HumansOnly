@@ -54,6 +54,7 @@ In an era of AI-generated content flooding the internet, Humans Only provides a 
 - Composer-grade post editing (text, emoji, image replace/remove)
 - Rules page + versioned policy acceptance
 - Pre-post human challenge verification with Turnstile token capture in create/reply/edit flows
+- Authenticity appeal submission + moderator appeal decisions (Settings)
 - Following/Followers system
 - Likes and Reposts (with undo support)
 - Real-time Notifications
@@ -70,6 +71,7 @@ In an era of AI-generated content flooding the internet, Humans Only provides a 
 - Clerk-first session auth with legacy JWT compatibility for migration routes
 - Protected super-admin bootstrap with server-side RBAC enforcement
 - Wave 7 human-authenticity data model + moderation queue foundation
+- Human authenticity appeals foundation (user + moderator APIs)
 - Real-time data fetching with React Query
 - Infinite Scroll pagination
 - Optimistic UI updates
@@ -201,6 +203,15 @@ npm run build       # Production build
 npm run start       # Start production server
 npm run lint        # Run ESLint
 ```
+
+---
+
+## Human Layer Open Work (Current)
+
+- Passkey signal integration into trust scoring (`passkeyEnrolled` is currently a placeholder).
+- Full C2PA/content-credentials verification (current provenance extraction is lightweight).
+- Appeal workflow hardening (SLA automation, richer user UX, stronger anti-abuse controls).
+- Compliance labeling and policy transparency flows for broader rollout.
 
 ---
 

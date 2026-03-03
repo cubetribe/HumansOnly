@@ -1,130 +1,102 @@
 # Humans Only - Rodemap
 
-Last updated: 2026-03-02
-Owner: Codex + Dennis
-Execution mode: Parallel workstreams with strict validation gates per wave
+Last updated: 2026-03-03  
+Owner: Codex + Dennis  
+Current app version: `1.9.3`
 
 ## Goal
-Build Humans Only into a production-grade social network (photo-first, no video for now) with stable auth, secure media, reliable messaging, robust notifications, and deployment/monitoring maturity.
+Build Humans Only into a production-grade, humans-only social network with enforceable authenticity controls, moderator tooling, and reliable production operations.
 
-## Current Execution Status
-- Wave plan remains the delivery framework, but production hardening is active again due reported functional gaps.
-- Current stabilization track (v1.9.0): Wave 7 authenticity foundation (rules, challenge sessions, trust/risk scaffolding, moderation queue).
-- Validation gate remains mandatory: lint, build, Prisma validation, and live-domain smoke.
+## Current Status Snapshot
+- Waves `0-6`: completed and validated in production hardening cycles.
+- Wave `7` (Human Authenticity): actively advanced, core foundation is working in production code.
+- Latest completed milestone:
+  - adaptive challenge enforcement (`trusted` fallback to `pending_review`)
+  - explicit block responses (`403 authenticity_blocked`)
+  - appeals backbone (API + settings UI)
+- Mandatory validation gate remains:
+  - lint
+  - build
+  - Prisma validate + migration status
+  - smoke scripts (including `human-layer-smoke.sh`)
 
-## Wave Overview
+## Wave-by-Wave Delivery Status
 
 ### Wave 0 - Stabilization and Security Baseline
-Status: `completed` (v1.2.3, validated live 2026-02-27)
-
-Scope:
-- Fix critical frontend/backend contract mismatches (actions: like, repost, follow, conversation delete)
-- Remove endless-loading auth UX paths
-- Harden upload endpoint (authenticated only)
-- Tighten API CORS configuration for credentialed requests
-- Fix pagination correctness bugs
-- Redact deployment secrets from docs
-
-Acceptance:
-- Core interactions work end-to-end
-- Lint/build pass
-- Baseline script pass
-- Live-domain smoke checks pass
+Status: `completed`
 
 ### Wave 1 - Auth Consolidation (Clerk-first)
-Status: `completed` (v1.3.0, validated live 2026-02-27)
-
-Scope:
-- Migrate all route authorization to Clerk server auth
-- Keep legacy JWT bridge only as migration fallback
-- Remove dead legacy login/signup UI paths
-- Define and implement canonical session contract
-
-Acceptance:
-- No dual-auth race conditions
-- No legacy-only route dependencies in main UX
+Status: `completed`
 
 ### Wave 2 - Media Pipeline Hardening
-Status: `completed` (v1.4.0, validated live 2026-02-27)
-
-Scope:
-- Move media to managed object storage (signed uploads)
-- Add content validation, quotas, and abuse controls
-- Persist media metadata and moderation flags
-
-Acceptance:
-- Uploads are authenticated, auditable, and storage-agnostic
+Status: `completed`
 
 ### Wave 3 - Messaging and Notifications Reliability
-Status: `completed` (v1.5.0, validated live 2026-02-27)
+Status: `completed`
 
-Scope:
-- Introduce conversation model + unread tracking
-- Add pagination for conversations/messages
-- Add realtime delivery strategy (WebSocket/rooms)
-- Add notification preferences
-
-Acceptance:
-- Messaging scales and remains responsive
-- Notification behavior is deterministic and user-configurable
-
-### Wave 4 - Product Completion (Final UX)
-Status: `completed` (v1.6.0, validated live 2026-02-27)
-
-Scope:
-- Complete profile settings (privacy, notification controls)
-- Add block/mute/report flows
-- Improve empty/error states and guarded routes
-- Polish user journeys for onboarding and retention
-
-Acceptance:
-- Complete, coherent social UX with robust account controls
+### Wave 4 - Product Completion (Core UX)
+Status: `completed`
 
 ### Wave 5 - Operations, Quality, and Observability
-Status: `completed` (v1.7.0, validated live 2026-02-27)
-
-Scope:
-- Add integration + E2E tests for critical journeys
-- Add release gates in CI
-- Add structured logs, request IDs, metrics, alerts
-- Backup/restore drills and deployment rollback playbook
-
-Acceptance:
-- Measurable SLOs and reliable release process
+Status: `completed`
 
 ### Wave 6 - Live Validation and Hardening Loop
-Status: `reopened` (active hardening follow-up on 2026-02-28)
+Status: `completed` (with follow-up hardening loops as needed)
 
-Scope:
-- Full live-domain verification matrix
-- Security sanity checks (authz, uploads, abuse limits)
-- Performance and regression sweep
-- Final documentation sync (README, CHANGELOG, API docs)
+### Wave 7 - Human Authenticity Foundation and Enforcement
+Status: `in_progress` (advanced)
 
-Acceptance:
-- Production pass report with zero blocker defects
+Delivered:
+- Rules + acceptance flow (`/rules`, `/api/rules/current`, `/api/rules/accept`)
+- Human challenge verification (`/api/human/challenge/verify`) with replay/TTL checks
+- Turnstile integration in create/reply/edit composer flows
+- Human gate on create/edit/reply/upload
+- Trust snapshot API (`/api/me/trust`)
+- Authenticity moderation queue (`/api/moderation/authenticity*`)
+- Adaptive trusted fallback:
+  - low-trust: fail-closed
+  - trusted/high_trust: fail-open only into `pending_review`
+- Explicit `block` behavior (`403`, `authenticity_blocked`)
+- Initial provenance metadata persistence on uploaded media
+- Appeals foundation:
+  - user endpoints (`/api/me/authenticity`, `/api/authenticity/appeals`)
+  - moderator appeal queue + decisions (`/api/moderation/authenticity/appeals*`)
+  - Settings UI sections for user appeal submission and moderator appeal handling
 
-### Wave 7 - Human Authenticity Foundation
-Status: `in_progress` (v1.9.0 foundation shipped on 2026-03-02)
+Still open in Wave 7:
+- Appeal SLA policy + automation (currently manual processing)
+- Better user-facing appeal UX than prompt-based reason input
+- Additional anti-abuse/rate-limit hardening on appeal submission endpoints
+- Route/API docs sync for newly added appeals endpoints
 
-Scope:
-- Add policy/rules versioning + acceptance persistence
-- Add server-side human challenge session verification
-- Add trust/risk scaffolding and authenticity moderation queue
-- Add initial provenance metadata persistence for uploaded media
+### Wave 8 - Provenance + Trust Expansion
+Status: `not started` (partially scaffolded)
 
-Acceptance:
-- Public post create/edit/reply flows are wired through policy + challenge gate contracts
-- Moderator authenticity queue is operational
-- Wave 7 APIs are build-validated and deploy-ready
+Planned:
+- Full C2PA/content-credentials parsing and verification chain
+- Neutral provenance badges in UI (`verified`, `unknown`, `invalid`)
+- Passkey/WebAuthn signal integration into trust scoring (currently placeholder `passkeyEnrolled=false`)
 
-## Parallel Workstreams
-- Track A: Auth/API contracts
-- Track B: Frontend interaction correctness
-- Track C: Security and infrastructure hardening
-- Track D: Documentation and release governance
+### Wave 9 - Moderation Automation + Compliance
+Status: `not started`
+
+Planned:
+- Calibration loop for thresholds using moderator outcomes
+- Appeals SLA tracking and queue prioritization
+- Compliance flows (incl. transparency/labeling obligations by August 2, 2026)
+- Controlled rollout strategy (`10% -> 50% -> 100%`) with safety metrics
+
+## Immediate Next Priorities
+1. Harden and document appeals lifecycle end-to-end (API docs + operational runbook + moderator SOP).
+2. Integrate passkey signal from Clerk into trust engine and adaptive challenge frequency.
+3. Replace lightweight provenance heuristics with proper C2PA verification path.
+4. Add stricter abuse controls (rate limiting + anomaly flags) for challenge and appeal routes.
 
 ## Versioning and Release Policy
-- Each completed wave increments version and updates changelog
-- Only validated waves are pushed
-- Live-domain checks are required before marking a wave complete
+- Every meaningful milestone updates:
+  - `app/package.json` version
+  - `app/src/version.ts`
+  - `app/version`
+  - changelogs
+- Only validated milestones are committed/pushed.
+- Pushes remain gated by explicit confirmation.

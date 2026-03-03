@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.10.0] - 2026-03-03
+
+### Added
+
+- Authenticity appeals data model and migration:
+  - `AuthenticityAppeal` table with actor/reviewer linkage and status tracking
+- New user-focused authenticity APIs:
+  - `GET /api/me/authenticity`
+  - `GET /api/authenticity/appeals`
+  - `POST /api/authenticity/appeals`
+- New moderator appeal APIs:
+  - `GET /api/moderation/authenticity/appeals`
+  - `POST /api/moderation/authenticity/appeals/[id]/decision`
+- Settings UI extensions:
+  - "My Authenticity Status" section with appeal submission
+  - "My Appeals" section for status tracking
+  - "Authenticity Appeals Queue" for moderator handling
+
+### Changed
+
+- `scripts/human-layer-smoke.sh` now validates appeals endpoints and moderator appeal guards.
+- Project documentation now clearly tracks open work in:
+  - `README.md`
+  - `Rodemap.md`
+  - `app/README.md`
+
 ## [1.9.3] - 2026-03-03
 
 ### Changed

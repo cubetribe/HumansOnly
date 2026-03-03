@@ -39,7 +39,7 @@ split_status_and_body() {
     out_body="${response%$'\n'*}"
 }
 
-echo "[1/8] Create and login smoke user (${USERNAME})"
+echo "[1/10] Create and login smoke user (${USERNAME})"
 create_payload=$(printf '{"username":"%s","password":"%s","name":"Human Layer Smoke"}' "${USERNAME}" "${PASSWORD}")
 login_payload=$(printf '{"username":"%s","password":"%s"}' "${USERNAME}" "${PASSWORD}")
 
@@ -55,7 +55,7 @@ if [[ "${login_response}" != *'"success":true'* ]]; then
     exit 1
 fi
 
-echo "[2/8] Rules endpoint: current policy metadata"
+echo "[2/10] Rules endpoint: current policy metadata"
 rules_current="$(curl -sS -b "${COOKIE_FILE}" -c "${COOKIE_FILE}" "${BASE_URL}/api/rules/current")"
 if [[ "${rules_current}" != *'"success":true'* ]]; then
     echo "Rules current failed: ${rules_current}" >&2
@@ -69,7 +69,7 @@ if [[ -z "${version}" || -z "${checksum}" ]]; then
     exit 1
 fi
 
-echo "[3/8] Rules endpoint: reject bad checksum"
+echo "[3/10] Rules endpoint: reject bad checksum"
 accept_bad_raw="$(request_with_status POST "${BASE_URL}/api/rules/accept" "{\"version\":\"${version}\",\"checksum\":\"deadbeef\"}")"
 split_status_and_body "${accept_bad_raw}" accept_bad_status accept_bad_body
 if [[ "${accept_bad_status}" != "409" || "${accept_bad_body}" != *'"success":false'* ]]; then
@@ -77,7 +77,7 @@ if [[ "${accept_bad_status}" != "409" || "${accept_bad_body}" != *'"success":fal
     exit 1
 fi
 
-echo "[4/8] Rules endpoint: accept current policy"
+echo "[4/10] Rules endpoint: accept current policy"
 accept_good_raw="$(request_with_status POST "${BASE_URL}/api/rules/accept" "{\"version\":\"${version}\",\"checksum\":\"${checksum}\"}")"
 split_status_and_body "${accept_good_raw}" accept_good_status accept_good_body
 if [[ "${accept_good_status}" != "200" || "${accept_good_body}" != *'"success":true'* || "${accept_good_body}" != *'"accepted":true'* ]]; then
@@ -91,7 +91,7 @@ if [[ "${rules_current_after}" != *'"accepted":true'* ]]; then
     exit 1
 fi
 
-echo "[5/8] Trust + moderation auth guards"
+echo "[5/10] Trust + self-authenticity endpoints"
 trust_raw="$(request_with_status GET "${BASE_URL}/api/me/trust")"
 split_status_and_body "${trust_raw}" trust_status trust_body
 if [[ "${trust_status}" != "200" || "${trust_body}" != *'"success":true'* || "${trust_body}" != *'"tier":"'* ]]; then
@@ -106,7 +106,36 @@ if [[ "${moderation_status}" != "403" || "${moderation_body}" != *'"success":fal
     exit 1
 fi
 
-echo "[6/8] Challenge endpoint input validation"
+my_authenticity_raw="$(request_with_status GET "${BASE_URL}/api/me/authenticity?status=all&limit=5")"
+split_status_and_body "${my_authenticity_raw}" my_authenticity_status my_authenticity_body
+if [[ "${my_authenticity_status}" != "200" || "${my_authenticity_body}" != *'"success":true'* || "${my_authenticity_body}" != *'"checks":'* ]]; then
+    echo "My authenticity endpoint failed: HTTP ${my_authenticity_status}: ${my_authenticity_body}" >&2
+    exit 1
+fi
+
+echo "[6/10] Appeals endpoint basic validation + moderation guards"
+my_appeals_raw="$(request_with_status GET "${BASE_URL}/api/authenticity/appeals")"
+split_status_and_body "${my_appeals_raw}" my_appeals_status my_appeals_body
+if [[ "${my_appeals_status}" != "200" || "${my_appeals_body}" != *'"success":true'* || "${my_appeals_body}" != *'"appeals":'* ]]; then
+    echo "My appeals endpoint failed: HTTP ${my_appeals_status}: ${my_appeals_body}" >&2
+    exit 1
+fi
+
+submit_appeal_bad_raw="$(request_with_status POST "${BASE_URL}/api/authenticity/appeals" '{"reason":"test"}')"
+split_status_and_body "${submit_appeal_bad_raw}" submit_appeal_bad_status submit_appeal_bad_body
+if [[ "${submit_appeal_bad_status}" != "400" || "${submit_appeal_bad_body}" != *'"success":false'* ]]; then
+    echo "Expected 400 on missing checkId for appeal, got ${submit_appeal_bad_status}: ${submit_appeal_bad_body}" >&2
+    exit 1
+fi
+
+moderation_appeals_raw="$(request_with_status GET "${BASE_URL}/api/moderation/authenticity/appeals?status=open&limit=1")"
+split_status_and_body "${moderation_appeals_raw}" moderation_appeals_status moderation_appeals_body
+if [[ "${moderation_appeals_status}" != "403" || "${moderation_appeals_body}" != *'"success":false'* ]]; then
+    echo "Expected moderator guard on appeals queue, got ${moderation_appeals_status}: ${moderation_appeals_body}" >&2
+    exit 1
+fi
+
+echo "[7/10] Challenge endpoint input validation"
 challenge_invalid_raw="$(request_with_status POST "${BASE_URL}/api/human/challenge/verify" '{"action":"invalid_action"}')"
 split_status_and_body "${challenge_invalid_raw}" challenge_invalid_status challenge_invalid_body
 if [[ "${challenge_invalid_status}" != "400" || "${challenge_invalid_body}" != *'"success":false'* ]]; then
@@ -114,7 +143,7 @@ if [[ "${challenge_invalid_status}" != "400" || "${challenge_invalid_body}" != *
     exit 1
 fi
 
-echo "[7/8] Challenge + post gating behavior (adaptive to dry-run/strict)"
+echo "[8/10] Challenge + post gating behavior (adaptive to dry-run/strict)"
 challenge_probe_raw="$(request_with_status POST "${BASE_URL}/api/human/challenge/verify" "{\"action\":\"post_create\",\"ruleVersion\":\"${version}\"}")"
 split_status_and_body "${challenge_probe_raw}" challenge_probe_status challenge_probe_body
 
@@ -158,5 +187,5 @@ else
     exit 1
 fi
 
-echo "[8/8] Human layer smoke complete"
+echo "[10/10] Human layer smoke complete"
 echo "Human layer smoke passed for ${BASE_URL}."

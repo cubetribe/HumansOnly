@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            if (uploadGate.decision !== "allow") {
+            if (uploadGate.decision === "pending_review") {
                 return NextResponse.json(
                     {
                         success: true,
@@ -144,6 +144,19 @@ export async function POST(request: NextRequest) {
                         suggestedDecision: uploadGate.suggestedDecision,
                     },
                     { status: 202 }
+                );
+            }
+            if (uploadGate.decision === "block") {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        code: "authenticity_blocked",
+                        error: "Upload blocked by authenticity policy. Please contact moderation for review.",
+                        checkId: uploadGate.authenticityCheckId,
+                        riskScore: uploadGate.risk.score,
+                        suggestedDecision: uploadGate.suggestedDecision,
+                    },
+                    { status: 403 }
                 );
             }
         }

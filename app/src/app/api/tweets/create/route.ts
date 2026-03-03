@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    if (gate.decision !== "allow") {
+    if (gate.decision === "pending_review") {
         return NextResponse.json(
             {
                 success: true,
@@ -96,6 +96,19 @@ export async function POST(request: NextRequest) {
                 suggestedDecision: gate.suggestedDecision,
             },
             { status: 202 }
+        );
+    }
+    if (gate.decision === "block") {
+        return NextResponse.json(
+            {
+                success: false,
+                code: "authenticity_blocked",
+                message: "Post blocked by authenticity policy. Please contact moderation for review.",
+                checkId: gate.authenticityCheckId,
+                riskScore: gate.risk.score,
+                suggestedDecision: gate.suggestedDecision,
+            },
+            { status: 403 }
         );
     }
 

@@ -1,5 +1,15 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Adaptive Trusted Fallback + Block Responses (v1.9.3)
+
+-   updated human gate logic to support trusted fail-open fallback:
+    -   `trusted` / `high_trust` users can continue if challenge is missing/invalid
+    -   fallback is always forced to `pending_review`
+-   differentiated API behavior for authenticity outcomes:
+    -   `pending_review` -> `202`
+    -   `block` -> `403` with `code: "authenticity_blocked"`
+-   applied across create/edit/reply/upload post-authenticity routes
+
 ## 2026-03-03 - Human Layer Smoke Validation Script (v1.9.2)
 
 -   added `scripts/human-layer-smoke.sh` for repeatable authenticity-layer smoke coverage:

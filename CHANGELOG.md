@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.3] - 2026-03-03
+
+### Changed
+
+- Human gate now supports adaptive trusted fallback:
+  - `trusted` / `high_trust` users can fail-open on missing/invalid challenge sessions
+  - fail-open path is forced to `pending_review` (never silent allow)
+- Posting APIs now distinguish `pending_review` from `block` decisions:
+  - `pending_review` returns `202`
+  - `block` returns `403` with `code: "authenticity_blocked"`
+- Applied block-vs-review response handling consistently across:
+  - `POST /api/tweets/create`
+  - `POST /api/tweets/[username]/[tweetId]/edit`
+  - `POST /api/tweets/[username]/[tweetId]/reply`
+  - `POST /api/upload` (when post-gated)
+
 ## [1.9.2] - 2026-03-03
 
 ### Added

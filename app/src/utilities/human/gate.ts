@@ -2,7 +2,7 @@ import { AuthenticatedUser } from "@/utilities/auth/session";
 import { consumeChallengeSession } from "@/utilities/human/challenge";
 import { getHumanRuntimeConfig, HumanAction, isHumanEnforcementEnabled } from "@/utilities/human/config";
 import { hasAcceptedCurrentPolicy } from "@/utilities/human/policy";
-import { evaluateAuthenticityRisk, persistAuthenticityCheck } from "@/utilities/human/risk";
+import { AuthenticityDecision, evaluateAuthenticityRisk, persistAuthenticityCheck } from "@/utilities/human/risk";
 import { getUserTrustSnapshot } from "@/utilities/human/trust";
 
 type GatePayload = {
@@ -61,21 +61,6 @@ export const runHumanGate = async ({
         };
     }
 
-    const challengeResult = await consumeChallengeSession({
-        userId: authUser.id,
-        action,
-        challengeSessionId,
-    });
-
-    if (!challengeResult.ok) {
-        return {
-            ok: false as const,
-            code: challengeResult.code,
-            message: challengeResult.message,
-            policyVersion: policyState.policy.version,
-        };
-    }
-
     const trustSnapshot = await getUserTrustSnapshot(authUser.id);
     if (!trustSnapshot) {
         return {
@@ -86,47 +71,87 @@ export const runHumanGate = async ({
         };
     }
 
+    const challengeResult = await consumeChallengeSession({
+        userId: authUser.id,
+        action,
+        challengeSessionId,
+    });
+
+    let challengeSession = challengeResult.ok ? challengeResult.session ?? null : null;
+    let challengeFallback: "none" | "trusted_fail_open" = "none";
+    let challengeFailureCode: HumanGateFailureCode | null = null;
+
+    if (!challengeResult.ok) {
+        challengeFailureCode = challengeResult.code || "challenge_invalid";
+        const trustedFailOpenEligible =
+            !runtime.dryRun &&
+            ["trusted", "high_trust"].includes(trustSnapshot.tier) &&
+            ["challenge_required", "challenge_invalid"].includes(challengeFailureCode);
+
+        if (!trustedFailOpenEligible) {
+            return {
+                ok: false as const,
+                code: challengeResult.code,
+                message: challengeResult.message,
+                policyVersion: policyState.policy.version,
+            };
+        }
+
+        challengeFallback = "trusted_fail_open";
+        challengeSession = null;
+    }
+
     const risk = evaluateAuthenticityRisk({
         text,
         hasMedia,
-        challengePresent: Boolean(challengeResult.session),
-        challengeScore: challengeResult.session?.challengeScore,
+        challengePresent: Boolean(challengeSession),
+        challengeScore: challengeSession?.challengeScore,
         trustScore: trustSnapshot.score,
         trustTier: trustSnapshot.tier,
     });
+
+    let enforcedDecision: AuthenticityDecision = risk.suggestedDecision;
+    if (!runtime.dryRun && challengeFallback === "trusted_fail_open" && risk.suggestedDecision === "allow") {
+        enforcedDecision = "pending_review";
+    }
 
     const check = await persistAuthenticityCheck({
         actorId: authUser.id,
         action,
         text,
         hasMedia,
-        challengeSessionId: challengeResult.session?.id || null,
-        challengeScore: challengeResult.session?.challengeScore ?? null,
+        challengeSessionId: challengeSession?.id || null,
+        challengeScore: challengeSession?.challengeScore ?? null,
         riskScore: risk.score,
         trustTier: trustSnapshot.tier,
         trustScore: trustSnapshot.score,
-        suggestedDecision: risk.suggestedDecision,
+        suggestedDecision: enforcedDecision,
         ruleVersion: policyState.policy.version,
         tweetId,
         mediaAssetId,
         metadata: {
             ...(metadata || {}),
             reasons: risk.reasons,
+            modelSuggestedDecision: risk.suggestedDecision,
+            enforcedDecision,
+            challengeFallback,
+            challengeFailureCode,
         },
     });
 
-    const effectiveDecision = runtime.dryRun ? "allow" : risk.suggestedDecision;
+    const effectiveDecision = runtime.dryRun ? "allow" : enforcedDecision;
 
     return {
         ok: true as const,
         policyVersion: policyState.policy.version,
         policyAccepted: policyState.accepted,
-        challengeSessionId: challengeResult.session?.id || null,
-        challengeScore: challengeResult.session?.challengeScore ?? null,
+        challengeSessionId: challengeSession?.id || null,
+        challengeScore: challengeSession?.challengeScore ?? null,
         trust: trustSnapshot,
         risk,
         decision: effectiveDecision,
-        suggestedDecision: risk.suggestedDecision,
+        suggestedDecision: enforcedDecision,
+        challengeFallback,
         authenticityCheckId: check.id,
         dryRun: runtime.dryRun,
     };

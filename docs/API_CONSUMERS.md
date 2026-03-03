@@ -940,7 +940,9 @@ Tweet[]
     | "user_followed"
     | "message_created"
     | "notifications_marked_read"
-    | "profile_updated";
+    | "profile_updated"
+    | "feed_not_interested"
+    | "conversation_prompt_used";
   surface?: string;         // max 40 chars
   sessionId?: string;       // max 64 chars
   payload?: Record<string, unknown>; // max serialized size: 4KB
@@ -964,7 +966,9 @@ Tweet[]
 
 | File | Usage | Last Check |
 |------|-------|------------|
-| `app/src/app/(twitter)/home/page.tsx` | Home feed loaded/empty/error measurement | 2026-03-03 |
+| `app/src/app/(twitter)/home/page.tsx` | Home feed loaded/empty/error + feed mode payload | 2026-03-03 |
+| `app/src/components/tweet/Tweet.tsx` | "Not interested" feedback event path | 2026-03-03 |
+| `app/src/components/misc/ConversationPrompts.tsx` | Prompt usage engagement event | 2026-03-03 |
 | `app/src/utilities/fetch/index.ts` | Shared `trackProductEvent` helper | 2026-03-03 |
 
 ### GET /api/admin/analytics/kpis
@@ -1005,6 +1009,7 @@ Tweet[]
 | File | Usage | Last Check |
 |------|-------|------------|
 | `app/src/app/(twitter)/settings/page.tsx` | Admin analytics snapshot in settings | 2026-03-03 |
+| `app/src/app/(twitter)/admin/page.tsx` | Dedicated admin dashboard KPIs | 2026-03-03 |
 | `app/src/utilities/fetch/index.ts` | Shared admin KPI fetch helper (`getAdminAnalyticsKpis`) | 2026-03-03 |
 
 ---

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useContext, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar, Menu, MenuItem } from "@mui/material";
-import { FaHome, FaBell, FaEnvelope, FaUser, FaCog, FaHashtag, FaEllipsisH, FaPlus, FaGavel } from "react-icons/fa";
+import { FaHome, FaBell, FaEnvelope, FaUser, FaCog, FaHashtag, FaEllipsisH, FaPlus, FaGavel, FaShieldAlt } from "react-icons/fa";
 import { HumansOnlyLogo, VerifiedHumanBadge } from "@/components/icons";
 import { useClerk } from "@clerk/nextjs";
 
@@ -128,6 +128,15 @@ export default function LeftSidebar() {
                                     </div>
                                 </Link>
                             </li>
+                            {token?.role === "admin" && (
+                                <li>
+                                    <Link href="/admin">
+                                        <div className={`nav-link ${pathname.startsWith("/admin") ? "active" : ""}`}>
+                                            <FaShieldAlt /> <span className="nav-title">Admin</span>
+                                        </div>
+                                    </Link>
+                                </li>
+                            )}
                         </ul>
                     </nav>
                     {token && (
@@ -180,6 +189,11 @@ export default function LeftSidebar() {
                                 <MenuItem onClick={handleAnchorClose}>
                                     <Link href="/settings">Settings</Link>
                                 </MenuItem>
+                                {token?.role === "admin" && (
+                                    <MenuItem onClick={handleAnchorClose}>
+                                        <Link href="/admin">Admin</Link>
+                                    </MenuItem>
+                                )}
                                 <MenuItem onClick={handleAnchorClose}>
                                     <Link href="/rules">Rules</Link>
                                 </MenuItem>

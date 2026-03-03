@@ -99,3 +99,19 @@ git pull
 - Confirm `https://humans-only.de/api/health` status `ok`.
 - Check latest `Deploy HumansOnly` workflow conclusion.
 - Run live smoke if behavior is uncertain.
+
+## 6) Weekly KPI Review Ritual
+
+### Snapshot endpoint
+- `GET /api/admin/analytics/kpis?days=7`
+- Requires admin authentication.
+
+### KPI minimums (configurable via env)
+- `KPI_MIN_ACTIVE_USERS_7D` (default: `10`)
+- `KPI_MIN_POSTS_CREATED_7D` (default: `20`)
+- `KPI_MIN_REPLIES_CREATED_7D` (default: `10`)
+
+### Review cadence
+1. Every Monday, review `healthFlags` and event-count trend deltas against last week.
+2. If any health flag is `false` for two consecutive weeks, open a blocking issue and assign an owner.
+3. Track remediation actions in roadmap/changelog and re-check after deploy.

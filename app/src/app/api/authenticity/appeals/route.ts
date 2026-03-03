@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { enforceRateLimit } from "@/utilities/security/rateLimit";
 
 type AppealPayload = {
     checkId?: unknown;
@@ -55,6 +56,28 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
+
+    const rateLimit = enforceRateLimit({
+        key: `authenticity_appeal_submit:${authUser.id}`,
+        limit: Number.parseInt(process.env.RATE_LIMIT_APPEAL_SUBMIT_PER_DAY || "12", 10),
+        windowMs: 24 * 60 * 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
+        return NextResponse.json(
+            {
+                success: false,
+                code: "rate_limited",
+                message: "Too many appeals submitted. Please retry later.",
+            },
+            {
+                status: 429,
+                headers: {
+                    "Retry-After": String(rateLimit.retryAfterSeconds),
+                },
+            }
+        );
+    }
 
     let body: AppealPayload;
     try {

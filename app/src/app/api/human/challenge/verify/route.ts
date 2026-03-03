@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { isKnownHumanAction } from "@/utilities/human/config";
 import { verifyAndCreateChallengeSession } from "@/utilities/human/challenge";
+import { enforceRateLimit } from "@/utilities/security/rateLimit";
 
 type VerifyChallengePayload = {
     action?: unknown;
@@ -23,6 +24,29 @@ const readRequestIp = (request: NextRequest) => {
 export async function POST(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
+    const requestIp = readRequestIp(request) || "unknown";
+
+    const challengeRateLimit = enforceRateLimit({
+        key: `challenge_verify:${authUser.id}:${requestIp}`,
+        limit: Number.parseInt(process.env.RATE_LIMIT_CHALLENGE_VERIFY_PER_10M || "30", 10),
+        windowMs: 10 * 60 * 1000,
+    });
+
+    if (!challengeRateLimit.allowed) {
+        return NextResponse.json(
+            {
+                success: false,
+                code: "rate_limited",
+                message: "Too many challenge verifications. Please retry later.",
+            },
+            {
+                status: 429,
+                headers: {
+                    "Retry-After": String(challengeRateLimit.retryAfterSeconds),
+                },
+            }
+        );
+    }
 
     let body: VerifyChallengePayload;
     try {
@@ -44,7 +68,7 @@ export async function POST(request: NextRequest) {
         token,
         ruleVersion,
         requestHostname: request.nextUrl.hostname,
-        requestIp: readRequestIp(request),
+        requestIp,
     });
 
     if (!verification.ok) {

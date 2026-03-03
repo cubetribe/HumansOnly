@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.16.0] - 2026-03-03
+
+### Added
+
+- Composer resilience improvements:
+  - local draft persistence for new posts and replies
+  - selected media visibility + remove controls in composer meta rows
+  - feature-flagged video beta readiness hint (`NEXT_PUBLIC_VIDEO_BETA_PREVIEW`)
+- Conversation engagement module:
+  - `ConversationPrompts` in Home feed
+- Dedicated admin route:
+  - `/admin` dashboard overview
+- Rate limiting utility:
+  - `app/src/utilities/security/rateLimit.ts`
+
+### Changed
+
+- Applied `429` protection to sensitive endpoints:
+  - `POST /api/human/challenge/verify`
+  - `POST /api/authenticity/appeals`
+- Sidebar/profile menu now expose `Admin` entry for admin users.
+- Operations documentation now includes weekly KPI review ritual and escalation criteria.
+
 ## [1.15.0] - 2026-03-03
 
 ### Added

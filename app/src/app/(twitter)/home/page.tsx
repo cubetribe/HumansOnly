@@ -8,6 +8,7 @@ import { getForYouFeed, getRelatedTweets, trackProductEvent } from "@/utilities/
 import CircularLoading from "@/components/misc/CircularLoading";
 import NothingToShow from "@/components/misc/NothingToShow";
 import NewTweet from "@/components/tweet/NewTweet";
+import ConversationPrompts from "@/components/misc/ConversationPrompts";
 import { AuthContext } from "../layout";
 
 export default function HomePage() {
@@ -90,6 +91,7 @@ export default function HomePage() {
                     For You
                 </button>
             </div>
+            <ConversationPrompts username={token.username} />
             {token && <NewTweet token={token} />}
             {data && data.tweets.length === 0 && <NothingToShow />}
             <Tweets tweets={data.tweets} />

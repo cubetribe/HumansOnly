@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TextField, Avatar } from "@mui/material";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -24,8 +24,11 @@ export default function NewTweet({ token, handleSubmit }: NewTweetProps) {
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [challengeToken, setChallengeToken] = useState<string | null>(null);
     const [challengeNonce, setChallengeNonce] = useState(0);
+    const [draftLoaded, setDraftLoaded] = useState(false);
+    const videoBetaPreview = process.env.NEXT_PUBLIC_VIDEO_BETA_PREVIEW === "true";
 
     const queryClient = useQueryClient();
+    const draftStorageKey = useMemo(() => `ho:draft:new-post:${token.username}`, [token.username]);
 
     const mutation = useMutation({
         mutationFn: createTweet,
@@ -86,6 +89,8 @@ export default function NewTweet({ token, handleSubmit }: NewTweetProps) {
                 resetForm();
                 setCount(0);
                 setShowDropzone(false);
+                setDraftLoaded(false);
+                window.localStorage.removeItem(draftStorageKey);
                 if (handleSubmit) handleSubmit();
             } catch (error) {
                 const message = error instanceof Error ? error.message : "Could not publish post.";
@@ -97,9 +102,36 @@ export default function NewTweet({ token, handleSubmit }: NewTweetProps) {
         },
     });
 
+    useEffect(() => {
+        const draftText = window.localStorage.getItem(draftStorageKey) || "";
+        if (!draftText) {
+            setDraftLoaded(false);
+            return;
+        }
+
+        formik.setFieldValue("text", draftText, false);
+        setCount(draftText.length);
+        setDraftLoaded(true);
+    }, [draftStorageKey]);
+
     const customHandleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCount(e.target.value.length);
+        const nextText = e.target.value;
+        setCount(nextText.length);
+        if (nextText.trim().length === 0) {
+            window.localStorage.removeItem(draftStorageKey);
+            setDraftLoaded(false);
+        } else {
+            window.localStorage.setItem(draftStorageKey, nextText);
+            setDraftLoaded(true);
+        }
         formik.handleChange(e);
+    };
+
+    const handleClearDraft = () => {
+        window.localStorage.removeItem(draftStorageKey);
+        formik.setFieldValue("text", "", false);
+        setCount(0);
+        setDraftLoaded(false);
     };
 
     if (formik.isSubmitting) {
@@ -154,6 +186,23 @@ export default function NewTweet({ token, handleSubmit }: NewTweetProps) {
                         Post
                     </button>
                 </div>
+                <div className="composer-meta-row">
+                    {draftLoaded ? <span className="text-muted">Draft saved locally.</span> : <span className="text-muted">No draft saved.</span>}
+                    {draftLoaded && (
+                        <button type="button" className="btn btn-white" onClick={handleClearDraft}>
+                            Clear draft
+                        </button>
+                    )}
+                </div>
+                {photoFile && (
+                    <div className="composer-meta-row">
+                        <span className="text-muted">Selected media: {photoFile.name}</span>
+                        <button type="button" className="btn btn-white" onClick={() => setPhotoFile(null)}>
+                            Remove media
+                        </button>
+                    </div>
+                )}
+                {videoBetaPreview && <p className="text-muted">Video beta preview is enabled for staged rollout validation.</p>}
                 {showPicker && (
                     <div className="emoji-picker">
                         <Picker

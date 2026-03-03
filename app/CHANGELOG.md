@@ -1,5 +1,23 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Phases 2-5 Delivery Slice (v1.16.0)
+
+-   Phase 2 (Creation Delight):
+    -   added resilient local draft persistence for post and reply composers
+    -   added clearer composer status rows (draft state + selected media controls)
+    -   added feature-flagged video beta preview hint (`NEXT_PUBLIC_VIDEO_BETA_PREVIEW`)
+-   Phase 3 (Conversation Loops):
+    -   added `ConversationPrompts` module on Home with prompt-usage analytics event
+-   Phase 4 (Admin Backoffice V1):
+    -   added dedicated admin dashboard route `/admin`
+    -   linked admin navigation entry in sidebar/profile menu for admins
+-   Phase 5 (Compliance/Hardening):
+    -   added in-memory rate limiting utility for sensitive routes
+    -   applied `429 + Retry-After` controls to:
+        -   `POST /api/human/challenge/verify`
+        -   `POST /api/authenticity/appeals`
+    -   documented weekly KPI review ritual in `docs/OPERATIONS.md`
+
 ## 2026-03-03 - Phase 1 Feed Discovery V1 (v1.15.0)
 
 -   added For You feed API:

@@ -126,6 +126,10 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 - ✅ Phase `0.2` delivered (admin analytics snapshot in Settings).
 - ✅ Phase `0.3` delivered (message/notification/profile events + KPI health flags).
 - ✅ Phase `1` delivered (For You feed API, feedback endpoint, and Home mode toggle).
+- ✅ Phase `2` delivered (composer draft persistence + clearer composer media/draft states).
+- ✅ Phase `3` delivered (conversation starter prompts on Home + usage analytics).
+- ✅ Phase `4` delivered (dedicated `/admin` dashboard and admin navigation).
+- ✅ Phase `5` delivered (rate limits on challenge/appeal APIs + KPI operations ritual).
 - 🔄 Wave `7` still open:
   - appeal SLA + workflow automation
   - stronger anti-abuse/rate limits for challenge and appeal endpoints
@@ -134,25 +138,20 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 - ⏳ Wave `9` not started (compliance labeling, rollout controls, calibration automation).
 
 ### Next Milestones
-1. **Phase 2.0 - Creation Delight**
-- Add resilient local drafts for post/reply composers
-- Improve composer UX with clearer media/action states
-- Prepare video-beta gating path (feature-flagged rollout)
-
-2. **Wave 7.3 - Appeals Hardening**
+1. **Wave 7.3 - Appeals Hardening**
 - Finalize moderator SOP + response SLA
 - Add rate limiting and anomaly flags on appeal/challenge endpoints
 - Ship API docs for new appeals routes
 
-3. **Wave 8.0 - Provenance Upgrade**
+2. **Wave 8.0 - Provenance Upgrade**
 - Replace heuristic provenance extraction with C2PA-aware verification path
 - Add UI provenance badges (`verified`, `unknown`, `invalid`)
 
-4. **Wave 8.1 - Trust Upgrade**
+3. **Wave 8.1 - Trust Upgrade**
 - Integrate Clerk passkey enrollment signal into trust engine
 - Reduce challenge friction for higher trust tiers with measurable guardrails
 
-5. **Wave 9.0 - Compliance and Scale**
+4. **Wave 9.0 - Compliance and Scale**
 - Add transparency/labeling flows (EU AI Act timeline alignment)
 - Introduce controlled rollout strategy (`10% -> 50% -> 100%`) with rollback criteria
 
@@ -227,6 +226,12 @@ HUMAN_REVIEW_THRESHOLD="0.72"
 HUMAN_BLOCK_THRESHOLD="0.90"
 HUMAN_RULES_VERSION="2026-03-02.1"
 HUMAN_DRY_RUN="true"                    # start in dry-run for safe rollout
+RATE_LIMIT_CHALLENGE_VERIFY_PER_10M="30"
+RATE_LIMIT_APPEAL_SUBMIT_PER_DAY="12"
+KPI_MIN_ACTIVE_USERS_7D="10"
+KPI_MIN_POSTS_CREATED_7D="20"
+KPI_MIN_REPLIES_CREATED_7D="10"
+NEXT_PUBLIC_VIDEO_BETA_PREVIEW="false"  # feature-flagged UI readiness path
 ```
 
 ### Checks & Deploy

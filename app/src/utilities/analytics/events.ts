@@ -10,6 +10,7 @@ export const PRODUCT_EVENT_NAMES = [
     "notifications_marked_read",
     "profile_updated",
     "feed_not_interested",
+    "conversation_prompt_used",
 ] as const;
 
 export type ProductEventName = (typeof PRODUCT_EVENT_NAMES)[number];

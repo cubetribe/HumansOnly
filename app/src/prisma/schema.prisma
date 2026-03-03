@@ -48,6 +48,7 @@ model User {
     reviewedAuthenticityChecks AuthenticityCheck[] @relation("authenticityReviewer")
     authenticityAppeals AuthenticityAppeal[] @relation("appealActor")
     reviewedAuthenticityAppeals AuthenticityAppeal[] @relation("appealReviewer")
+    productEvents    ProductEvent[]
 }
 
 model Tweet {
@@ -292,4 +293,20 @@ model Report {
     @@index([status, createdAt])
     @@index([targetUserId])
     @@index([targetTweetId])
+}
+
+model ProductEvent {
+    id           String   @id @default(uuid())
+    user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+    userId       String?
+    sessionId    String?  @db.VarChar(64)
+    eventName    String   @db.VarChar(80)
+    eventVersion String   @default("1.0") @db.VarChar(16)
+    surface      String?  @db.VarChar(40)
+    payloadJson  Json?
+    createdAt    DateTime @default(now())
+
+    @@index([eventName, createdAt])
+    @@index([userId, createdAt])
+    @@index([surface, createdAt])
 }

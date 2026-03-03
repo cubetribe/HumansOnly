@@ -1,5 +1,6 @@
 import { NotificationContent, NotificationTypes } from "@/types/NotificationProps";
 import { UserRole } from "@/types/Role";
+import type { ProductEventName } from "@/utilities/analytics/events";
 
 // Browser calls must stay same-origin so auth/session cookies are sent for the active domain.
 const HOST_URL =
@@ -767,4 +768,39 @@ export const getMyTrust = async () => {
     const json = await response.json();
     if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
     return json;
+};
+
+const PRODUCT_EVENT_SESSION_KEY = "ho:product-event-session-id";
+
+const getProductEventSessionId = () => {
+    if (typeof window === "undefined") return undefined;
+
+    const existing = window.sessionStorage.getItem(PRODUCT_EVENT_SESSION_KEY);
+    if (existing) return existing;
+
+    const generated = crypto.randomUUID();
+    window.sessionStorage.setItem(PRODUCT_EVENT_SESSION_KEY, generated);
+    return generated;
+};
+
+export const trackProductEvent = async (payload: {
+    eventName: ProductEventName;
+    surface?: string;
+    payload?: Record<string, unknown>;
+}) => {
+    try {
+        await fetch(`${HOST_URL}/api/analytics/events`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                ...payload,
+                sessionId: getProductEventSessionId(),
+            }),
+        });
+    } catch {
+        // Product analytics must never block or break the user journey.
+    }
 };

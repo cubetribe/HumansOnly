@@ -121,6 +121,7 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 ### Current Delivery Status (2026-03-03)
 - ✅ Waves `0-6` delivered (stabilization, auth, media hardening, messaging, operations, live validation).
 - ✅ Wave `7` significantly advanced (rules, challenge, trust/risk gate, moderation queue, adaptive fallback, appeals backbone).
+- ✅ Phase `0` measurement foundation started (`POST /api/analytics/events`, first home-feed product events).
 - 🔄 Wave `7` still open:
   - appeal SLA + workflow automation
   - stronger anti-abuse/rate limits for challenge and appeal endpoints
@@ -129,20 +130,24 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 - ⏳ Wave `9` not started (compliance labeling, rollout controls, calibration automation).
 
 ### Next Milestones
-1. **Wave 7.3 - Appeals Hardening**
+1. **Phase 0.1 - Product Metrics Expansion**
+- Extend product events to post creation, likes, replies, follows
+- Add first retention/activation dashboard queries and weekly KPI cadence
+
+2. **Wave 7.3 - Appeals Hardening**
 - Finalize moderator SOP + response SLA
 - Add rate limiting and anomaly flags on appeal/challenge endpoints
 - Ship API docs for new appeals routes
 
-2. **Wave 8.0 - Provenance Upgrade**
+3. **Wave 8.0 - Provenance Upgrade**
 - Replace heuristic provenance extraction with C2PA-aware verification path
 - Add UI provenance badges (`verified`, `unknown`, `invalid`)
 
-3. **Wave 8.1 - Trust Upgrade**
+4. **Wave 8.1 - Trust Upgrade**
 - Integrate Clerk passkey enrollment signal into trust engine
 - Reduce challenge friction for higher trust tiers with measurable guardrails
 
-4. **Wave 9.0 - Compliance and Scale**
+5. **Wave 9.0 - Compliance and Scale**
 - Add transparency/labeling flows (EU AI Act timeline alignment)
 - Introduce controlled rollout strategy (`10% -> 50% -> 100%`) with rollback criteria
 

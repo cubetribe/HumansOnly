@@ -44,6 +44,11 @@ New human-authenticity endpoints:
 - `GET /api/moderation/authenticity/appeals`
 - `POST /api/moderation/authenticity/appeals/[id]/decision`
 
+## Phase 0 Additions (2026-03-03)
+
+Measurement foundation endpoints:
+- `POST /api/analytics/events`
+
 ---
 
 ## Table of Contents
@@ -54,6 +59,7 @@ New human-authenticity endpoints:
 - [Notification API](#notification-api)
 - [Message API](#message-api)
 - [Search API](#search-api)
+- [Analytics API](#analytics-api)
 - [Human Authenticity API](#human-authenticity-api)
 
 ---
@@ -844,6 +850,44 @@ Tweet[]
 | File | Usage | Last Check |
 |------|-------|------------|
 | TBD | Search page | 2025-12-21 |
+
+---
+
+## Analytics API
+
+### POST /api/analytics/events
+
+**Defined in:** `app/src/app/api/analytics/events/route.ts`
+
+**Request Body:**
+```typescript
+{
+  eventName: "feed_home_loaded" | "feed_home_empty" | "feed_home_error";
+  surface?: string;         // max 40 chars
+  sessionId?: string;       // max 64 chars
+  payload?: Record<string, unknown>; // max serialized size: 4KB
+}
+```
+
+**Response:**
+```typescript
+{
+  success: true;
+  requestId: string;
+  event: {
+    id: string;
+    eventName: string;
+    createdAt: string;
+  };
+}
+```
+
+**Consumers:**
+
+| File | Usage | Last Check |
+|------|-------|------------|
+| `app/src/app/(twitter)/home/page.tsx` | Home feed loaded/empty/error measurement | 2026-03-03 |
+| `app/src/utilities/fetch/index.ts` | Shared `trackProductEvent` helper | 2026-03-03 |
 
 ---
 

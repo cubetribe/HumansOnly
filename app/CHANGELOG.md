@@ -1,5 +1,19 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Phase 0 Measurement Foundation (v1.11.0)
+
+-   added `ProductEvent` data model + migration (`20260303121500_add_product_events_foundation`)
+-   added new product analytics ingestion API:
+    -   `POST /api/analytics/events`
+-   added shared analytics utility:
+    -   `src/utilities/analytics/events.ts` (event registry + type guards)
+    -   `trackProductEvent(...)` helper in `src/utilities/fetch/index.ts`
+-   instrumented Home feed with first product events:
+    -   `feed_home_loaded`
+    -   `feed_home_empty`
+    -   `feed_home_error`
+-   updated docs and roadmap to mark Phase 0 rollout start
+
 ## 2026-03-03 - Authenticity Appeals Foundation + Docs Sync (v1.10.0)
 
 -   added `AuthenticityAppeal` data model + migration

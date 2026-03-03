@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.11.0] - 2026-03-03
+
+### Added
+
+- Phase 0 measurement foundation:
+  - new `ProductEvent` Prisma model
+  - migration `20260303121500_add_product_events_foundation`
+- New analytics ingestion endpoint:
+  - `POST /api/analytics/events`
+- Shared analytics event registry utility:
+  - `app/src/utilities/analytics/events.ts`
+- Shared frontend tracking helper:
+  - `trackProductEvent(...)` in `app/src/utilities/fetch/index.ts`
+
+### Changed
+
+- Home feed now emits product events for:
+  - successful load (`feed_home_loaded`)
+  - empty state (`feed_home_empty`)
+  - load error (`feed_home_error`)
+- `README.md`, `Rodemap.md`, and `docs/API_CONSUMERS.md` now include Phase 0 measurement rollout status.
+
 ## [1.10.0] - 2026-03-03
 
 ### Added

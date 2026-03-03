@@ -130,18 +130,19 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 - ✅ Phase `3` delivered (conversation starter prompts on Home + usage analytics).
 - ✅ Phase `4` delivered (dedicated `/admin` dashboard and admin navigation).
 - ✅ Phase `5` delivered (rate limits on challenge/appeal APIs + KPI operations ritual).
+- ✅ Wave `7.3` delivered (appeal SLA metadata, inline appeal UX, moderator decision throttles + anomaly logs, API/ops docs sync).
 - 🔄 Wave `7` still open:
-  - appeal SLA + workflow automation
-  - stronger anti-abuse/rate limits for challenge and appeal endpoints
-  - better user-facing appeal UX (currently functional but basic)
+  - moderator SOP ownership + escalation schedule
+  - distributed/global rate limiting (current implementation is in-memory per runtime)
+  - richer appeal evidence model (attachments + structured claims)
 - ⏳ Wave `8` not started (full C2PA verification + passkey trust signal integration).
 - ⏳ Wave `9` not started (compliance labeling, rollout controls, calibration automation).
 
 ### Next Milestones
 1. **Wave 7.3 - Appeals Hardening**
-- Finalize moderator SOP + response SLA
-- Add rate limiting and anomaly flags on appeal/challenge endpoints
-- Ship API docs for new appeals routes
+- Finalize moderator SOP + response SLA ownership model
+- Upgrade in-memory abuse controls to shared-store rate limiting
+- Add evidence attachments and richer moderator decision notes
 
 2. **Wave 8.0 - Provenance Upgrade**
 - Replace heuristic provenance extraction with C2PA-aware verification path

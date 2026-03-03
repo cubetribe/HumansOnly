@@ -53,7 +53,16 @@ export default function AdminPage() {
     const healthFlags = analyticsData?.healthFlags;
     const users = usersData?.users || [];
     const openReports = reportsData?.reports || [];
-    const openAppeals = appealsData?.appeals || [];
+    const openAppeals = (appealsData?.appeals || []) as Array<{ id: string; slaState?: "on_track" | "due_soon" | "overdue" }>;
+    const appealSlaSummary = openAppeals.reduce(
+        (acc, appeal) => {
+            if (appeal.slaState === "overdue") acc.overdue += 1;
+            else if (appeal.slaState === "due_soon") acc.dueSoon += 1;
+            else acc.onTrack += 1;
+            return acc;
+        },
+        { onTrack: 0, dueSoon: 0, overdue: 0 }
+    );
 
     return (
         <main className="admin-page">
@@ -71,6 +80,9 @@ export default function AdminPage() {
                     <h2>Moderation Queue</h2>
                     <p>Open reports: {openReports.length}</p>
                     <p>Open authenticity appeals: {openAppeals.length}</p>
+                    <p>Appeals overdue: {appealSlaSummary.overdue}</p>
+                    <p>Appeals due soon: {appealSlaSummary.dueSoon}</p>
+                    <p>Appeals on track: {appealSlaSummary.onTrack}</p>
                     <Link href="/settings" className="btn btn-white">
                         Open Moderation Settings
                     </Link>
@@ -104,4 +116,3 @@ export default function AdminPage() {
         </main>
     );
 }
-

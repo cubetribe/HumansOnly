@@ -2,7 +2,7 @@
 
 Last updated: 2026-03-03  
 Owner: Codex + Dennis  
-Current app version: `1.16.1`
+Current app version: `1.17.0`
 
 ## Goal
 Build Humans Only into a production-grade, humans-only social network with enforceable authenticity controls, moderator tooling, and reliable production operations.
@@ -13,7 +13,10 @@ Build Humans Only into a production-grade, humans-only social network with enfor
 - Latest completed milestone:
   - adaptive challenge enforcement (`trusted` fallback to `pending_review`)
   - explicit block responses (`403 authenticity_blocked`)
-  - appeals backbone (API + settings UI)
+  - appeals hardening slice:
+    - inline appeal composer (no prompt UX)
+    - SLA-aware moderator queue metadata (`slaDueAt`, `slaState`)
+    - challenge + appeal + moderator decision throttle/anomaly events
 - Mandatory validation gate remains:
   - lint
   - build
@@ -64,10 +67,9 @@ Delivered:
   - Settings UI sections for user appeal submission and moderator appeal handling
 
 Still open in Wave 7:
-- Appeal SLA policy + automation (currently manual processing)
-- Better user-facing appeal UX than prompt-based reason input
-- Additional anti-abuse/rate-limit hardening on appeal submission endpoints
-- Route/API docs sync for newly added appeals endpoints
+- Moderator SOP ownership + escalation playbook
+- Shared/distributed rate limiting (current approach is in-memory per runtime)
+- Richer appeal evidence model (attachments + structured claims)
 
 ### Wave 8 - Provenance + Trust Expansion
 Status: `not started` (partially scaffolded)
@@ -87,10 +89,10 @@ Planned:
 - Controlled rollout strategy (`10% -> 50% -> 100%`) with safety metrics
 
 ## Immediate Next Priorities
-1. Harden and document appeals lifecycle end-to-end (API docs + operational runbook + moderator SOP).
+1. Finalize moderator SOP ownership and escalation playbook on top of delivered appeal SLA metadata.
 2. Integrate passkey signal from Clerk into trust engine and adaptive challenge frequency.
 3. Replace lightweight provenance heuristics with proper C2PA verification path.
-4. Add stricter abuse controls (rate limiting + anomaly flags) for moderation decision endpoints.
+4. Upgrade abuse controls from in-memory to shared-store throttling for multi-instance safety.
 5. Extend admin dashboard from snapshot view to full moderation case workspace.
 
 ## Versioning and Release Policy

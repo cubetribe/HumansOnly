@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { isKnownHumanAction } from "@/utilities/human/config";
 import { verifyAndCreateChallengeSession } from "@/utilities/human/challenge";
+import { logSecurityEvent } from "@/utilities/security/events";
 import { enforceRateLimit } from "@/utilities/security/rateLimit";
 
 type VerifyChallengePayload = {
@@ -10,6 +11,13 @@ type VerifyChallengePayload = {
     token?: unknown;
     ruleVersion?: unknown;
 };
+
+const parsePositiveInt = (value: string | undefined, fallback: number) => {
+    const parsed = Number.parseInt(value || "", 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const CHALLENGE_VERIFY_LIMIT_PER_10M = parsePositiveInt(process.env.RATE_LIMIT_CHALLENGE_VERIFY_PER_10M, 30);
 
 const readRequestIp = (request: NextRequest) => {
     const forwarded = request.headers.get("x-forwarded-for");
@@ -28,11 +36,20 @@ export async function POST(request: NextRequest) {
 
     const challengeRateLimit = enforceRateLimit({
         key: `challenge_verify:${authUser.id}:${requestIp}`,
-        limit: Number.parseInt(process.env.RATE_LIMIT_CHALLENGE_VERIFY_PER_10M || "30", 10),
+        limit: CHALLENGE_VERIFY_LIMIT_PER_10M,
         windowMs: 10 * 60 * 1000,
     });
 
     if (!challengeRateLimit.allowed) {
+        logSecurityEvent("challenge_verify_rate_limited", {
+            actorId: authUser.id,
+            actorUsername: authUser.username,
+            requestIp,
+            limit: CHALLENGE_VERIFY_LIMIT_PER_10M,
+            retryAfterSeconds: challengeRateLimit.retryAfterSeconds,
+            endpoint: request.nextUrl.pathname,
+        });
+
         return NextResponse.json(
             {
                 success: false,

@@ -34,6 +34,13 @@ import { UserProps } from "@/types/UserProps";
 import { getFullURL } from "@/utilities/misc/getFullURL";
 import { UserRole } from "@/types/Role";
 
+const MAX_APPEAL_REASON_LENGTH = 500;
+const APPEAL_REASON_TEMPLATES = [
+    { label: "Ownership proof", text: "This content is mine and I can provide source files." },
+    { label: "False positive", text: "The decision appears to be a false positive." },
+    { label: "Need review", text: "I can provide additional context if needed." },
+];
+
 export default function SettingsPage() {
     const { token } = useContext(AuthContext);
     const { theme, toggleTheme } = useContext(ThemeContext);
@@ -41,6 +48,7 @@ export default function SettingsPage() {
 
     const [snackbar, setSnackbar] = useState<SnackbarProps>({ message: "", severity: "success", open: false });
     const [adminSearch, setAdminSearch] = useState("");
+    const [appealDrafts, setAppealDrafts] = useState<Record<string, string>>({});
 
     const { data: preferenceData, isLoading: isPreferenceLoading } = useQuery({
         queryKey: ["settings", "privacy"],
@@ -269,6 +277,36 @@ export default function SettingsPage() {
         },
     });
 
+    const updateAppealDraft = (checkId: string, value: string) => {
+        setAppealDrafts((prev) => ({
+            ...prev,
+            [checkId]: value.slice(0, MAX_APPEAL_REASON_LENGTH),
+        }));
+    };
+
+    const applyAppealTemplate = (checkId: string, template: string) => {
+        updateAppealDraft(checkId, template);
+    };
+
+    const submitAppealForCheck = (checkId: string) => {
+        const reason = (appealDrafts[checkId] || "").trim();
+        submitAppealMutation.mutate(
+            {
+                checkId,
+                reason: reason || undefined,
+            },
+            {
+                onSuccess: () => {
+                    setAppealDrafts((prev) => {
+                        const next = { ...prev };
+                        delete next[checkId];
+                        return next;
+                    });
+                },
+            }
+        );
+    };
+
     const preferences = preferenceData?.preferences || { isPrivate: false, messagePrivacy: "everyone" };
     const blockedUsers = blockedData?.users || [];
     const mutedUsers = mutedData?.users || [];
@@ -443,23 +481,44 @@ export default function SettingsPage() {
                                             ) : null}
                                         </div>
                                         {canAppeal ? (
-                                            <button
-                                                className="btn btn-white"
-                                                disabled={submitAppealMutation.isLoading}
-                                                onClick={() => {
-                                                    const reason =
-                                                        window.prompt(
-                                                            "Appeal reason (optional, max 500 chars):",
-                                                            "Please review this decision again."
-                                                        ) || "";
-                                                    submitAppealMutation.mutate({
-                                                        checkId: check.id,
-                                                        reason: reason.trim() || undefined,
-                                                    });
-                                                }}
-                                            >
-                                                Appeal
-                                            </button>
+                                            <div className="appeal-composer">
+                                                <label htmlFor={`appeal-reason-${check.id}`} className="text-muted">
+                                                    Appeal reason (optional)
+                                                </label>
+                                                <textarea
+                                                    id={`appeal-reason-${check.id}`}
+                                                    className="appeal-textarea"
+                                                    value={appealDrafts[check.id] || ""}
+                                                    onChange={(event) => updateAppealDraft(check.id, event.target.value)}
+                                                    placeholder="Explain why this decision should be reviewed."
+                                                    maxLength={MAX_APPEAL_REASON_LENGTH}
+                                                />
+                                                <div className="appeal-template-row">
+                                                    {APPEAL_REASON_TEMPLATES.map((template) => (
+                                                        <button
+                                                            key={`${check.id}-${template.label}`}
+                                                            type="button"
+                                                            className="btn btn-white"
+                                                            onClick={() => applyAppealTemplate(check.id, template.text)}
+                                                            disabled={submitAppealMutation.isLoading}
+                                                        >
+                                                            {template.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <div className="appeal-actions">
+                                                    <span className="text-muted">
+                                                        {(appealDrafts[check.id] || "").length}/{MAX_APPEAL_REASON_LENGTH}
+                                                    </span>
+                                                    <button
+                                                        className="btn btn-white"
+                                                        disabled={submitAppealMutation.isLoading}
+                                                        onClick={() => submitAppealForCheck(check.id)}
+                                                    >
+                                                        Submit appeal
+                                                    </button>
+                                                </div>
+                                            </div>
                                         ) : (
                                             <span className="text-muted">No appeal action available</span>
                                         )}
@@ -643,6 +702,9 @@ export default function SettingsPage() {
                                     id: string;
                                     status: string;
                                     reason?: string | null;
+                                    slaState?: "on_track" | "due_soon" | "overdue" | "resolved";
+                                    slaDueAt?: string | null;
+                                    slaRemainingMinutes?: number | null;
                                     actor: { username: string };
                                     check: {
                                         id: string;
@@ -664,6 +726,24 @@ export default function SettingsPage() {
                                                 Tier: {appeal.check.trustedTier || "unknown"}
                                             </span>
                                             <span className="text-muted">Appeal status: {appeal.status}</span>
+                                            <span className={`sla-pill ${appeal.slaState || "resolved"}`}>
+                                                SLA:{" "}
+                                                {appeal.slaState === "overdue"
+                                                    ? "overdue"
+                                                    : appeal.slaState === "due_soon"
+                                                    ? "due soon"
+                                                    : appeal.slaState === "on_track"
+                                                    ? "on track"
+                                                    : "resolved"}
+                                                {typeof appeal.slaRemainingMinutes === "number"
+                                                    ? ` (${appeal.slaRemainingMinutes}m)`
+                                                    : ""}
+                                            </span>
+                                            {appeal.slaDueAt ? (
+                                                <span className="text-muted">
+                                                    Due: {new Date(appeal.slaDueAt).toLocaleString()}
+                                                </span>
+                                            ) : null}
                                             {appeal.reason ? <span className="text-muted">Reason: {appeal.reason}</span> : null}
                                             {appeal.check.contentText ? (
                                                 <span className="text-muted">{appeal.check.contentText}</span>

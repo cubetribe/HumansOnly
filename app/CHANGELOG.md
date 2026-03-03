@@ -1,5 +1,26 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Wave 7.3 Appeals Hardening (v1.17.0)
+
+-   added Wave 7.3 planning artifacts:
+    -   `docs/RESEARCH_BRIEF_2026-03-03.md`
+    -   `docs/ARCHITECTURE_SPEC_WAVE7_3.md`
+-   added appeal SLA metadata in moderator queue API:
+    -   `slaDueAt`, `slaRemainingMinutes`, `slaState`
+    -   env knobs: `APPEAL_SLA_HOURS`, `APPEAL_SLA_SOON_MINUTES`
+-   replaced prompt-based appeal submission with inline composer UX in settings:
+    -   textarea input
+    -   quick templates
+    -   character counter
+-   expanded anti-abuse controls with `429 + Retry-After` on:
+    -   `POST /api/human/challenge/verify`
+    -   `POST /api/authenticity/appeals`
+    -   `POST /api/moderation/authenticity/[id]/decision`
+    -   `POST /api/moderation/authenticity/appeals/[id]/decision`
+-   added structured security throttle/anomaly events via:
+    -   `src/utilities/security/events.ts`
+-   extended admin dashboard and operations docs with appeal SLA health visibility
+
 ## 2026-03-03 - Human Layer Smoke Portability Hotfix (v1.16.1)
 
 -   fixed `scripts/human-layer-smoke.sh` for macOS Bash 3.2 compatibility:

@@ -4,6 +4,33 @@ import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, isModerator, unauthorizedResponse } from "@/utilities/auth/session";
 
 const ALLOWED_STATUS = new Set(["open", "reviewing", "resolved", "rejected"]);
+const parsePositiveInt = (value: string | undefined, fallback: number) => {
+    const parsed = Number.parseInt(value || "", 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const APPEAL_SLA_HOURS = parsePositiveInt(process.env.APPEAL_SLA_HOURS, 24);
+const APPEAL_SLA_SOON_MINUTES = parsePositiveInt(process.env.APPEAL_SLA_SOON_MINUTES, 120);
+
+const getAppealSla = (createdAt: Date, status: string, nowMs: number) => {
+    if (status === "resolved" || status === "rejected") {
+        return {
+            slaDueAt: null,
+            slaRemainingMinutes: null,
+            slaState: "resolved",
+        } as const;
+    }
+
+    const dueAtMs = createdAt.getTime() + APPEAL_SLA_HOURS * 60 * 60 * 1000;
+    const remainingMinutes = Math.ceil((dueAtMs - nowMs) / (60 * 1000));
+    const slaState = remainingMinutes < 0 ? "overdue" : remainingMinutes <= APPEAL_SLA_SOON_MINUTES ? "due_soon" : "on_track";
+
+    return {
+        slaDueAt: new Date(dueAtMs).toISOString(),
+        slaRemainingMinutes: remainingMinutes,
+        slaState,
+    } as const;
+};
 
 export async function GET(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
@@ -19,10 +46,11 @@ export async function GET(request: NextRequest) {
     const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), 100) : 30;
 
     const where = status === "all" ? undefined : { status: ALLOWED_STATUS.has(status) ? status : "open" };
+    const prioritizeSla = status === "all" || status === "open" || status === "reviewing";
 
     const appeals = await prisma.authenticityAppeal.findMany({
         where,
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        orderBy: prioritizeSla ? [{ createdAt: "asc" }, { id: "asc" }] : [{ createdAt: "desc" }, { id: "desc" }],
         take: limit + 1,
         ...(cursor
             ? {
@@ -82,12 +110,21 @@ export async function GET(request: NextRequest) {
 
     const hasMore = appeals.length > limit;
     const items = hasMore ? appeals.slice(0, limit) : appeals;
+    const nowMs = Date.now();
+    const itemsWithSla = items.map((appeal) => ({
+        ...appeal,
+        ...getAppealSla(appeal.createdAt, appeal.status, nowMs),
+    }));
     const nextCursor = hasMore ? items[items.length - 1]?.id || null : null;
 
     return NextResponse.json({
         success: true,
-        appeals: items,
+        appeals: itemsWithSla,
         hasMore,
         nextCursor,
+        slaConfig: {
+            hours: APPEAL_SLA_HOURS,
+            dueSoonMinutes: APPEAL_SLA_SOON_MINUTES,
+        },
     });
 }

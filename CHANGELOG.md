@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.17.0] - 2026-03-03
+
+### Added
+
+- Wave 7.3 appeals hardening architecture/research artifacts:
+  - `docs/RESEARCH_BRIEF_2026-03-03.md`
+  - `docs/ARCHITECTURE_SPEC_WAVE7_3.md`
+- Appeal SLA metadata in moderator queue API (`slaDueAt`, `slaRemainingMinutes`, `slaState`) with configurable env thresholds.
+- Structured security event logger utility (`app/src/utilities/security/events.ts`).
+- Inline appeal composer in settings (textarea + templates + character counter), replacing prompt-based input.
+
+### Changed
+
+- Added stronger abuse controls and `429 + Retry-After` enforcement on:
+  - `POST /api/human/challenge/verify`
+  - `POST /api/authenticity/appeals`
+  - `POST /api/moderation/authenticity/[id]/decision`
+  - `POST /api/moderation/authenticity/appeals/[id]/decision`
+- Admin dashboard now surfaces appeal SLA health snapshot (overdue / due-soon / on-track).
+- API and operations docs now include explicit SLA/rate-limit contracts for authenticity and appeals endpoints.
+
 ## [1.16.1] - 2026-03-03
 
 ### Fixed

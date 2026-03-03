@@ -1027,6 +1027,7 @@ Tweet[]
 - `POST /api/human/challenge/verify`
   - **Defined in:** `app/src/app/api/human/challenge/verify/route.ts`
   - **Consumers:** `app/src/utilities/fetch/index.ts`, `TurnstileChallenge` flow in composer/reply/edit components
+  - **Rate limiting:** returns `429` + `Retry-After` when `RATE_LIMIT_CHALLENGE_VERIFY_PER_10M` (default `30`) is exceeded.
 
 ### User Trust and Authenticity Status
 
@@ -1045,6 +1046,10 @@ Tweet[]
 - `POST /api/authenticity/appeals`
   - **Defined in:** `app/src/app/api/authenticity/appeals/route.ts`
   - **Consumers:** settings page appeal submission action
+  - **Rate limiting:**
+    - short window: `RATE_LIMIT_APPEAL_SUBMIT_PER_10_MIN` (default `3`)
+    - daily window: `RATE_LIMIT_APPEAL_SUBMIT_PER_DAY` (default `12`)
+    - overflow response: `429` + `Retry-After`
 
 ### Moderator Authenticity Queue
 
@@ -1054,15 +1059,22 @@ Tweet[]
 - `POST /api/moderation/authenticity/[id]/decision`
   - **Defined in:** `app/src/app/api/moderation/authenticity/[id]/decision/route.ts`
   - **Consumers:** settings page moderation decision action
+  - **Rate limiting:** returns `429` + `Retry-After` when `RATE_LIMIT_AUTH_DECISION_PER_MINUTE` (default `40`) is exceeded.
 
 ### Moderator Appeals Queue
 
 - `GET /api/moderation/authenticity/appeals`
   - **Defined in:** `app/src/app/api/moderation/authenticity/appeals/route.ts`
   - **Consumers:** settings page (`Authenticity Appeals Queue`)
+  - **Response extensions:** each appeal now includes:
+    - `slaDueAt` (`string | null`)
+    - `slaRemainingMinutes` (`number | null`)
+    - `slaState` (`on_track | due_soon | overdue | resolved`)
+  - **Config:** `APPEAL_SLA_HOURS` (default `24`), `APPEAL_SLA_SOON_MINUTES` (default `120`)
 - `POST /api/moderation/authenticity/appeals/[id]/decision`
   - **Defined in:** `app/src/app/api/moderation/authenticity/appeals/[id]/decision/route.ts`
   - **Consumers:** settings page moderator appeal decision action
+  - **Rate limiting:** returns `429` + `Retry-After` when `RATE_LIMIT_APPEAL_DECISION_PER_MINUTE` (default `30`) is exceeded.
 
 ---
 
@@ -1229,7 +1241,7 @@ Add row to existing endpoint's consumer table with:
 - [ ] Identify all frontend consumers for each endpoint
 - [ ] Extract full TypeScript types from codebase
 - [ ] Document authentication requirements per endpoint
-- [ ] Add rate limiting information
+- [x] Add rate limiting information
 - [ ] Add example requests/responses
 - [ ] Document error codes and messages
 - [ ] Create API testing suite

@@ -1,7 +1,7 @@
 # Operations Playbook - Humans Only
 
-Last Updated: 2026-02-27
-Scope: Wave 5 operations hardening (quality gates, observability, backup/restore, rollback)
+Last Updated: 2026-03-03
+Scope: Wave 5+7 operations hardening (quality gates, observability, authenticity SLA/rate controls, backup/restore, rollback)
 
 ## 1) Release Gates
 
@@ -115,3 +115,31 @@ git pull
 1. Every Monday, review `healthFlags` and event-count trend deltas against last week.
 2. If any health flag is `false` for two consecutive weeks, open a blocking issue and assign an owner.
 3. Track remediation actions in roadmap/changelog and re-check after deploy.
+
+## 7) Authenticity Appeals SLA + Abuse Controls
+
+### Queue SLA configuration
+- `APPEAL_SLA_HOURS` (default: `24`)
+- `APPEAL_SLA_SOON_MINUTES` (default: `120`)
+- `GET /api/moderation/authenticity/appeals` returns per-appeal:
+  - `slaDueAt`
+  - `slaRemainingMinutes`
+  - `slaState` (`on_track`, `due_soon`, `overdue`, `resolved`)
+
+### Rate-limit controls
+- `POST /api/human/challenge/verify`
+  - `RATE_LIMIT_CHALLENGE_VERIFY_PER_10M` (default: `30`)
+- `POST /api/authenticity/appeals`
+  - `RATE_LIMIT_APPEAL_SUBMIT_PER_10_MIN` (default: `3`)
+  - `RATE_LIMIT_APPEAL_SUBMIT_PER_DAY` (default: `12`)
+- `POST /api/moderation/authenticity/[id]/decision`
+  - `RATE_LIMIT_AUTH_DECISION_PER_MINUTE` (default: `40`)
+- `POST /api/moderation/authenticity/appeals/[id]/decision`
+  - `RATE_LIMIT_APPEAL_DECISION_PER_MINUTE` (default: `30`)
+
+### Anomaly logging
+- Security-throttle events are emitted as structured JSON logs via `utilities/security/events.ts`.
+- Track for spikes:
+  - `authenticity_appeal_submit_rate_limited`
+  - `authenticity_decision_rate_limited`
+  - `authenticity_appeal_decision_rate_limited`

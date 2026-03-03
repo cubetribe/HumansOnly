@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { logSecurityEvent } from "@/utilities/security/events";
 import { enforceRateLimit } from "@/utilities/security/rateLimit";
 
 type AppealPayload = {
@@ -10,6 +11,13 @@ type AppealPayload = {
 };
 
 const MAX_REASON_LENGTH = 500;
+const parsePositiveInt = (value: string | undefined, fallback: number) => {
+    const parsed = Number.parseInt(value || "", 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const APPEAL_SUBMIT_LIMIT_PER_DAY = parsePositiveInt(process.env.RATE_LIMIT_APPEAL_SUBMIT_PER_DAY, 12);
+const APPEAL_SUBMIT_LIMIT_PER_10_MIN = parsePositiveInt(process.env.RATE_LIMIT_APPEAL_SUBMIT_PER_10_MIN, 3);
 
 export async function GET() {
     const authUser = await getAuthenticatedUser();
@@ -57,13 +65,53 @@ export async function POST(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
-    const rateLimit = enforceRateLimit({
+    const burstRateLimit = enforceRateLimit({
+        key: `authenticity_appeal_submit_burst:${authUser.id}`,
+        limit: APPEAL_SUBMIT_LIMIT_PER_10_MIN,
+        windowMs: 10 * 60 * 1000,
+    });
+
+    if (!burstRateLimit.allowed) {
+        logSecurityEvent("authenticity_appeal_submit_rate_limited", {
+            actorId: authUser.id,
+            actorUsername: authUser.username,
+            scope: "10_min_window",
+            limit: APPEAL_SUBMIT_LIMIT_PER_10_MIN,
+            retryAfterSeconds: burstRateLimit.retryAfterSeconds,
+            endpoint: request.nextUrl.pathname,
+        });
+
+        return NextResponse.json(
+            {
+                success: false,
+                code: "rate_limited",
+                message: "Too many appeals submitted in a short time. Please retry later.",
+            },
+            {
+                status: 429,
+                headers: {
+                    "Retry-After": String(burstRateLimit.retryAfterSeconds),
+                },
+            }
+        );
+    }
+
+    const dailyRateLimit = enforceRateLimit({
         key: `authenticity_appeal_submit:${authUser.id}`,
-        limit: Number.parseInt(process.env.RATE_LIMIT_APPEAL_SUBMIT_PER_DAY || "12", 10),
+        limit: APPEAL_SUBMIT_LIMIT_PER_DAY,
         windowMs: 24 * 60 * 60 * 1000,
     });
 
-    if (!rateLimit.allowed) {
+    if (!dailyRateLimit.allowed) {
+        logSecurityEvent("authenticity_appeal_submit_rate_limited", {
+            actorId: authUser.id,
+            actorUsername: authUser.username,
+            scope: "24h_window",
+            limit: APPEAL_SUBMIT_LIMIT_PER_DAY,
+            retryAfterSeconds: dailyRateLimit.retryAfterSeconds,
+            endpoint: request.nextUrl.pathname,
+        });
+
         return NextResponse.json(
             {
                 success: false,
@@ -73,7 +121,7 @@ export async function POST(request: NextRequest) {
             {
                 status: 429,
                 headers: {
-                    "Retry-After": String(rateLimit.retryAfterSeconds),
+                    "Retry-After": String(dailyRateLimit.retryAfterSeconds),
                 },
             }
         );
@@ -145,6 +193,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingAppeal) {
+        logSecurityEvent("authenticity_appeal_duplicate_submission", {
+            actorId: authUser.id,
+            actorUsername: authUser.username,
+            checkId: check.id,
+            appealId: existingAppeal.id,
+            existingStatus: existingAppeal.status,
+        });
+
         return NextResponse.json(
             {
                 success: false,

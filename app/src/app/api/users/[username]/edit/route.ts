@@ -7,6 +7,7 @@ import { buildAuthCookie } from "@/utilities/auth/cookies";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
 import { isSuperAdminIdentity, resolveEffectiveRole } from "@/utilities/auth/roles";
+import { trackProductEventForUser } from "@/utilities/analytics/server";
 
 type ValidationResult = {
     isSet: boolean;
@@ -69,6 +70,7 @@ const readOptionalMediaField = (body: Record<string, unknown>, field: "photoUrl"
 };
 
 export async function POST(request: NextRequest, { params: { username } }: { params: { username: string } }) {
+    const requestId = request.headers.get("x-request-id") || undefined;
     let body: Record<string, unknown>;
     try {
         body = await request.json();
@@ -136,6 +138,18 @@ export async function POST(request: NextRequest, { params: { username } }: { par
             },
             data: updateData,
         });
+
+        await trackProductEventForUser({
+            userId: authUser.id,
+            eventName: "profile_updated",
+            surface: "profile_edit",
+            sessionId: requestId,
+            payload: {
+                updatedFields: Object.keys(updateData),
+                verifiedHumanChanged: Boolean(updateData.isVerifiedHuman),
+            },
+        });
+
         const isSuperAdmin = isSuperAdminIdentity({
             username: user.username,
             clerkId: user.clerkId,

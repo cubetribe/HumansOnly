@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.14.0] - 2026-03-03
+
+### Added
+
+- Product event coverage expanded to:
+  - `message_created`
+  - `notifications_marked_read`
+  - `profile_updated`
+
+### Changed
+
+- `GET /api/admin/analytics/kpis` now returns KPI health flags based on env-configurable thresholds:
+  - `KPI_MIN_ACTIVE_USERS_7D` (default `10`)
+  - `KPI_MIN_POSTS_CREATED_7D` (default `20`)
+  - `KPI_MIN_REPLIES_CREATED_7D` (default `10`)
+
 ## [1.13.0] - 2026-03-03
 
 ### Added

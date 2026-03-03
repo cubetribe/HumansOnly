@@ -6,6 +6,9 @@ export const PRODUCT_EVENT_NAMES = [
     "post_liked",
     "reply_created",
     "user_followed",
+    "message_created",
+    "notifications_marked_read",
+    "profile_updated",
 ] as const;
 
 export type ProductEventName = (typeof PRODUCT_EVENT_NAMES)[number];

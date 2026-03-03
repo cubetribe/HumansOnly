@@ -1,5 +1,17 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Phase 0.3 Metrics Hardening (v1.14.0)
+
+-   expanded product event coverage for additional core behaviors:
+    -   `message_created` via `POST /api/messages/create`
+    -   `notifications_marked_read` via `GET /api/notifications/read`
+    -   `profile_updated` via `POST /api/users/[username]/edit`
+-   extended product event registry (`src/utilities/analytics/events.ts`)
+-   enhanced admin KPI endpoint with health thresholds + boolean health flags:
+    -   `KPI_MIN_ACTIVE_USERS_7D` (default `10`)
+    -   `KPI_MIN_POSTS_CREATED_7D` (default `20`)
+    -   `KPI_MIN_REPLIES_CREATED_7D` (default `10`)
+
 ## 2026-03-03 - Phase 0.2 Admin Analytics Snapshot (v1.13.0)
 
 -   added admin analytics snapshot UI section in Settings (admin-only):

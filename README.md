@@ -123,7 +123,8 @@ No contribution is too small. Fix a typo. Improve an error message. Roast our co
 - ✅ Wave `7` significantly advanced (rules, challenge, trust/risk gate, moderation queue, adaptive fallback, appeals backbone).
 - ✅ Phase `0` measurement foundation started (`POST /api/analytics/events`, first home-feed product events).
 - ✅ Phase `0.1` measurement expansion delivered (server-side events for create/like/reply/follow + admin KPI endpoint).
-- 🔄 Phase `0.2` in progress (admin analytics snapshot in Settings delivered, broader event coverage still open).
+- ✅ Phase `0.2` delivered (admin analytics snapshot in Settings).
+- ✅ Phase `0.3` delivered (message/notification/profile events + KPI health flags).
 - 🔄 Wave `7` still open:
   - appeal SLA + workflow automation
   - stronger anti-abuse/rate limits for challenge and appeal endpoints

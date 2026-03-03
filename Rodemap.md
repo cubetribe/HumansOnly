@@ -2,7 +2,7 @@
 
 Last updated: 2026-03-03  
 Owner: Codex + Dennis  
-Current app version: `1.13.0`
+Current app version: `1.14.0`
 
 ## Goal
 Build Humans Only into a production-grade, humans-only social network with enforceable authenticity controls, moderator tooling, and reliable production operations.
@@ -87,10 +87,10 @@ Planned:
 - Controlled rollout strategy (`10% -> 50% -> 100%`) with safety metrics
 
 ## Immediate Next Priorities
-1. Phase 0.3 metrics hardening:
-   - expand product event coverage to notifications/messages/profile updates
-   - add KPI anomaly thresholds and basic alerting rules
-   - define and document weekly KPI review cadence with thresholds
+1. Phase 1 feed/discovery rollout:
+   - add `For You` feed endpoint with ranking heuristic and visibility safeguards
+   - add initial recommendation feedback endpoint (`not_interested`)
+   - expose feed mode toggle in Home UI
 2. Harden and document appeals lifecycle end-to-end (API docs + operational runbook + moderator SOP).
 3. Integrate passkey signal from Clerk into trust engine and adaptive challenge frequency.
 4. Replace lightweight provenance heuristics with proper C2PA verification path.

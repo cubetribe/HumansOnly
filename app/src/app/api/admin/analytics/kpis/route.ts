@@ -23,6 +23,14 @@ type ActivitySummaryRow = {
 
 const toNumber = (value: bigint | number) => (typeof value === "bigint" ? Number(value) : value);
 
+const readThreshold = (key: string, fallback: number) => {
+    const raw = process.env[key];
+    if (!raw) return fallback;
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+    return parsed;
+};
+
 const resolveWindowDays = (input: string | null) => {
     const parsed = Number.parseInt(input || "7", 10);
     if (!Number.isFinite(parsed)) return 7;
@@ -98,6 +106,17 @@ export async function GET(request: NextRequest) {
                 postsCreated: toNumber(summary.postsCreated),
                 repliesCreated: toNumber(summary.repliesCreated),
                 activeUsers: toNumber(summary.activeUsers),
+            },
+            healthFlags: {
+                minActiveUsers7d: readThreshold("KPI_MIN_ACTIVE_USERS_7D", 10),
+                minPostsCreated7d: readThreshold("KPI_MIN_POSTS_CREATED_7D", 20),
+                minRepliesCreated7d: readThreshold("KPI_MIN_REPLIES_CREATED_7D", 10),
+                activeUsersHealthy:
+                    toNumber(summary.activeUsers) >= readThreshold("KPI_MIN_ACTIVE_USERS_7D", 10),
+                postsCreatedHealthy:
+                    toNumber(summary.postsCreated) >= readThreshold("KPI_MIN_POSTS_CREATED_7D", 20),
+                repliesCreatedHealthy:
+                    toNumber(summary.repliesCreated) >= readThreshold("KPI_MIN_REPLIES_CREATED_7D", 10),
             },
         });
     } catch (error: unknown) {

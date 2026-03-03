@@ -7,6 +7,7 @@ import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/ses
 import { canUsersInteract } from "@/utilities/social/access";
 import { errorResponse, getRequestId, logApiEvent, successResponse } from "@/utilities/observability";
 import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
+import { trackProductEventForUser } from "@/utilities/analytics/server";
 
 export async function POST(request: NextRequest) {
     const requestId = getRequestId(request);
@@ -92,6 +93,19 @@ export async function POST(request: NextRequest) {
                         username: normalizedRecipient,
                     },
                 },
+            },
+        });
+
+        await trackProductEventForUser({
+            userId: authUser.id,
+            eventName: "message_created",
+            surface: "messages",
+            sessionId: requestId,
+            payload: {
+                recipientId: recipientUser.id,
+                recipientUsername: recipientUser.username,
+                textLength: normalizedText.length,
+                hasPhoto: Boolean(sanitizedPhotoUrl),
             },
         });
 

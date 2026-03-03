@@ -867,7 +867,17 @@ Tweet[]
 **Request Body:**
 ```typescript
 {
-  eventName: "feed_home_loaded" | "feed_home_empty" | "feed_home_error";
+  eventName:
+    | "feed_home_loaded"
+    | "feed_home_empty"
+    | "feed_home_error"
+    | "post_created"
+    | "post_liked"
+    | "reply_created"
+    | "user_followed"
+    | "message_created"
+    | "notifications_marked_read"
+    | "profile_updated";
   surface?: string;         // max 40 chars
   sessionId?: string;       // max 64 chars
   payload?: Record<string, unknown>; // max serialized size: 4KB
@@ -915,6 +925,14 @@ Tweet[]
     postsCreated: number;
     repliesCreated: number;
     activeUsers: number;
+  };
+  healthFlags: {
+    minActiveUsers7d: number;
+    minPostsCreated7d: number;
+    minRepliesCreated7d: number;
+    activeUsersHealthy: boolean;
+    postsCreatedHealthy: boolean;
+    repliesCreatedHealthy: boolean;
   };
 }
 ```

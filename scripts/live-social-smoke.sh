@@ -3,7 +3,7 @@ set -euo pipefail
 
 BASE_URL="${1:-https://humans-only.de}"
 
-echo "[1/4] Health endpoint"
+echo "[1/5] Health endpoint"
 health_response="$(curl -sS "${BASE_URL}/api/health")"
 if [[ "${health_response}" != *'"success":true'* ]]; then
     echo "Health check failed: ${health_response}" >&2
@@ -11,10 +11,10 @@ if [[ "${health_response}" != *'"success":true'* ]]; then
 fi
 
 
-echo "[2/4] Auth smoke"
+echo "[2/5] Auth smoke"
 "$(dirname "$0")/auth-smoke-local.sh" "${BASE_URL}" >/tmp/live-auth-smoke.log
 
-echo "[3/4] Privacy + interaction restrictions"
+echo "[3/5] Privacy + interaction restrictions"
 ua="wave5a$(date +%s)"
 ub="wave5b$(date +%s)"
 pa="Wave5Pass123!"
@@ -80,7 +80,21 @@ if [[ "${b_like}" != *'"success":false'* ]]; then
 fi
 
 
-echo "[4/4] Block + DM restriction"
+echo "[4/5] Delete route hardening"
+delete_with_mismatch_slug="$(curl -sS -b "${ca}" -H 'Content-Type: application/json' -d '{}' "${BASE_URL}/api/tweets/${ub}/${tweet_id}/delete")"
+a_tweets_after_delete="$(curl -sS -b "${ca}" "${BASE_URL}/api/tweets/${ua}")"
+
+if [[ "${delete_with_mismatch_slug}" != *'"success":true'* ]]; then
+    echo "Delete hardening check failed: ${delete_with_mismatch_slug}" >&2
+    exit 1
+fi
+if [[ "${a_tweets_after_delete}" == *"${tweet_id}"* ]]; then
+    echo "Deleted post still returned in timeline: ${a_tweets_after_delete}" >&2
+    exit 1
+fi
+
+
+echo "[5/5] Block + DM restriction"
 a_block="$(curl -sS -b "${ca}" -H 'Content-Type: application/json' -d '{}' "${BASE_URL}/api/users/${ub}/block")"
 b_dm="$(curl -sS -b "${cb}" -H 'Content-Type: application/json' -d "{\"recipient\":\"${ua}\",\"text\":\"hello\"}" "${BASE_URL}/api/messages/create")"
 a_blocked="$(curl -sS -b "${ca}" "${BASE_URL}/api/users/blocked")"

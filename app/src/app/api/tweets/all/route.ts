@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 import { visibleAuthorWhereForViewer, visibleTweetWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest) {
+    const requestId = getRequestId(request);
     let page = request.nextUrl.searchParams.get("page");
     const limit = "10";
     const authUser = await getAuthenticatedUser();
@@ -168,8 +170,8 @@ export async function GET(request: NextRequest) {
         const totalTweets = await prisma.tweet.count({ where: baseWhere });
         const lastPage = Math.ceil(totalTweets / parsedLimit);
 
-        return NextResponse.json({ success: true, tweets, nextPage, lastPage });
+        return successResponse(requestId, { success: true, tweets, nextPage, lastPage });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to load feed posts.", 500, error);
     }
 }

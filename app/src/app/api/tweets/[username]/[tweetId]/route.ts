@@ -1,13 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 import { visibleAuthorWhereForViewer, visibleTweetWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(
     request: NextRequest,
     { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
 ) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     const viewerId = authUser?.id ?? null;
     const visibleAuthorWhere = visibleAuthorWhereForViewer(viewerId);
@@ -156,8 +158,8 @@ export async function GET(
                 },
             },
         });
-        return NextResponse.json({ success: true, tweet });
+        return successResponse(requestId, { success: true, tweet });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to load post.", 500, error);
     }
 }

@@ -1,12 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, isModerator, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 export async function POST(
-    _request: NextRequest,
+    request: NextRequest,
     { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
 ) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -25,8 +28,8 @@ export async function POST(
             },
         });
 
-        if (!tweet || tweet.author.username !== username) {
-            return NextResponse.json({ success: false, message: "Post not found." }, { status: 404 });
+        if (!tweet) {
+            return errorResponse(requestId, "Post not found.", 404);
         }
 
         if (tweet.authorId !== authUser.id && !isModerator(authUser)) {
@@ -38,8 +41,18 @@ export async function POST(
                 id: tweetId,
             },
         });
-        return NextResponse.json({ success: true });
+
+        return successResponse(requestId, {
+            success: true,
+            deletedTweetId: tweetId,
+            canonicalUsername: tweet.author.username,
+            slugMismatch: tweet.author.username !== username,
+        });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            return errorResponse(requestId, "Post not found.", 404);
+        }
+
+        return errorResponse(requestId, "Failed to delete post.", 500, error);
     }
 }

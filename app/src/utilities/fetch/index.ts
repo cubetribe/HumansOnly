@@ -398,15 +398,24 @@ export const createReport = async (
 };
 
 export const deleteTweet = async (tweetId: string, tweetAuthor: string) => {
-    const response = await fetch(`${HOST_URL}/api/tweets/${tweetAuthor}/${tweetId}/delete`, {
+    const encodedAuthor = encodeURIComponent(tweetAuthor);
+    const encodedTweetId = encodeURIComponent(tweetId);
+    const response = await fetch(`${HOST_URL}/api/tweets/${encodedAuthor}/${encodedTweetId}/delete`, {
         method: "POST",
         credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
     });
-    const json = await response.json();
-    if (!json.success) throw new Error(json.message ? json.message : "Something went wrong.");
+
+    const contentType = response.headers.get("content-type") || "";
+    const json = contentType.includes("application/json") ? await response.json() : null;
+    if (!response.ok || !json?.success) {
+        const requestId = typeof json?.requestId === "string" ? json.requestId : null;
+        const requestIdHint = requestId ? ` (requestId: ${requestId})` : "";
+        throw new Error((json?.message ? `${json.message}${requestIdHint}` : null) || `Could not delete post (${response.status}).`);
+    }
+
     return json;
 };
 

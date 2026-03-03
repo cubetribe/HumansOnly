@@ -55,7 +55,15 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
             queryClient.invalidateQueries(["tweets", tweet.author.username]);
             router.replace(`/${tweet.author.username}`);
         },
-        onError: (error) => console.log(error),
+        onError: (error: Error) => {
+            setIsDeleting(false);
+            setIsConfirmationOpen(false);
+            setSnackbar({
+                message: error.message || "Failed to delete post.",
+                severity: "error",
+                open: true,
+            });
+        },
     });
 
     const reportMutation = useMutation({

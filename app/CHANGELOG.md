@@ -1,5 +1,15 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Human Layer Smoke Validation Script (v1.9.2)
+
+-   added `scripts/human-layer-smoke.sh` for repeatable authenticity-layer smoke coverage:
+    -   rules current + accept success/failure checks
+    -   challenge endpoint validation checks
+    -   trust endpoint check
+    -   moderator queue access guard check
+    -   adaptive assertions for dry-run vs strict challenge enforcement
+-   updated release-gate docs to include human-layer smoke
+
 ## 2026-03-03 - Turnstile Client Enforcement for Post Actions (v1.9.1)
 
 -   added reusable client Turnstile widget component (`src/components/human/TurnstileChallenge.tsx`)

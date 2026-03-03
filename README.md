@@ -218,6 +218,9 @@ HUMAN_DRY_RUN="true"                    # start in dry-run for safe rollout
 # Auth smoke test (app must be running on :3000)
 ./scripts/auth-smoke-local.sh
 
+# Human authenticity smoke (rules/challenge/trust/moderation guards)
+./scripts/human-layer-smoke.sh
+
 # Full live-domain social smoke
 ./scripts/live-social-smoke.sh https://humans-only.de
 

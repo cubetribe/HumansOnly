@@ -9,12 +9,14 @@ Scope: Wave 5 operations hardening (quality gates, observability, backup/restore
 - `Quality Gates` GitHub workflow passes (`.github/workflows/quality-gates.yml`).
 - `Deploy HumansOnly` workflow passes on `main`.
 - Live smoke passes (`scripts/live-social-smoke.sh https://humans-only.de`).
+- Human-layer smoke passes (`scripts/human-layer-smoke.sh https://humans-only.de`).
 - Final matrix passes (`scripts/live-wave6-validation.sh https://humans-only.de`).
 
 ### Local preflight
 ```bash
 ./scripts/ci-quality.sh
 ./scripts/baseline-check.sh
+./scripts/human-layer-smoke.sh
 ```
 
 ## 2) Observability

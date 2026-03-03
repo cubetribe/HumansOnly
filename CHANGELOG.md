@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.2] - 2026-03-03
+
+### Added
+
+- New human-authenticity smoke script:
+  - `scripts/human-layer-smoke.sh`
+  - validates rules fetch/accept, challenge input validation, trust endpoint, and moderation access guard
+  - adapts checks for both dry-run and strict challenge enforcement modes
+
+### Changed
+
+- Operations and README release gates now include human-layer smoke validation.
+
 ## [1.9.1] - 2026-03-03
 
 ### Added

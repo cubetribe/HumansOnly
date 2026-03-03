@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.13.0] - 2026-03-03
+
+### Added
+
+- Admin analytics snapshot in settings (admin-only):
+  - 7-day KPI cards (`activeUsers`, `postsCreated`, `repliesCreated`)
+  - 7-day product event count list
+
+### Changed
+
+- Settings page now fetches admin KPI aggregates via:
+  - `getAdminAnalyticsKpis(7)`
+- Settings styling expanded with responsive KPI metric cards.
+- Roadmap/docs updated for Phase 0.2 progress.
+
 ## [1.12.0] - 2026-03-03
 
 ### Added

@@ -923,6 +923,7 @@ Tweet[]
 
 | File | Usage | Last Check |
 |------|-------|------------|
+| `app/src/app/(twitter)/settings/page.tsx` | Admin analytics snapshot in settings | 2026-03-03 |
 | `app/src/utilities/fetch/index.ts` | Shared admin KPI fetch helper (`getAdminAnalyticsKpis`) | 2026-03-03 |
 
 ---

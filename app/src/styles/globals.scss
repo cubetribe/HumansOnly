@@ -2341,6 +2341,25 @@ button.icon-hoverable {
         color: inherit;
     }
 
+    .settings-metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .settings-metric-card {
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+
+        strong {
+            font-size: 1.15rem;
+        }
+    }
+
     .moderation-report-list {
         display: flex;
         flex-direction: column;
@@ -2816,6 +2835,10 @@ button.icon-hoverable {
         .settings-user-row,
         .moderation-report-row {
             flex-wrap: wrap;
+        }
+
+        .settings-metrics-grid {
+            grid-template-columns: 1fr;
         }
 
         .settings-row .MuiInputBase-root,

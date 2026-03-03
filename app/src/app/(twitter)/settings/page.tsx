@@ -8,6 +8,7 @@ import { Avatar, MenuItem, Select, Switch, TextField } from "@mui/material";
 import { ThemeContext } from "@/app/providers";
 import { AuthContext } from "@/app/(twitter)/layout";
 import {
+    getAdminAnalyticsKpis,
     getAdminUsers,
     getAuthenticityAppeals,
     getBlockedUsers,
@@ -63,6 +64,16 @@ export default function SettingsPage() {
     const { data: adminUsersData, isLoading: isAdminUsersLoading } = useQuery({
         queryKey: ["settings", "admin-users", adminSearch],
         queryFn: () => getAdminUsers(adminSearch, 50),
+        enabled: isAdminUser,
+    });
+
+    const {
+        data: adminAnalyticsData,
+        isLoading: isAdminAnalyticsLoading,
+        isError: isAdminAnalyticsError,
+    } = useQuery({
+        queryKey: ["settings", "admin-analytics-kpis"],
+        queryFn: () => getAdminAnalyticsKpis(7),
         enabled: isAdminUser,
     });
 
@@ -267,6 +278,12 @@ export default function SettingsPage() {
     const myAuthenticityChecks = myAuthenticityChecksData?.checks || [];
     const myAppeals = myAppealsData?.appeals || [];
     const moderationAppeals = moderationAppealsData?.appeals || [];
+    const analyticsEventCounts = adminAnalyticsData?.eventCounts || [];
+    const analyticsActivitySummary = adminAnalyticsData?.activitySummary || {
+        postsCreated: 0,
+        repliesCreated: 0,
+        activeUsers: 0,
+    };
 
     const handleTogglePrivate = () => {
         updatePreferencesMutation.mutate({ isPrivate: !preferences.isPrivate });
@@ -676,6 +693,50 @@ export default function SettingsPage() {
                                 )
                             )}
                         </div>
+                    )}
+                </section>
+            )}
+
+            {isAdminUser && (
+                <section className="settings-section">
+                    <h2>Admin Analytics (7d)</h2>
+                    {isAdminAnalyticsLoading ? (
+                        <CircularLoading />
+                    ) : isAdminAnalyticsError ? (
+                        <p className="text-muted">Could not load analytics KPIs right now.</p>
+                    ) : (
+                        <>
+                            <div className="settings-metrics-grid">
+                                <div className="settings-metric-card">
+                                    <strong>{analyticsActivitySummary.activeUsers}</strong>
+                                    <span className="text-muted">Active users</span>
+                                </div>
+                                <div className="settings-metric-card">
+                                    <strong>{analyticsActivitySummary.postsCreated}</strong>
+                                    <span className="text-muted">Posts created</span>
+                                </div>
+                                <div className="settings-metric-card">
+                                    <strong>{analyticsActivitySummary.repliesCreated}</strong>
+                                    <span className="text-muted">Replies created</span>
+                                </div>
+                            </div>
+
+                            {analyticsEventCounts.length === 0 ? (
+                                <p className="text-muted">No product events in the selected window.</p>
+                            ) : (
+                                <div className="moderation-report-list">
+                                    {analyticsEventCounts.map((row: { eventName: string; count: number }) => (
+                                        <div className="moderation-report-row" key={`analytics-event-${row.eventName}`}>
+                                            <div className="moderation-report-meta">
+                                                <strong>{row.eventName}</strong>
+                                                <span className="text-muted">Last 7 days</span>
+                                            </div>
+                                            <strong>{row.count}</strong>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </>
                     )}
                 </section>
             )}

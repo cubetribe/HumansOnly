@@ -1,5 +1,15 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-03 - Phase 0.2 Admin Analytics Snapshot (v1.13.0)
+
+-   added admin analytics snapshot UI section in Settings (admin-only):
+    -   7-day active users / posts created / replies created cards
+    -   7-day event count list from aggregated KPI endpoint
+-   added fetch integration:
+    -   `getAdminAnalyticsKpis(7)` query in settings page
+-   added responsive settings styles for KPI metric cards
+-   updated roadmap/docs to reflect Phase 0.2 progress
+
 ## 2026-03-03 - Phase 0.1 Metrics Expansion + Admin KPI Endpoint (v1.12.0)
 
 -   expanded server-side product event tracking for core actions:

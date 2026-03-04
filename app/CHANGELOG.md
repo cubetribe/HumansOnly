@@ -1,5 +1,22 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-04 - Smoke User Cleanup Hardening + Account Self-Delete Endpoint (v1.18.6)
+
+-   added authenticated legacy account self-delete API:
+    -   `POST /api/users/me/delete`
+    -   requires password + username confirmation
+    -   blocks admin/super-admin deletion on this route
+    -   removes restrictive dependent records before account delete
+-   hardened smoke scripts to auto-clean created users on exit:
+    -   `scripts/auth-smoke-local.sh`
+    -   `scripts/live-social-smoke.sh`
+    -   `scripts/human-layer-smoke.sh`
+    -   `scripts/upload-compression-smoke.sh`
+-   added cleanup helper for timestamped smoke users:
+    -   `scripts/cleanup-artifact-users.sh --dry-run|--execute`
+-   production data cleanup executed:
+    -   removed `195` timestamped non-Clerk smoke users and dependent artifacts.
+
 ## 2026-03-04 - Delete Redirect Hardening on Single Post View (v1.18.5)
 
 -   fixed single-post delete navigation race that could land users on a stale not-found page:

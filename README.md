@@ -268,9 +268,15 @@ NEXT_PUBLIC_VIDEO_BETA_PREVIEW="false"  # feature-flagged UI readiness path
 # Final live validation matrix
 ./scripts/live-wave6-validation.sh https://humans-only.de
 
+# One-off cleanup for timestamped smoke users (uses DATABASE_URL from env)
+./scripts/cleanup-artifact-users.sh --dry-run
+./scripts/cleanup-artifact-users.sh --execute
+
 # Deploy (or --dry-run)
 ./scripts/deploy-server.sh
 ```
+
+Smoke scripts now auto-delete the users they create via `POST /api/users/me/delete` to avoid test-account buildup.
 
 Auto-deploy runs via `.github/workflows/deploy.yml` on pushes to `main`.
 

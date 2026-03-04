@@ -19,6 +19,15 @@ Scope: Wave 5+7 operations hardening (quality gates, observability, authenticity
 ./scripts/human-layer-smoke.sh
 ```
 
+### Artifact cleanup (when needed)
+```bash
+# Preview timestamped smoke users (safe read-only)
+./scripts/cleanup-artifact-users.sh --dry-run
+
+# Delete only timestamped, non-Clerk `role=user` smoke accounts
+./scripts/cleanup-artifact-users.sh --execute
+```
+
 ## 2) Observability
 
 ### Request IDs

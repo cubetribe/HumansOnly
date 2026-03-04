@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.6] - 2026-03-04
+
+### Added
+
+- New authenticated self-delete endpoint for legacy accounts:
+  - `POST /api/users/me/delete`
+  - requires password + username confirmation
+  - blocks admin/super-admin deletion through this path
+  - removes restrictive dependent records before deleting account.
+- New cleanup helper script for timestamped smoke users:
+  - `scripts/cleanup-artifact-users.sh`
+  - supports `--dry-run` and `--execute`.
+
+### Changed
+
+- Smoke scripts now auto-clean created users at exit:
+  - `scripts/auth-smoke-local.sh`
+  - `scripts/live-social-smoke.sh`
+  - `scripts/human-layer-smoke.sh`
+  - `scripts/upload-compression-smoke.sh`
+- Operations + README now document artifact cleanup workflow and the self-cleaning smoke behavior.
+
+### Fixed
+
+- Cleaned production artifact users created by smoke flows:
+  - deleted `195` timestamped non-Clerk smoke accounts
+  - removed related smoke artifacts (`41` tweets, `202` notifications, `34` product events, `4` messages).
+
 ## [1.18.5] - 2026-03-04
 
 ### Fixed

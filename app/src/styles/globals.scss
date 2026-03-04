@@ -2998,26 +2998,6 @@ button.icon-hoverable {
         }
     }
 
-    .explore-link {
-        position: fixed;
-        top: 1.5rem;
-        right: 2rem;
-        z-index: 10;
-        color: rgba(255, 255, 255, 0.7);
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: all 0.3s ease;
-
-        &:hover {
-            color: var(--ho-primary);
-        }
-
-        svg {
-            font-size: 0.8rem;
-        }
-    }
 }
 
 /* Landing Page Mobile */
@@ -3054,14 +3034,6 @@ button.icon-hoverable {
                 padding: 1.5rem;
                 max-width: 100%;
             }
-        }
-
-        .explore-link {
-            position: relative;
-            top: auto;
-            right: auto;
-            justify-content: center;
-            padding: 1rem;
         }
     }
 }

@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FaArrowRight } from "react-icons/fa";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function LandingPage() {
@@ -56,10 +55,6 @@ export default function LandingPage() {
                     </div>
                 </div>
             </div>
-
-            <Link className="explore-link" href="/explore">
-                Explore without signing in <FaArrowRight />
-            </Link>
         </main>
     );
 }

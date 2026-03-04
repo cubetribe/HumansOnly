@@ -5,6 +5,7 @@ BASE_URL="${1:-http://localhost:3000}"
 USERNAME="humanlayer$(date +%s)"
 PASSWORD="HumanLayerPass123!"
 COOKIE_FILE="$(mktemp)"
+SMOKE_POST_PREFIX="human-layer-smoke-"
 trap 'rm -f "${COOKIE_FILE}"' EXIT
 
 extract_json_string() {
@@ -39,6 +40,48 @@ extract_status() {
 extract_body() {
     local response="$1"
     printf '%s' "${response%$'\n'*}"
+}
+
+cleanup_smoke_posts() {
+    local tweets_json ids delete_response delete_status delete_body
+    tweets_json="$(curl -sS -b "${COOKIE_FILE}" -c "${COOKIE_FILE}" "${BASE_URL}/api/tweets/${USERNAME}")"
+    ids="$(printf '%s' "${tweets_json}" | node -e '
+let s = "";
+const prefix = process.argv[1] || "";
+process.stdin.on("data", (d) => (s += d));
+process.stdin.on("end", () => {
+  try {
+    const json = JSON.parse(s);
+    const tweets = Array.isArray(json.tweets) ? json.tweets : [];
+    for (const tweet of tweets) {
+      if (
+        typeof tweet?.id === "string" &&
+        typeof tweet?.text === "string" &&
+        tweet.text.startsWith(prefix)
+      ) {
+        process.stdout.write(`${tweet.id}\n`);
+      }
+    }
+  } catch {
+    // best effort cleanup only
+  }
+});
+' "${SMOKE_POST_PREFIX}")"
+
+    if [[ -z "${ids}" ]]; then
+        echo "No smoke posts to clean up."
+        return 0
+    fi
+
+    while IFS= read -r tweet_id; do
+        [[ -z "${tweet_id}" ]] && continue
+        delete_response="$(request_with_status POST "${BASE_URL}/api/tweets/${USERNAME}/${tweet_id}/delete" '{}')"
+        delete_status="$(extract_status "${delete_response}")"
+        delete_body="$(extract_body "${delete_response}")"
+        if [[ "${delete_status}" != "200" || "${delete_body}" != *'"success":true'* ]]; then
+            echo "Warning: cleanup delete failed for ${tweet_id}: HTTP ${delete_status}: ${delete_body}" >&2
+        fi
+    done <<< "${ids}"
 }
 
 echo "[1/10] Create and login smoke user (${USERNAME})"
@@ -159,7 +202,7 @@ challenge_probe_raw="$(request_with_status POST "${BASE_URL}/api/human/challenge
 challenge_probe_status="$(extract_status "${challenge_probe_raw}")"
 challenge_probe_body="$(extract_body "${challenge_probe_raw}")"
 
-tweet_text="human-layer-smoke-$(date +%s)"
+tweet_text="${SMOKE_POST_PREFIX}$(date +%s)"
 
 if [[ "${challenge_probe_status}" == "200" && "${challenge_probe_body}" == *'"success":true'* ]]; then
     challenge_session_id="$(extract_json_string "${challenge_probe_body}" "challengeSessionId")"
@@ -201,6 +244,9 @@ else
     echo "Unexpected challenge probe response: HTTP ${challenge_probe_status}: ${challenge_probe_body}" >&2
     exit 1
 fi
+
+echo "[9/10] Cleanup smoke posts"
+cleanup_smoke_posts
 
 echo "[10/10] Human layer smoke complete"
 echo "Human layer smoke passed for ${BASE_URL}."

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.4] - 2026-03-04
+
+### Fixed
+
+- Human-layer smoke validation script now auto-cleans created smoke posts at the end of each run:
+  - `scripts/human-layer-smoke.sh`
+  - prevents `human-layer-smoke-*` test posts from polluting `/explore` and search results.
+- Performed production cleanup of existing smoke artifacts and verified zero remaining `human-layer-smoke-*` posts.
+
+### Changed
+
+- Incident handling now includes explicit post-smoke cleanup verification on live domain checks.
+
 ## [1.18.3] - 2026-03-04
 
 ### Fixed

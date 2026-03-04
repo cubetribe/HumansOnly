@@ -1,5 +1,16 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-04 - Smoke Cleanup Guard + Incident Cleanup (v1.18.4)
+
+-   fixed human-layer smoke script to auto-clean test posts after validation:
+    -   `scripts/human-layer-smoke.sh` now deletes `human-layer-smoke-*` posts created during the run
+    -   prevents explore/feed pollution from validation artifacts
+-   verified live cleanup:
+    -   removed existing smoke artifacts from production (`6` posts deleted)
+    -   confirmed zero remaining `human-layer-smoke-*` posts after script run
+-   incident note:
+    -   observed short-lived `502` window caused by host/service restart (Nginx + PM2 recovered, services online)
+
 ## 2026-03-04 - API Reliability Sweep + Docs Closure (v1.18.3)
 
 -   hardened additional high-traffic APIs to structured observability responses (request-id aware):

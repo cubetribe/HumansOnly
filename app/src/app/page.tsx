@@ -40,6 +40,9 @@ export default function LandingPage() {
                                     LOG IN
                                 </button>
                             </SignInButton>
+                            <Link className="btn btn-landing btn-submit" href="/explore">
+                                EXPLORE WITHOUT SIGN IN
+                            </Link>
                         </SignedOut>
 
                         <SignedIn>

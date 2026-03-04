@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { AuthContext } from "@/app/(twitter)/layout";
 import CircularLoading from "@/components/misc/CircularLoading";
-import { getAdminAnalyticsKpis, getAdminUsers, getAuthenticityAppeals, getModerationReports } from "@/utilities/fetch";
+import { getAdminAnalyticsKpis, getAdminUsers, getAuthenticityAppeals, getModerationReports, getSystemHealth } from "@/utilities/fetch";
 
 export default function AdminPage() {
     const { token, isPending } = useContext(AuthContext);
@@ -36,6 +36,14 @@ export default function AdminPage() {
         enabled: isAdminUser,
     });
 
+    const { data: systemHealthData, isLoading: isSystemHealthLoading } = useQuery({
+        queryKey: ["admin-page", "health"],
+        queryFn: () => getSystemHealth(),
+        enabled: isAdminUser,
+        retry: 1,
+        refetchInterval: 60_000,
+    });
+
     if (isPending) return <CircularLoading />;
 
     if (!token || !isAdminUser) {
@@ -47,7 +55,7 @@ export default function AdminPage() {
         );
     }
 
-    if (isAnalyticsLoading || isUsersLoading || isReportsLoading || isAppealsLoading) return <CircularLoading />;
+    if (isAnalyticsLoading || isUsersLoading || isReportsLoading || isAppealsLoading || isSystemHealthLoading) return <CircularLoading />;
 
     const activitySummary = analyticsData?.activitySummary || { activeUsers: 0, postsCreated: 0, repliesCreated: 0 };
     const healthFlags = analyticsData?.healthFlags;
@@ -87,6 +95,29 @@ export default function AdminPage() {
     const moderationSeverity =
         appealSlaSummary.overdue > 0 ? "critical" : appealSlaSummary.dueSoon > 0 || openReports.length > 15 ? "warning" : "healthy";
     const creatorSeverity = creatorCommerce.activeCreators > 0 ? "healthy" : "warning";
+    const systemHealth = systemHealthData as
+        | {
+              status?: string;
+              uptimeSeconds?: number;
+              nodeVersion?: string;
+              release?: Record<string, string> | null;
+          }
+        | undefined;
+    const status = (systemHealth?.status || "unknown").toLowerCase();
+    const release = systemHealth?.release || null;
+    const hasReleaseMetadata = Boolean(release?.sha || release?.run_id || release?.run_number);
+    const systemSeverity = status !== "ok" ? "critical" : hasReleaseMetadata ? "healthy" : "warning";
+    const systemLabel =
+        systemSeverity === "critical"
+            ? "Health endpoint degraded"
+            : systemSeverity === "warning"
+            ? "Healthy, release metadata missing"
+            : "System healthy";
+    const uptimeSeconds = typeof systemHealth?.uptimeSeconds === "number" ? systemHealth.uptimeSeconds : null;
+    const uptimeLabel = uptimeSeconds === null ? "n/a" : `${Math.floor(uptimeSeconds / 3600)}h (${uptimeSeconds}s)`;
+    const releaseSha = release?.sha || "n/a";
+    const releaseRun = release?.run_number || release?.run_id || "n/a";
+    const deployedAt = release?.deployed_at_utc || "n/a";
 
     return (
         <main className="admin-page">
@@ -107,6 +138,18 @@ export default function AdminPage() {
             </header>
 
             <section className="admin-grid">
+                <article className={`admin-card admin-card-status ${systemSeverity}`}>
+                    <h2>System Status</h2>
+                    <span className={`admin-pill ${systemSeverity}`}>{systemLabel}</span>
+                    <p>Health status: {status}</p>
+                    <p>Uptime: {uptimeLabel}</p>
+                    <p>Node: {systemHealth?.nodeVersion || "n/a"}</p>
+                    <p>
+                        Release SHA: <span className="admin-mono">{releaseSha}</span>
+                    </p>
+                    <p>Release run: {releaseRun}</p>
+                    <p>Deployed UTC: {deployedAt}</p>
+                </article>
                 <article className="admin-card">
                     <h2>7d Activity</h2>
                     <p>Active users: {activitySummary.activeUsers}</p>

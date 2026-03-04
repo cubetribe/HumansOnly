@@ -2585,6 +2585,12 @@ button.icon-hoverable {
     gap: 0.5rem;
 }
 
+.admin-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.8rem;
+    word-break: break-all;
+}
+
 .admin-user-row {
     display: flex;
     justify-content: space-between;

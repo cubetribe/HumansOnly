@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.2] - 2026-03-04
+
+### Fixed
+
+- Hardened additional tweet APIs to return structured request-id aware errors instead of raw exception payloads:
+  - `GET /api/tweets/[username]/media`
+  - `GET /api/tweets/[username]/likes`
+  - `GET /api/tweets/[username]/replies`
+  - `GET /api/tweets/related`
+  - `POST /api/tweets/[username]/[tweetId]/unlike`
+  - `POST /api/tweets/[username]/[tweetId]/unretweet`
+- `unretweet` flow now safely handles missing source posts and no-retweet states without breaking client behavior.
+
+### Changed
+
+- Admin dashboard now includes a live `System Status` card backed by `/api/health`.
+- System status panel surfaces runtime metadata (`status`, uptime, Node version, release SHA, run id/number, deploy timestamp) with periodic refresh.
+
 ## [1.18.1] - 2026-03-03
 
 ### Fixed

@@ -1,5 +1,23 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-04 - API Hardening + Admin Live System Status (v1.18.2)
+
+-   hardened additional tweet endpoints with structured observability responses:
+    -   `GET /api/tweets/[username]/media`
+    -   `GET /api/tweets/[username]/likes`
+    -   `GET /api/tweets/[username]/replies`
+    -   `GET /api/tweets/related`
+    -   `POST /api/tweets/[username]/[tweetId]/unlike`
+    -   `POST /api/tweets/[username]/[tweetId]/unretweet`
+-   improved unretweet robustness:
+    -   explicit `404` when source post is missing
+    -   safe no-op behavior when user has no retweet record
+    -   response now includes `removedRetweet` flag
+-   extended admin dashboard with live runtime visibility:
+    -   new System Status card (health, uptime, node version)
+    -   release metadata surfacing (`sha`, workflow run, deploy timestamp) via `/api/health`
+    -   refresh interval for near-live operational monitoring
+
 ## 2026-03-03 - System Hardening + Admin Dashboard UX (v1.18.1)
 
 -   fixed post deletion hardening:

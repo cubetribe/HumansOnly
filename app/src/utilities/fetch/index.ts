@@ -980,3 +980,14 @@ export const getAdminAnalyticsKpis = async (days = 7) => {
     if (!json.success) throw new Error(json.message ? json.message : "Could not load admin analytics KPIs.");
     return json;
 };
+
+export const getSystemHealth = async () => {
+    const response = await fetch(`${HOST_URL}/api/health`, {
+        credentials: "include",
+        cache: "no-store",
+    });
+
+    const json = await response.json();
+    if (!json.success) throw new Error(json.message ? json.message : "Could not load system health.");
+    return json;
+};

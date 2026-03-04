@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.5] - 2026-03-04
+
+### Fixed
+
+- Single-post delete flow now hardens routing after successful deletion:
+  - clears deleted detail-query cache before navigation
+  - redirects immediately to the author profile instead of leaving users on stale detail routes.
+- Added fallback redirect behavior on single-post page when authorized users (owner/mod/admin) encounter a now-missing post after deletion, preventing false “page doesn't exist” dead-ends.
+
 ## [1.18.4] - 2026-03-04
 
 ### Fixed

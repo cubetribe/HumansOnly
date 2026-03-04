@@ -24,7 +24,6 @@ import Replies from "./Replies";
 import CustomSnackbar from "../misc/CustomSnackbar";
 import { SnackbarProps } from "@/types/SnackbarProps";
 import CircularLoading from "../misc/CircularLoading";
-import { sleepFunction } from "@/utilities/misc/sleep";
 import MentionText from "../misc/MentionText";
 import EditTweetDialog from "../dialog/EditTweetDialog";
 
@@ -43,17 +42,22 @@ export default function SingleTweet({ tweet, token }: { tweet: TweetProps; token
 
     const mutation = useMutation({
         mutationFn: () => deleteTweet(tweet.id, tweet.author.username),
-        onSuccess: async () => {
+        onSuccess: () => {
             setIsConfirmationOpen(false);
             setIsDeleting(false);
             setSnackbar({
-                message: "Post deleted successfully. Redirecting to the profile page...",
+                message: "Post deleted.",
                 severity: "success",
                 open: true,
             });
-            await sleepFunction(); // for waiting snackbar to acknowledge delete for better user experience
-            queryClient.invalidateQueries(["tweets", tweet.author.username]);
+
+            // Remove stale single-post cache immediately to avoid rendering a deleted detail view.
+            queryClient.removeQueries({
+                queryKey: ["tweets", tweet.author.username, tweet.id],
+                exact: true,
+            });
             router.replace(`/${tweet.author.username}`);
+            queryClient.invalidateQueries({ queryKey: ["tweets"] });
         },
         onError: (error: Error) => {
             setIsDeleting(false);

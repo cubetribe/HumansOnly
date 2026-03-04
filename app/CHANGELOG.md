@@ -1,5 +1,15 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-04 - Delete Redirect Hardening on Single Post View (v1.18.5)
+
+-   fixed single-post delete navigation race that could land users on a stale not-found page:
+    -   `SingleTweet` now removes the deleted post detail query cache before redirect
+    -   redirect to `/{username}` now happens immediately after successful deletion
+    -   timeline queries are invalidated after redirect trigger
+-   added client-side fallback redirect on single-post page when the current user/moderator/admin lands on a missing post after delete:
+    -   `app/src/app/(twitter)/[username]/tweets/[tweetId]/page.tsx`
+    -   avoids false “Sorry, that page doesn't exist!” after legitimate delete actions
+
 ## 2026-03-04 - Smoke Cleanup Guard + Incident Cleanup (v1.18.4)
 
 -   fixed human-layer smoke script to auto-clean test posts after validation:

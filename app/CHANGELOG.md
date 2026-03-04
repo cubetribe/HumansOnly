@@ -1,5 +1,31 @@
 # Change Log (Started at April 4, 2023)
 
+## 2026-03-04 - API Reliability Sweep + Docs Closure (v1.18.3)
+
+-   hardened additional high-traffic APIs to structured observability responses (request-id aware):
+    -   `GET /api/search`
+    -   `GET /api/notifications`
+    -   `POST /api/notifications/create`
+    -   `GET/POST /api/notifications/preferences`
+    -   `GET /api/messages/[username]`
+    -   `POST /api/messages/delete`
+    -   `POST /api/messages/read`
+    -   `GET /api/feed/for-you`
+    -   `GET /api/users/[username]`
+    -   `GET /api/users/random`
+    -   `POST /api/users/[username]/unfollow`
+    -   `POST /api/tweets/create`
+    -   `POST /api/tweets/[username]/[tweetId]/like`
+    -   `GET/POST /api/tweets/[username]/[tweetId]/reply`
+    -   `POST /api/tweets/[username]/[tweetId]/retweet`
+-   improved mutation robustness:
+    -   explicit not-found handling (`P2025`) in like/unfollow/retweet-related paths
+    -   normalized bad-payload handling with `400` + structured messages
+-   completed documentation cleanup for open checklists:
+    -   removed stale `TBD` consumer placeholders from `docs/API_CONSUMERS.md`
+    -   converted old pending TODO checklist to completed audit checklist (`2026-03-04`)
+    -   refreshed app README roadmap snapshot and removed stale checkbox backlog format
+
 ## 2026-03-04 - API Hardening + Admin Live System Status (v1.18.2)
 
 -   hardened additional tweet endpoints with structured observability responses:

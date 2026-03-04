@@ -476,7 +476,7 @@ Please email security issues to: d.westermann@ol-mg.de
 ### Production Metrics
 - Bundle size: ~87.5 kB (First Load JS)
 - Static pages: 27 pre-rendered
-- Lighthouse Score: (TBD - run audit)
+- Lighthouse Score: Run per release gate (target >= 90 on key pages)
 
 ---
 
@@ -528,32 +528,23 @@ Thank you to the original creator for providing such a solid foundation!
 
 ## Roadmap
 
-### Current Phase (v1.0)
-- [x] Basic social features (posts, likes, follows)
-- [x] Direct messaging
-- [x] User profiles
-- [x] Premium badges
-- [x] Production deployment
-- [x] SSL/HTTPS
+### Delivery Snapshot (2026-03-04)
+- Basic social features live (posts, likes, follows, replies, reposts)
+- Direct messaging and notification system live
+- User profiles, role-based admin controls, moderation queues live
+- Human-authenticity layer live (rules/challenge/trust/appeals)
+- Creator commerce foundation live (artist studio, showcase, support intents)
+- Production deployment + SSL/HTTPS + automated deploy workflow live
 
-### Near Future (v1.1)
-- [ ] AI content detection API integration
-- [ ] Content moderation tools
-- [ ] Enhanced notification system
-- [ ] Performance optimization
-- [ ] Mobile app (PWA)
-
-### Future Enhancements (v2.0)
-- [ ] Advanced AI detection models
-- [ ] User verification process
-- [ ] Monetization features
-- [ ] Advanced analytics
-- [ ] Multi-language support
-- [ ] Video support
-- [ ] Polls and surveys
+### Active Pipeline
+- Distributed/global rate limiting (replace in-memory runtime limits)
+- Creator payout automation (Stripe Connect + webhook reconciliation)
+- Rights/dispute moderation workflow for creator sales
+- Provenance verification upgrade (C2PA-aware path + user-facing badges)
+- Compliance rollout controls and staged policy enforcement
 
 ---
 
 **Built with care for the human internet.**
 
-Last updated: 2025-12-21
+Last updated: 2026-03-04

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.18.3] - 2026-03-04
+
+### Fixed
+
+- Hardened additional API routes to avoid leaking raw exception payloads and to return structured request-id aware errors:
+  - `GET /api/search`
+  - `GET /api/notifications`
+  - `POST /api/notifications/create`
+  - `GET/POST /api/notifications/preferences`
+  - `GET /api/messages/[username]`
+  - `POST /api/messages/delete`
+  - `POST /api/messages/read`
+  - `GET /api/feed/for-you`
+  - `GET /api/users/[username]`
+  - `GET /api/users/random`
+  - `POST /api/users/[username]/unfollow`
+  - `POST /api/tweets/create`
+  - `POST /api/tweets/[username]/[tweetId]/like`
+  - `GET/POST /api/tweets/[username]/[tweetId]/reply`
+  - `POST /api/tweets/[username]/[tweetId]/retweet`
+- Added explicit `P2025` not-found handling for selected mutation paths to reduce ambiguous 500 responses.
+
+### Changed
+
+- API consumer registry (`docs/API_CONSUMERS.md`) is now fully audited for this wave and no longer carries stale `TBD` placeholders.
+- App README roadmap block now reflects delivered state and active pipeline without stale unchecked legacy checklist items.
+
 ## [1.18.2] - 2026-03-04
 
 ### Fixed

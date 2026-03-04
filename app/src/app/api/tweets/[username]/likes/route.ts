@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 import { visibleAuthorWhereForViewer, visibleTweetWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest, { params: { username } }: { params: { username: string } }) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     const viewerId = authUser?.id ?? null;
     const visibleAuthorWhere = visibleAuthorWhereForViewer(viewerId);
@@ -155,8 +157,8 @@ export async function GET(request: NextRequest, { params: { username } }: { para
                 },
             ],
         });
-        return NextResponse.json({ success: true, tweets });
+        return successResponse(requestId, { success: true, tweets });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to load liked posts.", 500, error);
     }
 }

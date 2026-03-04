@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 export async function POST(request: NextRequest, { params: { tweetId } }: { params: { tweetId: string } }) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -20,8 +23,12 @@ export async function POST(request: NextRequest, { params: { tweetId } }: { para
                 },
             },
         });
-        return NextResponse.json({ success: true });
+        return successResponse(requestId, { success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            return errorResponse(requestId, "Post not found.", 404);
+        }
+
+        return errorResponse(requestId, "Failed to remove like.", 500, error);
     }
 }

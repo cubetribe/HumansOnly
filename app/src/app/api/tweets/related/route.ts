@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 import { visibleAuthorWhereForViewer, visibleTweetWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
     const visibleAuthorWhere = visibleAuthorWhereForViewer(authUser.id);
@@ -166,8 +168,8 @@ export async function GET(request: NextRequest) {
                 },
             ],
         });
-        return NextResponse.json({ success: true, tweets });
+        return successResponse(requestId, { success: true, tweets });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to load related posts.", 500, error);
     }
 }

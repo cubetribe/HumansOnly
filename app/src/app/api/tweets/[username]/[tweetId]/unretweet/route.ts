@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 export async function POST(request: NextRequest, { params: { tweetId } }: { params: { tweetId: string } }) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -12,10 +15,20 @@ export async function POST(request: NextRequest, { params: { tweetId } }: { para
             where: {
                 id: tweetId,
             },
-            include: {
-                retweets: true,
+            select: {
+                id: true,
+                retweets: {
+                    select: {
+                        id: true,
+                        authorId: true,
+                    },
+                },
             },
         });
+
+        if (!originalTweet) {
+            return errorResponse(requestId, "Post not found.", 404);
+        }
 
         await prisma.tweet.update({
             where: {
@@ -30,16 +43,25 @@ export async function POST(request: NextRequest, { params: { tweetId } }: { para
             },
         });
 
-        const retweetId = originalTweet?.retweets.find((retweet: any) => retweet.authorId === authUser.id)?.id;
+        const retweetId = originalTweet.retweets.find((retweet) => retweet.authorId === authUser.id)?.id;
 
-        await prisma.tweet.delete({
-            where: {
-                id: retweetId,
-            },
+        if (retweetId) {
+            await prisma.tweet.delete({
+                where: {
+                    id: retweetId,
+                },
+            });
+        }
+
+        return successResponse(requestId, {
+            success: true,
+            removedRetweet: Boolean(retweetId),
         });
-
-        return NextResponse.json({ success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            return errorResponse(requestId, "Post not found.", 404);
+        }
+
+        return errorResponse(requestId, "Failed to undo repost.", 500, error);
     }
 }

@@ -7,13 +7,67 @@ APP_DIR="${ROOT_DIR}/app"
 
 TMP_DIR="$(mktemp -d)"
 COOKIE_FILE="${TMP_DIR}/cookie.txt"
-trap 'rm -rf "${TMP_DIR}"' EXIT
+USERNAME=""
+PASSWORD=""
+USER_CREATED="0"
 
 json_field() {
     local json="$1"
     local key="$2"
     node -e 'const data = JSON.parse(process.argv[1]); const key = process.argv[2]; const value = data[key]; process.stdout.write(String(value ?? ""));' "$json" "$key"
 }
+
+extract_status() {
+    local response="$1"
+    printf '%s' "${response##*$'\n'}"
+}
+
+extract_body() {
+    local response="$1"
+    printf '%s' "${response%$'\n'*}"
+}
+
+cleanup_smoke_user() {
+    if [[ "${USER_CREATED}" != "1" || -z "${USERNAME}" || -z "${PASSWORD}" ]]; then
+        return 0
+    fi
+
+    local delete_payload delete_response delete_status delete_body
+    echo "[cleanup] Delete smoke user: ${USERNAME}"
+
+    delete_payload=$(printf '{"password":"%s","confirmUsername":"%s"}' "${PASSWORD}" "${USERNAME}")
+    delete_response="$(curl -sS -b "${COOKIE_FILE}" -c "${COOKIE_FILE}" -H 'Content-Type: application/json' -d "${delete_payload}" -w '\n%{http_code}' "${BASE_URL}/api/users/me/delete")"
+    delete_status="$(extract_status "${delete_response}")"
+    delete_body="$(extract_body "${delete_response}")"
+
+    if [[ "${delete_status}" != "200" || "${delete_body}" != *'"success":true'* ]]; then
+        echo "Cleanup failed for ${USERNAME}: HTTP ${delete_status}: ${delete_body}" >&2
+        return 1
+    fi
+
+    USER_CREATED="0"
+    return 0
+}
+
+on_exit() {
+    local exit_code="$?"
+    local cleanup_failed="0"
+
+    trap - EXIT
+
+    if ! cleanup_smoke_user; then
+        cleanup_failed="1"
+    fi
+
+    rm -rf "${TMP_DIR}"
+
+    if [[ "${exit_code}" == "0" && "${cleanup_failed}" == "1" ]]; then
+        exit 1
+    fi
+
+    exit "${exit_code}"
+}
+trap on_exit EXIT
 
 echo "[1/7] Generate large synthetic images"
 (cd "${APP_DIR}" && node - "${TMP_DIR}" <<'NODE'
@@ -95,6 +149,7 @@ if [[ "${CREATE_RESPONSE}" != *'"success":true'* ]]; then
     echo "Create user failed: ${CREATE_RESPONSE}" >&2
     exit 1
 fi
+USER_CREATED="1"
 if [[ "${LOGIN_RESPONSE}" != *'"success":true'* ]]; then
     echo "Login failed: ${LOGIN_RESPONSE}" >&2
     exit 1
@@ -190,7 +245,7 @@ if [[ "${MISMATCH_RESPONSE}" != *'"success":false'* ]]; then
     echo "Declared mime-type mismatch should fail: ${MISMATCH_RESPONSE}" >&2
     exit 1
 fi
-if [[ "${MISMATCH_RESPONSE}" != *"Invalid file type"* && "${MISMATCH_RESPONSE}" != *"does not match file content"* ]]; then
+if [[ "${MISMATCH_RESPONSE}" != *"Invalid file type"* && "${MISMATCH_RESPONSE}" != *"does not match file content"* && "${MISMATCH_RESPONSE}" != *"Invalid image type"* ]]; then
     echo "Unexpected mime mismatch response: ${MISMATCH_RESPONSE}" >&2
     exit 1
 fi

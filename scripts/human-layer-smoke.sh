@@ -6,7 +6,7 @@ USERNAME="humanlayer$(date +%s)"
 PASSWORD="HumanLayerPass123!"
 COOKIE_FILE="$(mktemp)"
 SMOKE_POST_PREFIX="human-layer-smoke-"
-trap 'rm -f "${COOKIE_FILE}"' EXIT
+USER_CREATED="0"
 
 extract_json_string() {
     local json="$1"
@@ -41,6 +41,48 @@ extract_body() {
     local response="$1"
     printf '%s' "${response%$'\n'*}"
 }
+
+cleanup_smoke_user() {
+    if [[ "${USER_CREATED}" != "1" ]]; then
+        return 0
+    fi
+
+    local delete_payload delete_response delete_status delete_body
+    echo "[cleanup] Delete smoke user: ${USERNAME}"
+
+    delete_payload=$(printf '{"password":"%s","confirmUsername":"%s"}' "${PASSWORD}" "${USERNAME}")
+    delete_response="$(request_with_status POST "${BASE_URL}/api/users/me/delete" "${delete_payload}")"
+    delete_status="$(extract_status "${delete_response}")"
+    delete_body="$(extract_body "${delete_response}")"
+
+    if [[ "${delete_status}" != "200" || "${delete_body}" != *'"success":true'* ]]; then
+        echo "Cleanup user failed for ${USERNAME}: HTTP ${delete_status}: ${delete_body}" >&2
+        return 1
+    fi
+
+    USER_CREATED="0"
+    return 0
+}
+
+on_exit() {
+    local exit_code="$?"
+    local cleanup_failed="0"
+
+    trap - EXIT
+
+    if ! cleanup_smoke_user; then
+        cleanup_failed="1"
+    fi
+
+    rm -f "${COOKIE_FILE}"
+
+    if [[ "${exit_code}" == "0" && "${cleanup_failed}" == "1" ]]; then
+        exit 1
+    fi
+
+    exit "${exit_code}"
+}
+trap on_exit EXIT
 
 cleanup_smoke_posts() {
     local tweets_json ids delete_response delete_status delete_body
@@ -93,6 +135,7 @@ if [[ "${create_response}" != *'"success":true'* ]]; then
     echo "Create user failed: ${create_response}" >&2
     exit 1
 fi
+USER_CREATED="1"
 
 login_response="$(curl -sS -b "${COOKIE_FILE}" -c "${COOKIE_FILE}" -H 'Content-Type: application/json' -d "${login_payload}" "${BASE_URL}/api/auth/login")"
 if [[ "${login_response}" != *'"success":true'* ]]; then

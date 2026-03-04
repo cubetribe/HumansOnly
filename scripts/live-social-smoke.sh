@@ -2,6 +2,73 @@
 set -euo pipefail
 
 BASE_URL="${1:-https://humans-only.de}"
+ua="wave5a$(date +%s)"
+ub="wave5b$(date +%s)"
+pa="Wave5Pass123!"
+pb="Wave5Pass456!"
+ca="$(mktemp)"
+cb="$(mktemp)"
+created_a="0"
+created_b="0"
+
+extract_status() {
+    local response="$1"
+    printf '%s' "${response##*$'\n'}"
+}
+
+extract_body() {
+    local response="$1"
+    printf '%s' "${response%$'\n'*}"
+}
+
+cleanup_user() {
+    local username="$1"
+    local password="$2"
+    local cookie_file="$3"
+
+    local delete_payload delete_response delete_status delete_body
+    delete_payload=$(printf '{"password":"%s","confirmUsername":"%s"}' "${password}" "${username}")
+    delete_response="$(curl -sS -b "${cookie_file}" -c "${cookie_file}" -H 'Content-Type: application/json' -d "${delete_payload}" -w '\n%{http_code}' "${BASE_URL}/api/users/me/delete")"
+    delete_status="$(extract_status "${delete_response}")"
+    delete_body="$(extract_body "${delete_response}")"
+
+    if [[ "${delete_status}" != "200" || "${delete_body}" != *'"success":true'* ]]; then
+        echo "Cleanup failed for ${username}: HTTP ${delete_status}: ${delete_body}" >&2
+        return 1
+    fi
+
+    return 0
+}
+
+on_exit() {
+    local exit_code="$?"
+    local cleanup_failed="0"
+
+    trap - EXIT
+
+    if [[ "${created_a}" == "1" ]]; then
+        echo "[cleanup] Delete smoke user: ${ua}"
+        if ! cleanup_user "${ua}" "${pa}" "${ca}"; then
+            cleanup_failed="1"
+        fi
+    fi
+
+    if [[ "${created_b}" == "1" ]]; then
+        echo "[cleanup] Delete smoke user: ${ub}"
+        if ! cleanup_user "${ub}" "${pb}" "${cb}"; then
+            cleanup_failed="1"
+        fi
+    fi
+
+    rm -f "${ca}" "${cb}"
+
+    if [[ "${exit_code}" == "0" && "${cleanup_failed}" == "1" ]]; then
+        exit 1
+    fi
+
+    exit "${exit_code}"
+}
+trap on_exit EXIT
 
 echo "[1/5] Health endpoint"
 health_response="$(curl -sS "${BASE_URL}/api/health")"
@@ -15,14 +82,6 @@ echo "[2/5] Auth smoke"
 "$(dirname "$0")/auth-smoke-local.sh" "${BASE_URL}" >/tmp/live-auth-smoke.log
 
 echo "[3/5] Privacy + interaction restrictions"
-ua="wave5a$(date +%s)"
-ub="wave5b$(date +%s)"
-pa="Wave5Pass123!"
-pb="Wave5Pass456!"
-ca="$(mktemp)"
-cb="$(mktemp)"
-trap 'rm -f "${ca}" "${cb}"' EXIT
-
 create_user() {
     local username="$1" password="$2" cookie_file="$3"
     curl -sS -c "${cookie_file}" -H 'Content-Type: application/json' \
@@ -41,6 +100,13 @@ create_a="$(create_user "${ua}" "${pa}" "${ca}")"
 create_b="$(create_user "${ub}" "${pb}" "${cb}")"
 login_a="$(login_user "${ua}" "${pa}" "${ca}")"
 login_b="$(login_user "${ub}" "${pb}" "${cb}")"
+
+if [[ "${create_a}" == *'"success":true'* ]]; then
+    created_a="1"
+fi
+if [[ "${create_b}" == *'"success":true'* ]]; then
+    created_b="1"
+fi
 
 if [[ "${create_a}" != *'"success":true'* || "${create_b}" != *'"success":true'* ]]; then
     echo "User creation failed." >&2

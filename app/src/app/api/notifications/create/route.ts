@@ -1,13 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { NotificationProps } from "@/types/NotificationProps";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 export async function POST(request: NextRequest) {
-    const { recipient, type, secret, notificationContent }: NotificationProps = await request.json();
+    const requestId = getRequestId(request);
+    let payload: NotificationProps;
+
+    try {
+        payload = (await request.json()) as NotificationProps;
+    } catch {
+        return errorResponse(requestId, "Invalid JSON payload.", 400);
+    }
+
+    const { recipient, type, secret, notificationContent } = payload;
 
     if (secret !== process.env.CREATION_SECRET_KEY) {
-        return NextResponse.json({ success: false, error: "Invalid secret." }, { status: 401 });
+        return errorResponse(requestId, "Invalid secret.", 401);
     }
 
     try {
@@ -21,7 +31,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (!user) {
-            return NextResponse.json({ success: false, error: "Recipient not found." }, { status: 404 });
+            return errorResponse(requestId, "Recipient not found.", 404);
         }
 
         const preferences = await prisma.notificationPreference.findUnique({
@@ -40,7 +50,7 @@ export async function POST(request: NextRequest) {
 
         const preferenceKey = preferenceKeyByType[type];
         if (preferenceKey && preferences && preferences[preferenceKey] === false) {
-            return NextResponse.json({ success: true, skipped: true });
+            return successResponse(requestId, { success: true, skipped: true });
         }
 
         await prisma.notification.create({
@@ -54,8 +64,8 @@ export async function POST(request: NextRequest) {
                 content: JSON.stringify(notificationContent),
             },
         });
-        return NextResponse.json({ success: true });
+        return successResponse(requestId, { success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error }, { status: 500 });
+        return errorResponse(requestId, "Failed to create notification.", 500, error);
     }
 }

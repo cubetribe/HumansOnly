@@ -1,15 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 import { visibleAuthorWhereForViewer } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest) {
+    const requestId = getRequestId(request);
     const query = request.nextUrl.searchParams.get("q");
     const authUser = await getAuthenticatedUser();
     const visibleAuthorWhere = visibleAuthorWhereForViewer(authUser?.id ?? null);
 
-    if (!query) return NextResponse.json({ success: false, message: "Missing query." });
+    if (!query) return errorResponse(requestId, "Missing query.", 400);
 
     try {
         const tweets = await prisma.tweet.findMany({
@@ -173,8 +175,8 @@ export async function GET(request: NextRequest) {
                 createdAt: "desc",
             },
         });
-        return NextResponse.json({ success: true, tweets });
+        return successResponse(requestId, { success: true, tweets });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to run search.", 500, error);
     }
 }

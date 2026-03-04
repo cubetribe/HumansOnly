@@ -1,17 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 export async function POST(request: NextRequest) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
-    const body = await request.json();
+    let body: { messagedUsername?: unknown };
+    try {
+        body = (await request.json()) as { messagedUsername?: unknown };
+    } catch {
+        return errorResponse(requestId, "Invalid JSON payload.", 400);
+    }
     const messagedUsername = typeof body?.messagedUsername === "string" ? body.messagedUsername.trim() : "";
 
     if (!messagedUsername) {
-        return NextResponse.json({ success: false, message: "Invalid request body." }, { status: 400 });
+        return errorResponse(requestId, "Invalid request body.", 400);
     }
 
     try {
@@ -30,8 +37,8 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        return NextResponse.json({ success: true, marked: updated.count });
+        return successResponse(requestId, { success: true, marked: updated.count });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error }, { status: 500 });
+        return errorResponse(requestId, "Failed to mark messages as read.", 500, error);
     }
 }

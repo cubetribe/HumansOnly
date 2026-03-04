@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 export async function GET(request: NextRequest, { params: { username } }: { params: { username: string } }) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
     if (authUser.username !== username) return unauthorizedResponse();
@@ -102,7 +104,7 @@ export async function GET(request: NextRequest, { params: { username } }: { para
         const totalConversations = formattedConversations.length;
         const totalUnread = formattedConversations.reduce((sum, conversation) => sum + (conversation.unreadCount || 0), 0);
 
-        return NextResponse.json({
+        return successResponse(requestId, {
             success: true,
             formattedConversations: paginatedConversations,
             totalUnread,
@@ -115,6 +117,6 @@ export async function GET(request: NextRequest, { params: { username } }: { para
             },
         });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to load conversations.", 500, error);
     }
 }

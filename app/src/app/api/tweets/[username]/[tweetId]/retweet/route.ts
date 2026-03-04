@@ -1,24 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/prisma/client";
 import { createNotification } from "@/utilities/fetch";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
 import { canUsersInteract } from "@/utilities/social/access";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 export async function POST(
     request: NextRequest,
     { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
 ) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
     const secret = process.env.CREATION_SECRET_KEY;
 
     if (!secret) {
-        return NextResponse.json({
-            success: false,
-            message: "Secret key not found.",
-        });
+        return errorResponse(requestId, "Secret key not found.", 500);
     }
 
     try {
@@ -115,8 +115,12 @@ export async function POST(
             await createNotification(username, "retweet", secret, notificationContent);
         }
 
-        return NextResponse.json({ success: true });
+        return successResponse(requestId, { success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            return errorResponse(requestId, "Target post not found.", 404);
+        }
+
+        return errorResponse(requestId, "Failed to repost.", 500, error);
     }
 }

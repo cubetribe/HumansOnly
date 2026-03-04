@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 import { canUsersInteract } from "@/utilities/social/access";
 
 export async function GET(request: NextRequest, { params: { username } }: { params: { username: string } }) {
+    const requestId = getRequestId(request);
     try {
         const authUser = await getAuthenticatedUser();
 
@@ -70,7 +72,7 @@ export async function GET(request: NextRequest, { params: { username } }: { para
         });
 
         if (!user) {
-            return NextResponse.json({ success: true, user: null });
+            return successResponse(requestId, { success: true, user: null });
         }
 
         let isBlockedByMe = false;
@@ -91,11 +93,11 @@ export async function GET(request: NextRequest, { params: { username } }: { para
             canViewContent = !user.isPrivate;
         }
 
-        return NextResponse.json({
+        return successResponse(requestId, {
             success: true,
             user: { ...user, isBlockedByMe, hasBlockedMe, isMutedByMe, canViewContent },
         });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to load user profile.", 500, error);
     }
 }

@@ -5,6 +5,7 @@ import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/ses
 import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
 import { runHumanGate } from "@/utilities/human/gate";
 import { trackProductEventForUser } from "@/utilities/analytics/server";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 type CreateTweetPayload = {
     text?: unknown;
@@ -14,15 +15,15 @@ type CreateTweetPayload = {
 };
 
 export async function POST(request: NextRequest) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse("Unauthorized");
-    const requestId = request.headers.get("x-request-id") || undefined;
 
     let body: CreateTweetPayload;
     try {
         body = (await request.json()) as CreateTweetPayload;
     } catch {
-        return NextResponse.json({ success: false, message: "Invalid JSON payload." }, { status: 400 });
+        return errorResponse(requestId, "Invalid JSON payload.", 400);
     }
 
     const { text, photoUrl } = body;
@@ -30,26 +31,17 @@ export async function POST(request: NextRequest) {
 
     // Validate input
     if (!normalizedText) {
-        return NextResponse.json({
-            success: false,
-            message: "Text is required"
-        }, { status: 400 });
+        return errorResponse(requestId, "Text is required.", 400);
     }
 
     if (normalizedText.length > 280) {
-        return NextResponse.json({
-            success: false,
-            message: "Text must be 1-280 characters"
-        }, { status: 400 });
+        return errorResponse(requestId, "Text must be 1-280 characters.", 400);
     }
 
     const hasPhotoUrl = photoUrl !== undefined && photoUrl !== null && !(typeof photoUrl === "string" && photoUrl.trim() === "");
     const sanitizedPhotoUrl = hasPhotoUrl ? sanitizeMediaUrl(photoUrl) : null;
     if (hasPhotoUrl && !sanitizedPhotoUrl) {
-        return NextResponse.json({
-            success: false,
-            message: "photoUrl must be a valid upload URL"
-        }, { status: 400 });
+        return errorResponse(requestId, "photoUrl must be a valid upload URL.", 400);
     }
 
     const challengeSessionId = typeof body.challengeSessionId === "string" ? body.challengeSessionId.trim() : null;
@@ -82,13 +74,20 @@ export async function POST(request: NextRequest) {
                 code: gate.code,
                 message: gate.message,
                 policyVersion: gate.policyVersion,
+                requestId,
             },
-            { status }
+            {
+                status,
+                headers: {
+                    "x-request-id": requestId,
+                },
+            }
         );
     }
 
     if (gate.decision === "pending_review") {
-        return NextResponse.json(
+        return successResponse(
+            requestId,
             {
                 success: true,
                 pendingReview: true,
@@ -97,7 +96,7 @@ export async function POST(request: NextRequest) {
                 riskScore: gate.risk.score,
                 suggestedDecision: gate.suggestedDecision,
             },
-            { status: 202 }
+            202
         );
     }
     if (gate.decision === "block") {
@@ -109,8 +108,14 @@ export async function POST(request: NextRequest) {
                 checkId: gate.authenticityCheckId,
                 riskScore: gate.risk.score,
                 suggestedDecision: gate.suggestedDecision,
+                requestId,
             },
-            { status: 403 }
+            {
+                status: 403,
+                headers: {
+                    "x-request-id": requestId,
+                },
+            }
         );
     }
 
@@ -153,8 +158,8 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        return NextResponse.json({ success: true });
+        return successResponse(requestId, { success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to create post.", 500, error);
     }
 }

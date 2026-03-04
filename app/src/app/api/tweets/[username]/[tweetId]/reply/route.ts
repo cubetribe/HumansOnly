@@ -7,6 +7,7 @@ import { canUsersInteract, visibleAuthorWhereForViewer, visibleTweetWhereForView
 import { sanitizeMediaUrl } from "@/utilities/misc/sanitizeMediaUrl";
 import { runHumanGate } from "@/utilities/human/gate";
 import { trackProductEventForUser } from "@/utilities/analytics/server";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 type CreateReplyPayload = {
     text?: unknown;
@@ -16,6 +17,7 @@ type CreateReplyPayload = {
 };
 
 export async function GET(request: NextRequest, { params: { tweetId } }: { params: { tweetId: string } }) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     const viewerId = authUser?.id ?? null;
     const visibleAuthorWhere = visibleAuthorWhereForViewer(viewerId);
@@ -34,7 +36,7 @@ export async function GET(request: NextRequest, { params: { tweetId } }: { param
         });
 
         if (!parentTweet) {
-            return NextResponse.json({ success: true, tweets: [] });
+            return successResponse(requestId, { success: true, tweets: [] });
         }
 
         const tweets = await prisma.tweet.findMany({
@@ -97,9 +99,9 @@ export async function GET(request: NextRequest, { params: { tweetId } }: { param
                 createdAt: "desc",
             },
         });
-        return NextResponse.json({ success: true, tweets });
+        return successResponse(requestId, { success: true, tweets });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to load replies.", 500, error);
     }
 }
 
@@ -107,24 +109,21 @@ export async function POST(
     request: NextRequest,
     { params: { tweetId, username } }: { params: { tweetId: string; username: string } }
 ) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse("Unauthorized");
-    const requestId = request.headers.get("x-request-id") || undefined;
 
     const secret = process.env.CREATION_SECRET_KEY;
 
     if (!secret) {
-        return NextResponse.json({
-            success: false,
-            message: "Secret key not found.",
-        });
+        return errorResponse(requestId, "Secret key not found.", 500);
     }
 
     let body: CreateReplyPayload;
     try {
         body = (await request.json()) as CreateReplyPayload;
     } catch {
-        return NextResponse.json({ success: false, message: "Invalid JSON payload." }, { status: 400 });
+        return errorResponse(requestId, "Invalid JSON payload.", 400);
     }
 
     const { text, photoUrl } = body;
@@ -132,26 +131,17 @@ export async function POST(
 
     // Validate input
     if (!normalizedText) {
-        return NextResponse.json({
-            success: false,
-            message: "Text is required"
-        }, { status: 400 });
+        return errorResponse(requestId, "Text is required.", 400);
     }
 
     if (normalizedText.length > 280) {
-        return NextResponse.json({
-            success: false,
-            message: "Text must be 1-280 characters"
-        }, { status: 400 });
+        return errorResponse(requestId, "Text must be 1-280 characters.", 400);
     }
 
     const hasPhotoUrl = photoUrl !== undefined && photoUrl !== null && !(typeof photoUrl === "string" && photoUrl.trim() === "");
     const sanitizedPhotoUrl = hasPhotoUrl ? sanitizeMediaUrl(photoUrl) : null;
     if (hasPhotoUrl && !sanitizedPhotoUrl) {
-        return NextResponse.json({
-            success: false,
-            message: "photoUrl must be a valid upload URL"
-        }, { status: 400 });
+        return errorResponse(requestId, "photoUrl must be a valid upload URL.", 400);
     }
 
     try {
@@ -238,13 +228,20 @@ export async function POST(
                     code: gate.code,
                     message: gate.message,
                     policyVersion: gate.policyVersion,
+                    requestId,
                 },
-                { status }
+                {
+                    status,
+                    headers: {
+                        "x-request-id": requestId,
+                    },
+                }
             );
         }
 
         if (gate.decision === "pending_review") {
-            return NextResponse.json(
+            return successResponse(
+                requestId,
                 {
                     success: true,
                     pendingReview: true,
@@ -253,7 +250,7 @@ export async function POST(
                     riskScore: gate.risk.score,
                     suggestedDecision: gate.suggestedDecision,
                 },
-                { status: 202 }
+                202
             );
         }
         if (gate.decision === "block") {
@@ -265,8 +262,14 @@ export async function POST(
                     checkId: gate.authenticityCheckId,
                     riskScore: gate.risk.score,
                     suggestedDecision: gate.suggestedDecision,
+                    requestId,
                 },
-                { status: 403 }
+                {
+                    status: 403,
+                    headers: {
+                        "x-request-id": requestId,
+                    },
+                }
             );
         }
 
@@ -331,8 +334,8 @@ export async function POST(
             await createNotification(username, "reply", secret, notificationContent);
         }
 
-        return NextResponse.json({ success: true });
+        return successResponse(requestId, { success: true });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to create reply.", 500, error);
     }
 }

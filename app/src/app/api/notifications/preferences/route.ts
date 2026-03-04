@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 const ensurePreferences = async (userId: string) =>
     prisma.notificationPreference.upsert({
@@ -14,23 +15,30 @@ const ensurePreferences = async (userId: string) =>
         },
     });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
     try {
         const preferences = await ensurePreferences(authUser.id);
-        return NextResponse.json({ success: true, preferences });
+        return successResponse(requestId, { success: true, preferences });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error }, { status: 500 });
+        return errorResponse(requestId, "Failed to load notification preferences.", 500, error);
     }
 }
 
 export async function POST(request: NextRequest) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
-    const body = await request.json();
+    let body: Record<string, unknown>;
+    try {
+        body = (await request.json()) as Record<string, unknown>;
+    } catch {
+        return errorResponse(requestId, "Invalid JSON payload.", 400);
+    }
     const updates = Object.fromEntries(
         ["like", "reply", "follow", "retweet", "message"]
             .filter((key) => typeof body?.[key] === "boolean")
@@ -38,7 +46,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (Object.keys(updates).length === 0) {
-        return NextResponse.json({ success: false, message: "No valid preference fields provided." }, { status: 400 });
+        return errorResponse(requestId, "No valid preference fields provided.", 400);
     }
 
     try {
@@ -53,8 +61,8 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        return NextResponse.json({ success: true, preferences });
+        return successResponse(requestId, { success: true, preferences });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error }, { status: 500 });
+        return errorResponse(requestId, "Failed to update notification preferences.", 500, error);
     }
 }

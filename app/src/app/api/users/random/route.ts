@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 
 export async function GET(request: NextRequest) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse("You are not logged in.");
 
@@ -154,8 +156,8 @@ export async function GET(request: NextRequest) {
                 createdAt: "desc",
             },
         });
-        return NextResponse.json({ success: true, users });
+        return successResponse(requestId, { success: true, users });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error });
+        return errorResponse(requestId, "Failed to load user recommendations.", 500, error);
     }
 }

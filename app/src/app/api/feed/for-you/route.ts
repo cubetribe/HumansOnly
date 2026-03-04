@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { prisma } from "@/prisma/client";
 import { getAuthenticatedUser, unauthorizedResponse } from "@/utilities/auth/session";
+import { errorResponse, getRequestId, successResponse } from "@/utilities/observability";
 import { visibleAuthorWhereForViewer, visibleTweetWhereForViewer } from "@/utilities/social/access";
 
 const DEFAULT_LIMIT = 20;
@@ -15,6 +16,7 @@ const parsePositiveInt = (value: string | null, fallback: number, max: number) =
 };
 
 export async function GET(request: NextRequest) {
+    const requestId = getRequestId(request);
     const authUser = await getAuthenticatedUser();
     if (!authUser) return unauthorizedResponse();
 
@@ -229,7 +231,7 @@ export async function GET(request: NextRequest) {
         const items = ranked.slice(offset, offset + limit).map((row) => row.tweet);
         const nextPage = page + 1;
 
-        return NextResponse.json({
+        return successResponse(requestId, {
             success: true,
             source: "for_you",
             tweets: items,
@@ -237,7 +239,6 @@ export async function GET(request: NextRequest) {
             lastPage,
         });
     } catch (error: unknown) {
-        return NextResponse.json({ success: false, error }, { status: 500 });
+        return errorResponse(requestId, "Failed to load for-you feed.", 500, error);
     }
 }
-
